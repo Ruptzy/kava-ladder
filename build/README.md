@@ -20,6 +20,13 @@ If any panel is missing the tabs fall back to plain text buttons.
 Podium cards live in `podium/1.png`, `2.png`, `3.png`; the circle position for
 each is set per card in the CSS, measured off the art.
 
+Achievements: 55 of them, defined in `ladderbuild.js` (search `var ACH=`). Each
+has a stable id which doubles as its icon file name, `achievements/<id>.png`;
+see `achievements/README.md` for the full list. Missing icons fall back to an
+emoji, so art can be added a few at a time. Most are about turning up, variety
+and effort rather than strength, and unearned ones stay on the profile with
+their progress.
+
 Trophies live in `trophies/1.png`, `2.png`, `3.png` (transparent PNGs, 240px).
 Counts are worked out in the page: each club night, players who played at least
 three games are ranked against the rest of their bracket, and a top-three finish

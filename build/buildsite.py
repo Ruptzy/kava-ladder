@@ -9,6 +9,10 @@ HERE=os.path.dirname(os.path.abspath(__file__))
 ROOT=os.path.dirname(HERE) if os.path.isdir(os.path.join(os.path.dirname(HERE),'photos')) else HERE
 def here(n): return os.path.join(HERE,n)
 def slugify(n): return re.sub(r'^-+|-+$','',re.sub(r'[^a-z0-9]+','-',n.lower()))
+def ach_art():
+    d=os.path.join(ROOT,'achievements')
+    if not os.path.isdir(d): return []
+    return sorted(f[:-4] for f in os.listdir(d) if f.endswith('.png'))
 def tab_art():
     d=os.path.join(ROOT,'tabs')
     if not os.path.isdir(d): return []
@@ -126,6 +130,7 @@ if __name__=="__main__":
     D["pics"]=photo_slugs()
     D["divhist"]=DIVH
     D["tabart"]=tab_art()
+    D["achart"]=ach_art()
     src=open(here('ladderbuild.js'),encoding='utf-8').read()
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
     html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))

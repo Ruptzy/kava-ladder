@@ -419,6 +419,30 @@ font-size:2rem;line-height:1;color:var(--cream);text-shadow:0 2px 10px rgba(0,0,
 .ptro .lb{display:block;font-family:var(--fm);font-size:.5rem;letter-spacing:.22em;
 text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 .ptro .lb i{font-style:normal;color:var(--scarlet);margin:0 .2rem}
+.achhead{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.7rem}
+.achhead b{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.1rem}
+.achhead .bar{flex:1 1 120px;height:6px;border-radius:3px;background:var(--panel-3);overflow:hidden;min-width:90px}
+.achhead .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--scarlet-dim),var(--scarlet))}
+.achhead small{font-family:var(--fm);font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.5rem}
+.ach{position:relative;display:flex;gap:.55rem;align-items:flex-start;padding:.55rem .6rem;border-radius:8px;
+border:1px solid var(--rule);background:rgba(30,32,35,.6)}
+.ach.got{border-color:var(--scarlet-dim);background:linear-gradient(150deg,rgba(254,39,58,.12),rgba(30,32,35,.7) 65%)}
+.ach .ic{flex:none;width:30px;height:30px;display:grid;place-items:center;font-size:1.05rem;line-height:1;
+border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;background-repeat:no-repeat;background-position:center}
+.ach.img .ic{font-size:0;background-color:transparent}
+.ach:not(.got){opacity:.55}
+.ach:not(.got) .ic{filter:grayscale(1)}
+.ach .tx{min-width:0}
+.ach .nm2{display:block;font-weight:600;font-size:.82rem;line-height:1.2}
+.ach.got .nm2{color:var(--cream)}
+.ach .hw{display:block;font-size:.72rem;color:var(--ink-2);line-height:1.35;margin-top:.15rem}
+.ach .pg{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.6rem;color:var(--ink-3)}
+.ach .pgb{display:block;height:3px;border-radius:2px;background:var(--panel-3);margin-top:.25rem;overflow:hidden}
+.ach .pgb i{display:block;height:100%;background:var(--ink-3)}
+.achmore{margin-top:.6rem;width:100%;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.5rem;
+color:var(--ink-3);font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.achmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
 .cab{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;text-align:center}
 .cab .it{padding:.4rem .2rem .5rem;border-radius:8px;background:radial-gradient(120% 90% at 50% 10%,rgba(254,39,58,.08),transparent 70%)}
 .cab .it.z{opacity:.3}
@@ -1241,6 +1265,145 @@ function titleFor(p){
   return {name:best.names[idx], ic:best.ic, why:why};
 }
 
+/* ---------- achievements ----------
+   Fifty of them, and most are not about being good: turning up, playing lots of
+   different people, taking on stronger opponents, coming back after a break.
+   id doubles as the icon file name: achievements/<id>.png                    */
+function achCtx(p){
+  const nights=Object.keys(p.att).map(Number).sort((a,b)=>a-b);
+  let run=1, bestRun=nights.length?1:0;
+  for(let i=1;i<nights.length;i++){ if(nights[i]===nights[i-1]+1){ run++; if(run>bestRun) bestRun=run } else run=1 }
+  let backAfter=0;
+  for(let i=1;i<nights.length;i++){
+    const gap=daysBetween(DATES[nights[i-1]],DATES[nights[i]]);
+    if(gap>backAfter) backAfter=gap;
+  }
+  const perNight=p.nightly.map(n=>n.w+n.dr+n.l);
+  const opps=Object.keys(p.opp);
+  const oppDivs={}; opps.forEach(o=>{ const q=byN[o]; if(q&&q.d) oppDivs[q.d]=1 });
+  let debutFaced=false, topBeaten=false;
+  const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0];
+  p.log.forEach(l=>{
+    const q=byN[l.o];
+    if(q&&q.log&&q.log.length&&q.log[0].ni===l.ni&&q.n!==p.n&&l.ni!==p.log[0].ni) debutFaced=true;
+    if(top&&l.o===top.n&&l.s===1) topBeaten=true;
+  });
+  const sweeps=p.nightly.filter(n=>n.l===0&&n.dr===0&&n.w>=3).length;
+  const perfect5=p.nightly.some(n=>n.l===0&&n.dr===0&&n.w>=5);
+  const wins=p.rec[0], first=p.first, last=p.last;
+  const span=(first&&last)?daysBetween(first,last):0;
+  const years=(first&&last)?(new Date(first+"T12:00").getFullYear()!==new Date(last+"T12:00").getFullYear()):false;
+  const climb=(p.peak&&p.low)?p.peak[0]-p.low[0]:0;
+  const startDiv=p.log.length?divAt(p.n,DATES[p.log[0].ni]):p.d;
+  const nowDiv=p.log.length?divAt(p.n,DATES[p.log[p.log.length-1].ni]):p.d;
+  const tro=p.trophies;
+  return {nights:nights.length, bestRun:bestRun, backAfter:backAfter,
+    maxNight:perNight.length?Math.max.apply(null,perNight):0,
+    opps:opps.length, oppDivs:Object.keys(oppDivs).length, debutFaced:debutFaced, topBeaten:topBeaten,
+    topName:top?top.n:"", sweeps:sweeps, perfect5:perfect5, wins:wins, span:span, years:years, climb:climb,
+    promoted:divRank(nowDiv)<divRank(startDiv), tro:tro, gold:tro[0], podium:tro[0]+tro[1]+tro[2],
+    fullSet:tro[0]>0&&tro[1]>0&&tro[2]>0, white:p.wh[0]+p.wh[1]+p.wh[2], black:p.bl[0]+p.bl[1]+p.bl[2]};
+}
+function A(id,ic,name,how,test,prog){ return {id:id,ic:ic,name:name,how:how,test:test,prog:prog} }
+var ACH=[
+ // turning up
+ A("first-night","\u265F","Took a Seat","Play your first club night.",(p,c)=>p.games>0),
+ A("regular-5","\u2615","Regular","Turn up to 5 club nights.",(p,c)=>c.nights>=5,(p,c)=>[c.nights,5]),
+ A("regular-10","\uD83E\uDE91","Fixture","Turn up to 10 club nights.",(p,c)=>c.nights>=10,(p,c)=>[c.nights,10]),
+ A("regular-20","\uD83C\uDFDB\uFE0F","Part of the Furniture","Turn up to 20 club nights.",(p,c)=>c.nights>=20,(p,c)=>[c.nights,20]),
+ A("run-3","\uD83D\uDCC5","Three on the Bounce","Make three club nights in a row.",(p,c)=>c.bestRun>=3,(p,c)=>[c.bestRun,3]),
+ A("run-6","\uD83D\uDDD3\uFE0F","Never Misses","Make six club nights in a row.",(p,c)=>c.bestRun>=6,(p,c)=>[c.bestRun,6]),
+ A("returner","\uD83D\uDD01","Back in the Room","Come back after two months away.",(p,c)=>c.backAfter>=60),
+ A("year-one","\uD83C\uDF82","One Year In","Still playing a year after your first game.",(p,c)=>c.span>=365,(p,c)=>[Math.min(c.span,365),365]),
+ A("two-years","\uD83C\uDFF0","Old Guard","Two years between your first game and your last.",(p,c)=>c.span>=730,(p,c)=>[Math.min(c.span,730),730]),
+ A("new-year","\uD83C\uDF87","Across the Years","Play in two different calendar years.",(p,c)=>c.years),
+ // volume
+ A("games-10","\u2694\uFE0F","Ten Games","Play 10 games.",(p,c)=>p.games>=10,(p,c)=>[p.games,10]),
+ A("games-25","\uD83D\uDCAA","Twenty-Five","Play 25 games.",(p,c)=>p.games>=25,(p,c)=>[p.games,25]),
+ A("games-50","\uD83D\uDD25","Half a Hundred","Play 50 games.",(p,c)=>p.games>=50,(p,c)=>[p.games,50]),
+ A("games-100","\uD83D\uDCAF","Century","Play 100 games.",(p,c)=>p.games>=100,(p,c)=>[p.games,100]),
+ A("games-200","\u26CF\uFE0F","Double Century","Play 200 games.",(p,c)=>p.games>=200,(p,c)=>[p.games,200]),
+ A("night-4","\uD83C\uDFAF","Full Card","Play four games in one night.",(p,c)=>c.maxNight>=4,(p,c)=>[c.maxNight,4]),
+ A("night-5","\uD83C\uDFC3","Iron Board","Play five games in one night.",(p,c)=>c.maxNight>=5,(p,c)=>[c.maxNight,5]),
+ A("night-6","\uD83E\uDD75","Marathon","Play six games in one night.",(p,c)=>c.maxNight>=6,(p,c)=>[c.maxNight,6]),
+ A("white-20","\u2654","Twenty as White","Play 20 games with White.",(p,c)=>c.white>=20,(p,c)=>[c.white,20]),
+ A("black-20","\u265A","Twenty as Black","Play 20 games with Black.",(p,c)=>c.black>=20,(p,c)=>[c.black,20]),
+ // the people you play
+ A("opps-5","\uD83D\uDC65","Five Faces","Play five different people.",(p,c)=>c.opps>=5,(p,c)=>[c.opps,5]),
+ A("opps-10","\uD83E\uDD1D","Ten Faces","Play ten different people.",(p,c)=>c.opps>=10,(p,c)=>[c.opps,10]),
+ A("opps-20","\uD83C\uDF0D","Twenty Faces","Play twenty different people.",(p,c)=>c.opps>=20,(p,c)=>[c.opps,20]),
+ A("opps-30","\uD83C\uDFAA","Knows Everyone","Play thirty different people.",(p,c)=>c.opps>=30,(p,c)=>[c.opps,30]),
+ A("all-brackets","\uD83E\uDDED","Crossed the Divide","Play someone from every bracket.",(p,c)=>c.oppDivs>=D.divisions.length,(p,c)=>[c.oppDivs,D.divisions.length]),
+ A("welcomer","\uD83C\uDF31","Welcoming","Play someone on their very first night.",(p,c)=>c.debutFaced),
+ A("punch-up","\uD83E\uDD4A","Punching Up","Face an average opponent rated above you.",(p,c)=>!!p.avgOpp&&p.avgOpp>p.r),
+ A("punch-up-100","\uD83C\uDFCB\uFE0F","No Easy Nights","Average opponent 100 or more above you.",(p,c)=>!!p.avgOpp&&p.avgOpp-p.r>=100),
+ A("rivalry","\uD83D\uDD25","A Proper Rivalry","Play the same person ten times.",(p,c)=>Object.keys(p.opp).some(o=>{const a=p.opp[o];return a[0]+a[1]+a[2]>=10})),
+ A("nemesis-beaten","\u26D3\uFE0F","Monkey Off Your Back","Beat someone who had beaten you three times.",(p,c)=>Object.keys(p.opp).some(o=>p.opp[o][0]>=1&&p.opp[o][2]>=3)),
+ // results
+ A("first-win","\uD83E\uDD47","First Win","Win a game.",(p,c)=>c.wins>=1),
+ A("wins-10","\u2B50","Ten Wins","Win 10 games.",(p,c)=>c.wins>=10,(p,c)=>[c.wins,10]),
+ A("wins-25","\uD83C\uDF1F","Twenty-Five Wins","Win 25 games.",(p,c)=>c.wins>=25,(p,c)=>[c.wins,25]),
+ A("wins-50","\uD83D\uDCA5","Fifty Wins","Win 50 games.",(p,c)=>c.wins>=50,(p,c)=>[c.wins,50]),
+ A("wins-100","\uD83D\uDC51","Hundred Wins","Win 100 games.",(p,c)=>c.wins>=100,(p,c)=>[c.wins,100]),
+ A("streak-3","\uD83C\uDFB3","Hat-trick","Win three in a row.",(p,c)=>p.streak[0]>=3,(p,c)=>[p.streak[0],3]),
+ A("streak-5","\uD83D\uDE80","Five Straight","Win five in a row.",(p,c)=>p.streak[0]>=5,(p,c)=>[p.streak[0],5]),
+ A("streak-10","\u26A1","Ten Straight","Win ten in a row.",(p,c)=>p.streak[0]>=10,(p,c)=>[p.streak[0],10]),
+ A("sweep","\uD83E\uDDF9","Clean Sweep","Win every game on a night, at least three.",(p,c)=>c.sweeps>=1,(p,c)=>[c.sweeps,1]),
+ A("perfect-5","\uD83D\uDC8E","Perfect Night","Win all five games on a night.",(p,c)=>c.perfect5),
+ A("upset-1","\uD83D\uDDE1\uFE0F","Giant Killer","Beat someone rated 150 or more above you.",(p,c)=>p.upsets>=1,(p,c)=>[p.upsets,1]),
+ A("upset-5","\uD83D\uDCA3","Serial Upsetter","Five wins over players 150 or more above you.",(p,c)=>p.upsets>=5,(p,c)=>[p.upsets,5]),
+ A("beat-top","\uD83D\uDC51","Regicide","Beat the player at the top of the ladder.",(p,c)=>c.topBeaten),
+ A("draws-5","\uD83E\uDD1D","Peacemaker","Draw five games.",(p,c)=>p.rec[1]>=5,(p,c)=>[p.rec[1],5]),
+ A("decisive","\u2694\uFE0F","No Middle Ground","Play 20 games without a single draw.",(p,c)=>p.games>=20&&p.rec[1]===0),
+ // the board
+ A("podium","\uD83C\uDFC5","On the Podium","Finish top three on a night in your bracket.",(p,c)=>c.podium>=1),
+ A("gold","\uD83C\uDFC6","Night Winner","Win a club night in your bracket.",(p,c)=>c.gold>=1),
+ A("gold-5","\uD83D\uDC51","Five-Time Winner","Win five club nights in your bracket.",(p,c)=>c.gold>=5,(p,c)=>[c.gold,5]),
+ A("full-set","\uD83E\uDD47","The Full Set","Take a first, a second and a third.",(p,c)=>c.fullSet),
+ A("promoted","\uD83D\uDCC8","Moved Up","Climb into a higher bracket.",(p,c)=>c.promoted),
+ // the number
+ A("settled","\uD83E\uDDCA","Settled In","Play enough for a ranked rating.",(p,c)=>p.rd<=RS),
+ A("climb-100","\uD83C\uDFD4\uFE0F","Climbing","Rise 100 points from your lowest.",(p,c)=>c.climb>=100,(p,c)=>[c.climb,100]),
+ A("climb-250","\uD83D\uDE80","Long Climb","Rise 250 points from your lowest.",(p,c)=>c.climb>=250,(p,c)=>[c.climb,250]),
+ A("at-peak","\uD83C\uDF1E","Career Best","Sit at your highest rating yet.",(p,c)=>!!(p.peak&&Math.abs(p.r-p.peak[0])<=2)),
+ A("improve-100","\uD83D\uDCC8","On the Up","Gain 100 points over three months.",(p,c)=>p.imp!=null&&p.imp>=100,(p,c)=>[Math.max(0,p.imp||0),100])
+];
+var ACHART=(D.achart&&D.achart.length)?D.achart:[];
+function achFor(p){
+  const c=achCtx(p);
+  return ACH.map(a=>{
+    let got=false; try{ got=!!a.test(p,c) }catch(e){}
+    let pr=null; try{ pr=a.prog?a.prog(p,c):null }catch(e){}
+    return {a:a, got:got, pr:pr};
+  });
+}
+function achBlock(p){
+  const rows=achFor(p), got=rows.filter(r=>r.got).length;
+  const pct=Math.round(got/rows.length*100);
+  const order=rows.slice().sort((x,y)=>{
+    if(x.got!==y.got) return x.got?-1:1;
+    const px=x.pr?x.pr[0]/x.pr[1]:0, py=y.pr?y.pr[0]/y.pr[1]:0;
+    return py-px;
+  });
+  const tile=r=>{
+    const a=r.a, hasImg=ACHART.indexOf(a.id)>=0;
+    const ic=hasImg?'<span class="ic" style="background-image:url(achievements/'+a.id+'.png)"></span>'
+                   :'<span class="ic">'+a.ic+'</span>';
+    let pg="";
+    if(!r.got&&r.pr){
+      const cur=Math.min(r.pr[0],r.pr[1]);
+      pg='<span class="pg">'+cur+' of '+r.pr[1]+'</span><span class="pgb"><i style="width:'+Math.round(cur/r.pr[1]*100)+'%"></i></span>';
+    }
+    return '<div class="ach'+(r.got?' got':'')+(hasImg?' img':'')+'" title="'+esc(a.how)+'">'+ic+
+      '<span class="tx"><b class="nm2">'+esc(a.name)+'</b><span class="hw">'+esc(a.how)+'</span>'+pg+'</span></div>';
+  };
+  return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
+    '<small>earned</small></div>'+
+    '<div class="achs" id="achWrap">'+order.slice(0,12).map(tile).join("")+'</div>'+
+    '<div class="achs hid" id="achRest">'+order.slice(12).map(tile).join("")+'</div>'+
+    '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
+}
+
 /* ---------- fun facts: five, most unusual first ---------- */
 function pctile(arr,v){ var n=arr.length; if(!n) return .5; var below=0, eq=0; arr.forEach(function(x){ if(x<v) below++; else if(x===v) eq++ }); return (below+eq/2)/n }
 function facts(p){
@@ -1474,9 +1637,15 @@ function drawGraphs(){
     card("Rivals", rivalsChart(p))+
     card("Turnout", attendance(p));
   $("#graphs2").innerHTML=
+    card("Achievements", achBlock(p), "gwide")+
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
     card("Milestones", milestones(p))+
     card("Record against everyone", vsTable(p));
+  var more=$("#achMore");
+  if(more) more.onclick=function(){
+    const rest=$("#achRest"), open=rest.classList.toggle("hid")===false;
+    this.textContent=open?"Show fewer":"Show all "+ACH.length;
+  };
   var s=$("#rivalSel"); if(s) s.onchange=function(){ location.hash="#/p/"+encodeURIComponent(p.n)+(this.value?"/vs/"+encodeURIComponent(this.value):"") };
 }
 $("#pv").onclick=function(e){
