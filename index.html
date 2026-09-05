@@ -61,15 +61,19 @@ text-transform:uppercase;line-height:1.7;text-align:right}
 .sres .no{padding:.6rem .8rem;color:var(--ink-3);font-size:.88rem}
 .tabs{display:flex;flex-wrap:wrap}
 /* art tabs: the wording is part of the picture */
-.tabs.art{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;padding:.2rem 0 .9rem}
-.tabs.art button{position:relative;border:none;padding:0;background:transparent no-repeat center/100% auto;
-aspect-ratio:1000/300;border-radius:8px;opacity:.55;filter:saturate(.75);transition:opacity .15s,filter .15s}
-.tabs.art button:hover{opacity:.85;filter:none}
-.tabs.art button[aria-selected=true]{opacity:1;filter:none;box-shadow:0 0 0 1px var(--scarlet-dim),0 8px 26px -12px var(--scarlet)}
+.tabs.art{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.7rem;padding:.2rem 0 1rem;
+width:min(1360px,calc(100vw - 1.6rem));margin-left:50%;transform:translateX(-50%)}
+.tabs.art button{display:block;position:relative;border:none;padding:0;background:none;
+opacity:.62;filter:saturate(.8);transition:opacity .15s,filter .15s,transform .15s}
+.tabs.art button:hover{opacity:.9;filter:none;transform:translateY(-1px)}
+.tabs.art button[aria-selected=true]{opacity:1;filter:none}
+.tabs.art .ta{display:block;width:100%;aspect-ratio:1000/300;border-radius:8px;
+background:transparent no-repeat center/100% auto}
+.tabs.art button[aria-selected=true] .ta{box-shadow:0 0 0 1px var(--scarlet-dim),0 10px 30px -14px var(--scarlet)}
 .tabs.art button .lg,.tabs.art button .sm{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.tabs.art button .n{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
-.tabs.art button::after{content:"";position:absolute;left:12%;right:12%;bottom:-2px;height:2px;border-radius:2px;background:transparent}
-.tabs.art button[aria-selected=true]::after{background:var(--scarlet)}
+.tabs.art button .n{display:block;margin:.4rem 0 0;font-family:var(--fm);font-size:.62rem;letter-spacing:.14em;
+text-transform:uppercase;color:var(--ink-3);text-align:center}
+.tabs.art button[aria-selected=true] .n{color:var(--cream)}
 .tabs button{background:none;border:none;border-bottom:2px solid transparent;color:var(--ink-3);font-family:var(--fm);
 font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;padding:.7rem .85rem;cursor:pointer;white-space:nowrap}
 .tabs button[aria-selected=true]{color:var(--cream);border-bottom-color:var(--scarlet)}
@@ -428,9 +432,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .howbtn{order:3}
   .tabs .lg{display:none}.tabs .sm{display:inline}
   .tabs button{padding:.6rem .6rem;font-size:.64rem}
-  .tabs.art{grid-template-columns:repeat(2,minmax(0,1fr));gap:.4rem}
-  .tabs.art .lg,.tabs.art .sm{display:none}
-  .tabs.art button .n{font-size:.55rem}
+  .tabs.art{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;width:100%;margin-left:0;transform:none}
+  .tabs.art button .n{font-size:.55rem;margin-top:.3rem}
   .pod{grid-template-columns:1fr;gap:.3rem;margin:.9rem 0}
   .pc .pcw{right:29%}
   .av.l{width:72px;height:72px;font-size:1.7rem}.ph2row{gap:.8rem;flex-wrap:wrap}
@@ -491,7 +494,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <main id="board">
 <section class="ln" id="ln"></section>
 <div class="pod" id="pod"></div>
-<div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p><span id="btCount"></span> &middot; tap a name</p></div>
+<div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p>Seasons 8 &amp; 9 &middot; tap a name</p></div>
 <p class="l">Beat someone better, gain more. The <b>&plusmn;</b> is wiggle room &mdash; it shrinks as you play.</p>
 <div class="sortbar">
 <div class="sorts" id="sorts"></div>
@@ -737,9 +740,10 @@ const artOK=TABS.every(t=>TABART.indexOf(tabSlug(t.i))>=0);
 if(artOK) $("#tabs").classList.add("art");
 $("#tabs").innerHTML=TABS.map(t=>{
   const n=t.i==="all"?P.length:P.filter(p=>p.d===t.i).length;
-  const bg=artOK?' style="background-image:url(tabs/'+tabSlug(t.i)+'.png)"':'';
-  return '<button role="tab" data-d="'+E(t.i)+'" aria-selected="false" aria-label="'+E(longDiv(t.i))+', '+n+' players"'+bg+
-    '><span class="lg">'+E(longDiv(t.i))+'</span><span class="sm">'+E(shortDiv(t.i))+'</span><span class="n">'+n+'</span></button>'}).join("");
+  const art=artOK?'<i class="ta" style="background-image:url(tabs/'+tabSlug(t.i)+'.png)"></i>':'';
+  return '<button role="tab" data-d="'+E(t.i)+'" aria-selected="false" aria-label="'+E(longDiv(t.i))+', '+n+' players">'+art+
+    '<span class="lg">'+E(longDiv(t.i))+'</span><span class="sm">'+E(shortDiv(t.i))+'</span>'+
+    '<span class="n">'+n+(artOK?' players':'')+'</span></button>'}).join("");
 $("#tabs").onclick=e=>{ const b=e.target.closest("[data-d]"); if(!b) return; div=b.dataset.d; go(stateHash()); $("#live").textContent=longDiv(div)+" ladder"; };
 $("#howBtn").onclick=()=>{ $("#how").classList.add("open"); $("#howX").focus() };
 $("#howX").onclick=()=>$("#how").classList.remove("open");
@@ -866,7 +870,6 @@ function draw(){
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
   $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
-  $("#btCount").textContent=pool().length+" players";
   $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r")).join("")
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
