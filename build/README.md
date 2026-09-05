@@ -12,6 +12,31 @@ Inputs: `history.json` (every game by club night), `seeds.json` (starting rating
 `arc_timeline.py` from `archive_raw.json`). The build also lists `../photos/`
 so the page only requests a portrait that exists.
 
+## Where the games come from
+
+Three importers, all writing `history.json`:
+
+`extract.py` reads the club workbook, which is where most nights come from.
+`reimport.py` re-reads the 2026 tournament pages, because the workbook import
+had dropped every game played against a one-off visitor. `gap2025.py` does the
+same for the seven links Harold sent covering early 2025: five of them were
+nights nobody had imported at all, and the other two turned out to be nights
+already on record whose byes had been lost.
+
+Byes are half a point on the night, so a missing bye moves a placing. The
+workbook carries none, which means the nights that came only from it still have
+none; the tournament pages do. Anything imported from a tournament page is
+checked against that tournament's own standings, player by player, before it
+goes in.
+
+A name is only merged when the club's own records merge it. "Bejamin" is Benji
+and plain "Omar" is Omar Cruz before January 2026, but "Ben (new)", "Codi" and
+"Shawn" stay as written: the club has always used a "(new)" suffix for a second
+person with the same first name, and the old workbook keeps Codi, Cody and Cody
+(she) apart. Anyone with no appearance in either era stays a visitor, which the
+build handles by their absence from `roster.json`: their games count, and they
+never join the ladder.
+
 Bracket tabs are art: `tabs/all.png`, `tabs/over-1400.png`, `tabs/u1400.png`,
 `tabs/u1000.png` (the file name is the bracket slugged). The wording is part of
 the picture, so the button text is kept for screen readers and hidden on screen.
@@ -26,16 +51,21 @@ see `achievements/README.md` for the full list. Missing icons fall back to an
 emoji, so art can be added a few at a time. Most are about turning up, variety and effort rather than strength, and unearned
 ones stay on the profile with their progress. Thresholds are deliberately steep:
 a new player with one night earns one or two, a regular around a dozen, and the
-club's busiest member 42.
+club's busiest member 53. Five are still unearned by anyone: they are the
+long-haul ones (150 and 200 games, 100 wins, forty different opponents, two
+years between first game and last).
 
 Trophies live in `trophies/1.png`, `2.png`, `3.png` (transparent PNGs, 240px).
 Counts are worked out in the page: each club night, players who played at least
 three games are ranked against the rest of their bracket, and a top-three finish
-becomes a trophy. Ties share the place. The bracket is the one the player's
-rating put them in **going into that night**, read off the bracket names ("over
-1400", "U1400", "U1000"), so cups won on the way up stay with the division they
-were won in. The header shows the strongest division a player has won in and
-lists anything below it underneath. The page template is the
+becomes a trophy. Ties share the place. The bracket used is the one the club
+had the player in on that night, read from the workbook snapshots in
+`divhistory.json`, so cups won on the way up stay with the division they were
+won in. The earliest snapshot is 30 November 2025; nights before it fall back to
+the player's bracket today, which is worth remembering for the five February and
+March 2025 nights, where a bracket can come down to one or two people. The
+header shows the strongest division a player has won in and lists anything below
+it underneath. The page template is the
 `ladderTemplate()` function in `ladderbuild.js`; the same file is spliced into the
 phone pairing tool so both builds produce the identical site.
 
