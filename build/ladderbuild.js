@@ -226,6 +226,15 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .xrow .rc{font-family:var(--fm);font-size:.72rem;color:var(--ink-3);min-width:3.6rem;text-align:right}
 .xbtn{width:100%;background:var(--panel);border:1px solid var(--rule-2);border-radius:8px;padding:.85rem;color:var(--ink-2);font-family:var(--fm);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:.8rem}
 .xbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
+/* avatars: photos/<slug>.jpg if it exists, else the initial */
+.av{display:inline-grid;place-items:center;border-radius:50%;background:var(--panel-3);color:var(--ink-2);font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;overflow:hidden;position:relative;flex:none;vertical-align:middle;line-height:1}
+.av img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0}
+.av.has img{opacity:1}
+.av.s{width:28px;height:28px;font-size:.72rem;margin-right:.55rem}
+.av.m{width:46px;height:46px;font-size:1.05rem;margin:0 auto .35rem}
+.av.l{width:104px;height:104px;font-size:2.4rem;border:2px solid var(--rule-2);box-shadow:0 0 30px -10px rgba(254,39,58,.5)}
+.ph2row{display:flex;gap:1.1rem;align-items:center}
+.pc{display:flex;gap:.8rem;align-items:center}.pc .av.m{margin:0}.pc>div{min-width:0}
 /* profile */
 .back{background:none;border:none;cursor:pointer;padding:.45rem 0;font-family:var(--fm);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.2rem}
 .back:hover{color:var(--scarlet)}
@@ -363,7 +372,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .tabs .lg{display:none}.tabs .sm{display:inline}
   .tabs button{padding:.6rem .6rem;font-size:.64rem}
   .pod{gap:.4rem;margin:.9rem 0}
-  .pc{padding:.55rem .6rem .5rem}
+  .pc{padding:.55rem .6rem .5rem;gap:.45rem}.pc .av.m{width:32px;height:32px;font-size:.8rem}
+  .av.l{width:72px;height:72px;font-size:1.7rem}.ph2row{gap:.8rem}
   .pc .rk{font-size:2.6rem;top:-.3rem;right:.2rem}
   .pc .nm{font-size:.86rem;padding-right:1.3rem;margin-bottom:.2rem}
   .pc .rt{font-size:1.2rem}.pc .rt sub{display:none}
@@ -441,7 +451,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 </main>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
-<div class="phead2"><div class="pnick" id="pnick"></div><h1 id="pname"></h1><div class="psub" id="psub"></div><div class="pact" id="pact"></div></div>
+<div class="phead2"><div class="pnick" id="pnick"></div><div class="ph2row"><div id="pav"></div><div style="min-width:0"><h1 id="pname"></h1><div class="psub" id="psub"></div></div></div><div class="pact" id="pact"></div></div>
 <dl class="kpis" id="kpis"></dl>
 <div class="facts" id="facts"></div>
 <div class="gwrap" id="graphs"></div>
@@ -475,6 +485,8 @@ const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
 const away=p=>p.idle!=null&&p.idle>IDLE;
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const av=(n,size)=>'<span class="av '+size+'" aria-hidden="true"><span>'+E(n.charAt(0).toUpperCase())+'</span><img src="photos/'+slug(n)+'.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add(&quot;has&quot;)"></span>';
 let NIGHT=[];
 
 /* ---------- everything derived from the games ---------- */
@@ -658,7 +670,7 @@ function metricCell(p){
 function row(p,i,kind){
   return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+'">'+
    '<td class="k">'+(kind==="r"?i+1:"·")+'</td>'+
-   '<td class="nmc2"><span class="nmc">'+E(p.n)+'</span><span class="chev">›</span></td>'+
+   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span><span class="chev">›</span></td>'+
    '<td class="r"><span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span></td>'+
    '<td class="r">'+metricCell(p)+'</td>'+
    '<td class="hm">'+spark(p)+'</td>'+
@@ -678,8 +690,8 @@ function draw(){
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>no games in '+IDLE+'+ days — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
   $("#pod").innerHTML=rank().slice(0,3).map((p,i)=>'<button class="pc '+(i===0?"one":"")+'" data-n="'+E(p.n)+'">'+
-   '<span class="rk">'+(i+1)+'</span><div class="nm">'+E(p.n)+'</div>'+
-   '<div class="rt">'+p.r+'<sub>±'+p.rd+'</sub></div></button>').join("");
+   '<span class="rk">'+(i+1)+'</span>'+av(p.n,"m")+'<div><div class="nm">'+E(p.n)+'</div>'+
+   '<div class="rt">'+p.r+'<sub>±'+p.rd+'</sub></div></div></button>').join("");
   drawLastNight();
   if(xtShown) cross();
 }
@@ -1015,9 +1027,9 @@ function comparePanel(p){
     return '<div class="cmprow"><div class="lab">'+r[0]+'</div><div class="line"><span class="va'+(aw?" win":"")+'">'+A+suf+'</span>'+
       '<span class="cmpbar"><i class="a'+(aw?" win":"")+'" style="width:'+pa+'%"></i><i class="b'+(bw?" win":"")+'" style="width:'+pb+'%"></i></span>'+
       '<span class="vb'+(bw?" win":"")+'">'+B+suf+'</span></div></div>' }).join("") }).join("");
-  return sel+'<div class="vsbar"><div class="side"><b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
+  return sel+'<div class="vsbar"><div class="side">'+av(p.n,"m")+'<b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
    '<div class="mid"><em>Head to head</em><div class="sc2">'+(a?('<span style="color:'+(net>0?"var(--gain)":"var(--ink-2)")+'">'+a[0]+'</span><span style="color:var(--ink-3)">–</span><span style="color:'+(net<0?"var(--gain)":"var(--ink-2)")+'">'+a[2]+'</span>'):'<span style="color:var(--ink-3);font-size:.9rem">never met</span>')+'</div></div>'+
-   '<div class="side"><b>'+esc(RIVAL.n)+'</b><span>'+RIVAL.r+'</span></div></div>'+
+   '<div class="side">'+av(RIVAL.n,"m")+'<b>'+esc(RIVAL.n)+'</b><span>'+RIVAL.r+'</span></div></div>'+
    (a?'<p style="text-align:center;font-family:var(--fm);font-size:.62rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fshort(DATES[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+body;
 }
 
@@ -1033,7 +1045,7 @@ function showProfile(n,rival){
   el.onclick=function(){ this.classList.toggle("open") };
   var hinted=false; try{ hinted=sessionStorage.getItem("kv-hint")==="1" }catch(e){}
   if(!hinted){ el.classList.add("open"); setTimeout(function(){ el.classList.remove("open") },2600); try{ sessionStorage.setItem("kv-hint","1") }catch(e){} }
-  $("#pname").textContent=p.n;
+  $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
   $("#psub").innerHTML='<span>'+esc(p.d)+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · no games in '+p.idle+' days</span>':'');
   $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("");
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"smooth",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
