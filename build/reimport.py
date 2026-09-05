@@ -15,8 +15,8 @@ DATE = {"4/19/26": "2026-04-19", "5/3/26": "2026-05-03", "5/17/26": "2026-05-17"
 CANON = {"omar": "Omar Cruz", "omar cruz": "Omar Cruz", "omar og": "Omar Cruz", "og omar": "Omar Cruz",
          "omar azab": "Omar Azab", "omar a": "Omar Azab",
          "vinny": "Vinny", "vinnie": "Vinny", "vinyy": "Vinny", "vincent": "Vinny",
-         "mathew": "Mathew UF", "matthew": "Mathew UF", "mathew uf": "Mathew UF",
-         "sam": "Sam (mama Smurf)", "brian bellamy": "Brian", "brian": "Brian", "brian o": "Brian O",
+         "mathew": "Mathew", "matthew": "Mathew", "mathew uf": "Mathew",
+         "sam": "Sam", "brian bellamy": "Brian", "brian": "Brian", "brian o": "Brian O",
          "ben": "Benji", "benji": "Benji", "schmerick": "Derek", "derek": "Derek",
          "anothny": "Anthony", "anthony": "Anthony", "diegi": "Diego", "diego": "Diego"}
 # visitors: their games count, but they never join the ladder
