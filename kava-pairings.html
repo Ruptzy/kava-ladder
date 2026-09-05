@@ -276,6 +276,7 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <div id="finish"></div>
     <button class="close" id="copyBtn" style="margin-top:1rem">Copy results for Discord</button>
     <button class="close" id="dscBtn">Post to Discord</button>
+    <button class="close" id="seaBtn">Post the season summary</button>
     <p class="hintline" id="dscState"></p>
     <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
     <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
@@ -3548,6 +3549,230 @@ async function dscSendFile(hook,blob,filename,content){
   throw new Error("Discord kept asking us to slow down. Try again in a minute.");
 }
 
+/* ---------- the season ----------
+   A season is everything since the club's last long break, worked out from the
+   dates so nobody has to remember to change a number next year.            */
+const SEASON_BREAK=60;              // days off that count as a new season
+const BYE_WHOLE_FROM="2026-09-01";  // before this a bye was scored at a half
+
+function seasonBounds(){
+  const ds=HISTORY.map(n=>n.date);
+  let start=0, longest=0;
+  for(let i=1;i<ds.length;i++){
+    const gap=(new Date(ds[i])-new Date(ds[i-1]))/86400000;
+    if(gap>=SEASON_BREAK&&gap>longest){ longest=gap; start=i }
+  }
+  return {from:ds[start], to:ds[ds.length-1], nights:ds.length-start, restedFor:Math.round(longest)};
+}
+
+/* Everything the season did, per player, in one pass. */
+function seasonStats(){
+  const b=seasonBounds();
+  const nights=HISTORY.filter(n=>n.date>=b.from);
+  const P=runRatings(HISTORY,DATA.seeds);
+  const S={};
+  const of=n=>S[n]||(S[n]={n, w:0, d:0, l:0, games:0, nights:0, wins:0, pts:0});
+
+  nights.forEach(night=>{
+    const here={}, pts={};
+    night.games.forEach(([w,bl,r])=>{
+      const A=of(w), B=of(bl);
+      A.games++; B.games++; here[w]=1; here[bl]=1;
+      pts[w]=(pts[w]||0)+(r==="w"?1:r==="d"?0.5:0);
+      pts[bl]=(pts[bl]||0)+(r==="b"?1:r==="d"?0.5:0);
+      if(r==="w"){A.w++;B.l++} else if(r==="b"){B.w++;A.l++} else {A.d++;B.d++}
+    });
+    const worth=night.date>=BYE_WHOLE_FROM?1:0.5;
+    (night.byes||[]).forEach(n=>{ of(n); here[n]=1; pts[n]=(pts[n]||0)+worth });
+    Object.keys(here).forEach(n=>{ of(n).nights++; of(n).pts+=pts[n]||0 });
+
+    // who took each bracket that night, ties shared, three games to qualify
+    const byDiv={};
+    Object.keys(here).forEach(n=>{
+      const p=byN2(n); if(!p) return;
+      const played=night.games.filter(g=>g[0]===n||g[1]===n).length;
+      if(played<3) return;
+      (byDiv[p.d]=byDiv[p.d]||[]).push(n);
+    });
+    Object.keys(byDiv).forEach(d=>{
+      const top=Math.max.apply(null,byDiv[d].map(n=>pts[n]||0));
+      byDiv[d].forEach(n=>{ if((pts[n]||0)===top) of(n).wins++ });
+    });
+  });
+
+  // rating at the season's first night, so the climb is the season's climb
+  Object.keys(S).forEach(n=>{
+    const p=P[n]; if(!p){ S[n].now=null; return }
+    S[n].now=Math.round(p.r); S[n].rd=Math.round(p.rd);
+    // only somebody who was already rated has a climb worth reporting; a new
+    // player's first nights are the rating finding its level, not improvement
+    const before=(p.hist||[]).filter(h=>h.d<b.from);
+    S[n].fresh=!before.length;
+    S[n].was=before.length?Math.round(before[before.length-1].r):null;
+    S[n].climb=before.length?S[n].now-S[n].was:null;
+  });
+  return {bounds:b, players:S};
+}
+
+function byN2(n){ return R.find(p=>p.n===n)||null }
+
+/* One bracket's season table, strongest first. Same bar as the site: a rating
+   still finding its level does not get ranked, and three nights is a season. */
+const SEASON_RD=110, SEASON_MIN_NIGHTS=3;
+function seasonTable(S,div){
+  return Object.keys(S.players)
+    .map(n=>({...S.players[n], p:byN2(n)}))
+    .filter(x=>x.p&&x.p.d===div&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=SEASON_MIN_NIGHTS)
+    .sort((a,b)=>b.now-a.now);
+}
+
+/* Two or three lines a bracket, all of them from the season's own numbers. */
+function seasonNotes(S,div,rows){
+  if(!rows.length) return [];
+  const out=[], nights=S.bounds.nights;
+  const top=rows[0], second=rows[1];
+  if(second){
+    const gap=top.now-second.now;
+    out.push(gap>=80 ? "**"+top.n+"** finishes on top and it was not close \u2014 "+gap+" points clear of "+second.n+"."
+           : gap>=25 ? "**"+top.n+"** takes it, "+gap+" points ahead of "+second.n+"."
+           : "**"+top.n+"** takes it by "+gap+" point"+(gap===1?"":"s")+". "+second.n+" will fancy their chances next time.");
+  }else{
+    out.push("**"+top.n+"** held this bracket on their own this season.");
+  }
+  const climber=rows.filter(x=>x.climb!=null).sort((a,b)=>b.climb-a.climb)[0];
+  if(climber&&climber.climb>=25)
+    out.push("Biggest climb: **"+climber.n+"**, up "+climber.climb+" points across the season.");
+  const keenest=rows.slice().sort((a,b)=>b.nights-a.nights||b.games-a.games)[0];
+  if(keenest&&keenest.nights>=Math.ceil(nights*0.5))
+    out.push("Turned up most: **"+keenest.n+"**, "+keenest.nights+" of the "+nights+" nights.");
+  const winner=rows.slice().sort((a,b)=>b.wins-a.wins)[0];
+  if(winner&&winner.wins>=2&&winner.n!==top.n)
+    out.push("Won the most nights: **"+winner.n+"**, top of the bracket "+winner.wins+" times.");
+  const newcomers=rows.filter(x=>x.fresh);
+  if(newcomers.length)
+    out.push("New to this board: "+newcomers.slice(0,5).map(x=>"**"+x.n+"**").join(", ")+
+             ". Everybody on it started exactly there.");
+  return out.slice(0,4);
+}
+
+async function seasonCanvas(){
+  const S=seasonStats();
+  const groups=DATA.divisions.map(d=>({div:d, rows:seasonTable(S,d).slice(0,10)}))
+                             .filter(g=>g.rows.length);
+  if(!groups.length) throw new Error("No season to summarise yet.");
+  try{ await document.fonts.ready }catch(e){}
+
+  const headH=112, divHead=44, gap=18, footH=54;
+  let h=PAD+headH;
+  groups.forEach(g=>{ h+=divHead+g.rows.length*ROW+gap });
+  h+=footH+PAD;
+
+  const cv=document.createElement("canvas");
+  cv.width=CARD_W*SHOT; cv.height=Math.round(h)*SHOT;
+  const c=cv.getContext("2d"); c.scale(SHOT,SHOT);
+  const round=(x,y,w,hh,r)=>{ c.beginPath();
+    c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+hh,r); c.arcTo(x+w,y+hh,x,y+hh,r);
+    c.arcTo(x,y+hh,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath(); };
+
+  c.fillStyle=CLR.bg; c.fillRect(0,0,CARD_W,h);
+  c.textBaseline="alphabetic";
+
+  let y=PAD;
+  const logo=await new Promise(res=>{ const im=new Image();
+    im.onload=()=>res(im); im.onerror=()=>res(null); im.src=LOGO; });
+  const lx=logo?PAD+70:PAD;
+  if(logo){ c.save(); c.beginPath(); c.arc(PAD+27,y+27,27,0,Math.PI*2); c.clip();
+            c.drawImage(logo,PAD,y,54,54); c.restore(); }
+  c.fillStyle=CLR.ink; c.font=fnt(800,26);
+  c.fillText("KAVA SOCIAL CHESS CLUB", lx, y+25);
+  c.fillStyle=CLR.red; c.font=fnt(800,26);
+  c.fillText("SEASON COMPLETE", lx, y+53);
+  const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+  c.fillStyle=CLR.dim; c.font=fnt(500,13,true);
+  c.fillText((fd(S.bounds.from)+" \u2013 "+fd(S.bounds.to)+"   \u00b7   "+
+              S.bounds.nights+" NIGHTS").toUpperCase(), lx+232, y+53);
+  y+=headH-26;
+  c.fillStyle=CLR.red; c.fillRect(PAD,y,CARD_W-PAD*2,2);
+  y+=24;
+
+  groups.forEach(g=>{
+    c.fillStyle=CLR.red; c.font=fnt(700,13,true);
+    c.fillText(divLabel(g.div).toUpperCase(), PAD, y+14);
+    c.fillStyle=CLR.dim; c.font=fnt(500,11,true); c.textAlign="right";
+    c.fillText("RATING    SEASON      W\u2013D\u2013L   NIGHTS", CARD_W-PAD, y+14);
+    c.textAlign="left";
+    y+=divHead-16;
+    g.rows.forEach((r,i)=>{
+      if(i%2===0){ c.fillStyle=CLR.panel; round(PAD-10,y-5,CARD_W-PAD*2+20,ROW-4,9); c.fill() }
+      if(i<3){
+        c.fillStyle=PLACE_CLR[i];
+        c.beginPath(); c.arc(PAD+13,y+14,13,0,Math.PI*2); c.fill();
+        c.fillStyle=CLR.bg; c.font=fnt(800,14,true);
+      }else{
+        c.fillStyle=CLR.dim; c.font=fnt(500,14,true);
+      }
+      c.textAlign="center"; c.fillText(String(i+1), PAD+13, y+19); c.textAlign="left";
+      c.fillStyle=CLR.ink; c.font=fnt(i<3?700:500,18);
+      var nm=r.n; const room=CARD_W-PAD*2-300;
+      while(c.measureText(nm).width>room&&nm.length>4) nm=nm.slice(0,-2)+"\u2026";
+      c.fillText(nm, PAD+40, y+20);
+      c.textAlign="right";
+      c.fillStyle=CLR.ink; c.font=fnt(700,17,true);
+      c.fillText(String(r.now), CARD_W-PAD-232, y+20);
+      c.fillStyle=r.climb==null?CLR.dim:r.climb>0?"#3BC79A":r.climb<0?CLR.red:CLR.dim;
+      c.font=fnt(500,14,true);
+      c.fillText(r.climb==null?"new":(r.climb>0?"+":"")+r.climb, CARD_W-PAD-150, y+20);
+      c.fillStyle=CLR.dim; c.font=fnt(500,13,true);
+      c.fillText(r.w+"\u2013"+r.d+"\u2013"+r.l, CARD_W-PAD-62, y+20);
+      c.fillText(String(r.nights), CARD_W-PAD, y+20);
+      c.textAlign="left";
+      y+=ROW;
+    });
+    y+=gap;
+  });
+
+  const pc=pubCfg();
+  c.fillStyle=CLR.rule; c.fillRect(PAD,y,CARD_W-PAD*2,1);
+  c.fillStyle=CLR.dim; c.font=fnt(500,12,true);
+  c.fillText((pc.owner&&pc.repo?siteUrl(pc):"KAVA SOCIAL CHESS CLUB").toUpperCase(), PAD, y+27);
+  return cv;
+}
+
+function seasonEmbeds(){
+  const S=seasonStats();
+  return DATA.divisions.map(d=>({d, rows:seasonTable(S,d)}))
+    .filter(g=>g.rows.length)
+    .map(g=>({title:divLabel(g.d), color:DSC_RED,
+              description:seasonNotes(S,g.d,g.rows).join(NL+NL)}));
+}
+
+async function postSeason(status){
+  const c=dscCfg();
+  if(!c.hook) throw new Error("Add the webhook in settings first.");
+  const S=seasonStats(), pc=pubCfg();
+  const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long"});
+  const head="# That is the season\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
+    "  \u00b7  "+S.bounds.nights+" nights  \u00b7  "+
+    HISTORY.filter(n=>n.date>=S.bounds.from).reduce((a,n)=>a+n.games.length,0)+" games";
+  let sent=0;
+  try{
+    status&&status("drawing the season\u2026");
+    const blob=await canvasBlob(await seasonCanvas());
+    status&&status("posting the season\u2026");
+    await dscSendFile(c.hook,blob,"kava-season.png",head);
+  }catch(e){
+    status&&status("posting the season\u2026");
+    await dscSend(c.hook,head,null);
+  }
+  sent++;
+  status&&status("posting what happened\u2026");
+  await dscSend(c.hook,"",seasonEmbeds()); sent++;
+  if(pc.owner&&pc.repo){
+    await dscSend(c.hook,"Every player's season, night by night: "+siteUrl(pc)); sent++;
+  }
+  return sent;
+}
+
 async function dscSend(hook,content,embeds){
   const payload={allowed_mentions:{parse:[]}};
   if(content) payload.content=content;
@@ -3670,6 +3895,23 @@ function renderPub(){
       if(st) st.textContent="In the channel"+(n>1?" as "+n+" messages":"")+".";
     }catch(e){
       b.textContent="Post to Discord";
+      if(st) st.textContent=e.message;
+    }
+    b.disabled=false;
+    setTimeout(()=>{ b.textContent=was },4000);
+  };
+}
+{
+  const b=document.getElementById("seaBtn");
+  if(b) b.onclick=async()=>{
+    const was=b.textContent, st=$("#dscState");
+    b.disabled=true;
+    try{
+      const n=await postSeason(m=>{ if(st) st.textContent=m });
+      b.textContent="Posted";
+      if(st) st.textContent="The season is in the channel, "+n+" messages.";
+    }catch(e){
+      b.textContent=was;
       if(st) st.textContent=e.message;
     }
     b.disabled=false;
