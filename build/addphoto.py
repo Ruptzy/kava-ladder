@@ -2,9 +2,8 @@
 
     python build/addphoto.py "Player Name" path/to/picture.jpg [--focus X,Y]
 
-Writes two files, and the page finds both by name, so there is nothing to rebuild:
-  photos/<slug>.jpg        400x400 round avatar (ladder, podium, compare)
-  photos/scene/<slug>.jpg  900x600 wide shot, keeps the board in frame (profile banner)
+Writes photos/<slug>.jpg, a 400x400 round portrait. Nothing to rebuild: the page
+finds it by name. Default --zoom 1 keeps the whole frame, so the board stays in shot.
 The original is kept in originals/ (not published) so a photo can be recropped later.
 --focus is where the face is, as fractions of width and height (default 0.5,0.4,
 a touch above centre, which suits most portraits). Use 0.5,0.25 for a face near
@@ -43,13 +42,6 @@ out=os.path.join(ROOT,'photos',slug(name)+'.jpg')
 im.save(out,'JPEG',quality=84,optimize=True,progressive=True)
 print('wrote %s (%d KB) for %s'%(os.path.relpath(out,ROOT),os.path.getsize(out)//1024,name))
 
-# wide scene: the whole picture, uncropped, so the board and the player both stay in
-sc=ImageOps.exif_transpose(Image.open(src)).convert('RGB')
-sc.thumbnail((1000,1000),Image.LANCZOS)
-os.makedirs(os.path.join(ROOT,'photos','scene'),exist_ok=True)
-so=os.path.join(ROOT,'photos','scene',slug(name)+'.jpg')
-sc.save(so,'JPEG',quality=80,optimize=True,progressive=True)
-print('wrote %s (%d KB, %dx%d)'%(os.path.relpath(so,ROOT),os.path.getsize(so)//1024,sc.width,sc.height))
 try:
     os.makedirs(os.path.join(ROOT,'originals'),exist_ok=True)
     ImageOps.exif_transpose(Image.open(src)).convert('RGB').save(os.path.join(ROOT,'originals',slug(name)+'.jpg'),'JPEG',quality=92)

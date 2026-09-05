@@ -3,7 +3,7 @@
     python build/photoserver.py            # serves the repo root on http://localhost:8765
     open http://localhost:8765/build/photos.html
 
-POST /save    {name,data,scene} -> photos/<slug>.jpg (400x400) + photos/scene/<slug>.jpg
+POST /save    {name, data}  -> writes photos/<slug>.jpg from a 400x400 JPEG data URL
 POST /remove  {name}        -> deletes photos/<slug>.jpg
 POST /publish               -> git add photos && git commit && git push, returns the output
 GET  /list                  -> {slug: bytes} for every photo on disk
@@ -43,12 +43,7 @@ class H(http.server.SimpleHTTPRequestHandler):
             os.makedirs(os.path.join(ROOT,'photos'),exist_ok=True)
             out=os.path.join(ROOT,'photos',slug(name)+'.jpg')
             open(out,'wb').write(base64.b64decode(data.split(',',1)[1]))
-            sb=0; sc=body.get('scene') or ''
-            if sc.startswith('data:image/jpeg;base64,'):
-                os.makedirs(os.path.join(ROOT,'photos','scene'),exist_ok=True)
-                sp=os.path.join(ROOT,'photos','scene',slug(name)+'.jpg')
-                open(sp,'wb').write(base64.b64decode(sc.split(',',1)[1])); sb=os.path.getsize(sp)
-            return self.send_json({'ok':True,'file':'photos/'+slug(name)+'.jpg','bytes':os.path.getsize(out),'sceneBytes':sb})
+            return self.send_json({'ok':True,'file':'photos/'+slug(name)+'.jpg','bytes':os.path.getsize(out)})
         if self.path=='/remove':
             for out in (os.path.join(ROOT,'photos',slug(body.get('name',''))+'.jpg'),
                         os.path.join(ROOT,'photos','scene',slug(body.get('name',''))+'.jpg')):
