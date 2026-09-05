@@ -124,6 +124,16 @@ border:1px solid var(--scarlet-dim);border-radius:100px;padding:.4rem .95rem .4r
 font-family:var(--fm);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
 color:var(--scarlet);margin-bottom:1rem}
 .pnick .ni{font-size:1rem;line-height:1}
+.pnick{position:relative;cursor:help;outline:none}
+.pnick .q{display:inline-grid;place-items:center;width:15px;height:15px;border-radius:50%;
+border:1px solid var(--scarlet-dim);font-size:.58rem;margin-left:.15rem;opacity:.75}
+.pnick .tip{position:absolute;top:calc(100% + .5rem);left:0;z-index:20;width:max-content;max-width:290px;
+background:var(--panel-2);border:1px solid var(--scarlet-dim);border-radius:8px;padding:.6rem .75rem;
+font-family:var(--fb);font-size:.84rem;letter-spacing:0;text-transform:none;color:var(--cream);
+line-height:1.45;box-shadow:0 10px 30px -10px rgba(0,0,0,.8);opacity:0;visibility:hidden;transition:opacity .12s}
+.pnick:hover .tip,.pnick:focus .tip,.pnick.open .tip{opacity:1;visibility:visible}
+.pnick .tip b{color:var(--scarlet);display:block;font-family:var(--fm);font-size:.58rem;
+letter-spacing:.14em;text-transform:uppercase;margin-bottom:.25rem}
 .phead2{padding-bottom:1.4rem;border-bottom:2px solid var(--rule-2);margin-bottom:1.5rem}
 .phead2 h1{font-family:var(--fd);font-variation-settings:"wdth" 118,"wght" 900;
 font-size:clamp(2.2rem,8vw,4rem);letter-spacing:-.035em;line-height:.92;margin-bottom:.6rem}
@@ -401,25 +411,137 @@ function cpct(a){var g=a[0]+a[1]+a[2];return g?Math.round((a[0]+a[1]/2)/g*100):0
 function fdate(s){return s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"—"}
 function fshort(s){return s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}):""}
 
-var NICKIC={"Giant Killer":"⚡","The Streak":"🔥","Ever-Present":"🪑","Nightfall":"♚","First Strike":"♔",
-"The Climber":"🚀","The Machine":"⚙️","The Grinder":"⛏️","The Metronome":"🎯","Punching Up":"🥊",
-"On A Roll":"📈","The Newcomer":"🌱","The Regular":"♟️"};
-function nickname(p){
-  var wpc=cpct(p.wh), bpc=cpct(p.bl), att=D.nights?(p.cons||0)/D.nights:0;
-  if(p.upsets>=4)                       return "Giant Killer";
-  if(p.streak[0]>=8)                    return "The Streak";
-  if(att>=0.85&&p.games>=20)            return "Ever-Present";
-  if(bpc>=wpc+15&&p.bl[0]+p.bl[2]>=8)   return "Nightfall";
-  if(wpc>=bpc+15&&p.wh[0]+p.wh[2]>=8)   return "First Strike";
-  if(p.imp!=null&&p.imp>=80)            return "The Climber";
-  if(wr(p)>=80&&p.games>=15)            return "The Machine";
-  if(p.games>=70)                       return "The Grinder";
-  if(p.rd<=60&&p.games>=35)             return "The Metronome";
-  if(p.avgOpp&&p.avgOpp>p.r+60)         return "Punching Up";
-  if(p.streak[1]>=3)                    return "On A Roll";
-  if(p.games<10)                        return "The Newcomer";
-  return "The Regular";
+/* ---------- titles ----------
+   Forty traits read off the player's own record, five names each, so two people
+   with the same trait rarely carry the same title. Highest-weighted trait wins;
+   the variant is picked from a hash of the name, so a title is stable for life.
+   Nothing here is unkind: a bad run gets a wry title, never a mocking one.
+   No gendered wording anywhere.                                              */
+function hashName(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return h>>>0}
+function T(w,ic,test,names,why){return {w:w,ic:ic,test:test,names:names,why:why}}
+
+var TITLES=[
+ T(100,"👑",function(p,c){return c.rank1&&c.win>=85&&p.games>=10},
+   ["The Untouchable","Final Boss","Flawless","The Ceiling","Apex Predator"],function(p,c){return "Top of the ladder, scoring "+c.win+"% across "+p.games+" games."}),
+ T(96,"👑",function(p,c){return c.rank1},
+   ["Top of the Mountain","The Benchmark","King of the Hill","The One to Beat","Head of the Table"],function(p,c){return "Number one on the ladder at "+p.r+"."}),
+ T(94,"🗡️",function(p,c){return c.beatTop},
+   ["Regicide","Toppled the Top","Slayer of Giants","Took the Crown","Big Game Hunter"],function(p,c){return "Has beaten "+rank()[0].n+", the top of the ladder."}),
+ T(90,"⚡",function(p){return p.upsets>=5},
+   ["Giant Killer","Bracket Buster","The Upset Machine","Dragon Slayer","Seed Wrecker"],function(p,c){return p.upsets+" wins over opponents rated 150 or more above them."}),
+ T(86,"💣",function(p){return p.upsets>=3},
+   ["Trouble","The Spoiler","Dark Horse","Ambush Specialist","The Banana Skin"],function(p,c){return p.upsets+" wins over opponents rated 150 or more above them."}),
+ T(84,"🔥",function(p){return p.streak[0]>=10},
+   ["The Streak","Avalanche","Ten Straight","Unstoppable Once Started","Chain Reaction"],function(p,c){return "Longest winning run at the club: "+p.streak[0]+" straight."}),
+ T(80,"🔥",function(p){return p.streak[0]>=6},
+   ["Hot Hand","On a Tear","Runs Deep","The Surge","Snowball"],function(p,c){return "Put together "+p.streak[0]+" wins in a row."}),
+ T(78,"🚀",function(p,c){return c.mostImproved},
+   ["Story of the Season","Biggest Riser","The Jump","Most Improved","Season's Climber"],function(p,c){return "The biggest three-month rise in the club, up "+p.imp+"."}),
+ T(76,"📈",function(p){return p.imp!=null&&p.imp>=100},
+   ["The Climber","Rocket","Rising Fast","Up and Up","The Ascent"],function(p,c){return "Up "+p.imp+" points over the last three months."}),
+ T(74,"🥇",function(p,c){return c.atPeak&&p.games>=15},
+   ["Career Best","Peak Form","Highest Ever","Top of Their Game","New Heights"],function(p,c){return "Sitting at their highest rating ever, "+p.r+"."}),
+ T(72,"♚",function(p,c){return c.bpc>=c.wpc+15&&c.blk>=8},
+   ["Nightfall","Second Mover","The Dark Side","Better in Black","Shadow Play"],function(p,c){return c.bpc+"% with Black against "+c.wpc+"% with White, over "+c.blk+" games as Black."}),
+ T(72,"♔",function(p,c){return c.wpc>=c.bpc+15&&c.wht>=8},
+   ["First Strike","Opening Bell","The Initiative","Better in White","Sets the Pace"],function(p,c){return c.wpc+"% with White against "+c.bpc+"% with Black, over "+c.wht+" games as White."}),
+ T(70,"🎯",function(p,c){return c.dominates},
+   ["Has Their Number","The Bogey","Nightmare Matchup","Owns the Fixture","Personal Curse"],function(p,c){return "Holds "+p.vic[1]+"-"+p.vic[2]+"-"+p.vic[3]+" over "+p.vic[0]+"."}),
+ T(68,"🪑",function(p,c){return c.att>=0.9&&p.games>=15},
+   ["Ever-Present","The Fixture","Never Misses","The Constant","Part of the Furniture"],function(p,c){return "At the board on "+p.cons+" of "+D.nights+" club nights."}),
+ T(66,"⛏️",function(p){return p.games>=80},
+   ["The Grinder","Iron Board","Volume Dealer","Never Says No","High Mileage"],function(p,c){return p.games+" games played, more than almost anyone."}),
+ T(64,"🧊",function(p,c){return p.rd<=55&&p.games>=40},
+   ["The Metronome","Known Quantity","Rock Solid","The Baseline","Steady State"],function(p,c){return "Rating settled to within "+p.rd+" after "+p.games+" games."}),
+ T(62,"🥊",function(p){return p.games>=15&&p.avgOpp&&p.avgOpp>=p.r+80},
+   ["Punching Up","Swims Upstream","Takes All Comers","No Easy Nights","Books the Hard Ones"],function(p,c){return "Average opponent rated "+p.avgOpp+", about "+(p.avgOpp-p.r)+" above them."}),
+ T(60,"🎲",function(p,c){return c.wildcard},
+   ["The Wildcard","Coin Flip","Chaos Agent","Never the Same Twice","Hard to Predict"],function(p,c){return "Beats players above them and drops games below — never the same twice."}),
+ T(58,"🤝",function(p,c){return c.drawRate>=0.12&&p.games>=15},
+   ["The Diplomat","Peace Broker","Splits the Point","Hard to Beat","The Handshake"],function(p,c){return p.rec[1]+" draws in "+p.games+" games."}),
+ T(57,"⚔️",function(p,c){return p.rec[1]===0&&p.games>=20},
+   ["No Quarter","All or Nothing","Decisive","No Middle Ground","Wins or Loses"],function(p,c){return "Not a single draw in "+p.games+" games."}),
+ T(56,"✅",function(p,c){return c.noSlips&&p.games>=20},
+   ["No Slip-Ups","Clinical","Does the Job","Takes Care of Business","Nothing Dropped"],function(p,c){return "Unbeaten against players well below them."}),
+ T(54,"🌟",function(p,c){return c.last5win},
+   ["Five From Five","Untouched Lately","Clean Sweep Mode","Perfect Fortnight","Nothing Given Away"],function(p,c){return "Won the last five games on record."}),
+ T(52,"📊",function(p,c){return Math.abs(c.wpc-c.bpc)<=3&&p.games>=20},
+   ["Ambidextrous","Either Side","No Preference","Same Either Way","Colour Agnostic"],function(p,c){return c.wpc+"% with White, "+c.bpc+"% with Black - no preference at all."}),
+ T(50,"🌍",function(p,c){return c.opps>=20},
+   ["Plays Anyone","Knows Everyone","Full Circuit","No Ducking","The Socialite"],function(p,c){return "Has faced "+c.opps+" different opponents."}),
+ T(48,"🏃",function(p,c){return p.streak[1]>=4},
+   ["Red Hot","Rolling","In Form","Riding the Wave","Can't Miss"],function(p,c){return "On "+p.streak[1]+" straight wins right now."}),
+ T(46,"💥",function(p,c){return c.bigNight>=60},
+   ["Big Night Merchant","The Spike","Peaks Hard","One Great Evening","Boom and Bust"],function(p,c){return "Once gained "+c.bigNight+" rating points in a single night."}),
+ T(44,"🛡️",function(p,c){return p.games>=15&&p.avgOpp&&p.avgOpp<=p.r-80},
+   ["Front Runner","Protects the Lead","Handles the Field","Business as Usual","Holds Station"],function(p,c){return "Average opponent rated "+p.avgOpp+", around "+(p.r-p.avgOpp)+" below them."}),
+ T(42,"🔁",function(p,c){return p.gap>=3||(p.idle!=null&&p.idle>60&&p.played)},
+   ["The Returner","Back in the Room","Long Time No See","Comeback Trail","Rejoined the Fray"],function(p,c){return "Back at the board after a spell away."}),
+ T(40,"👻",function(p,c){return away(p)},
+   ["Missing in Action","On Sabbatical","Whereabouts Unknown","The Ghost","Seat Still Warm"],function(p,c){return "No games in "+p.idle+" days."}),
+ T(38,"🧩",function(p){return p.rd>=110&&p.games>=15},
+   ["The Enigma","Hard to Read","Still a Mystery","Unresolved","Work in Progress"],function(p,c){return "Still swinging by "+p.rd+" after "+p.games+" games - hard to pin down."}),
+ T(36,"🧱",function(p,c){return c.hasNemesis},
+   ["Unfinished Business","Owes Someone","One Name Haunts Them","The Rematch Wanted","A Score to Settle"],function(p,c){return p.nem[0]+" leads it "+p.nem[3]+"-"+p.nem[1]+"."}),
+ T(34,"🔨",function(p){return p.games>=50},
+   ["The Workhorse","Plenty of Reps","In the Chair","Puts the Hours In","Always Playing"],function(p,c){return p.games+" games and counting."}),
+ T(65,"🌱",function(p){return p.games<8},
+   ["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten"],function(p,c){return "Only "+p.games+" games on the board so far."}),
+ T(30,"🏗️",function(p,c){return p.imp!=null&&p.imp>=40},
+   ["Trending Up","Finding Form","Sharpening","On the Rise","Building Something"],function(p,c){return "Up "+p.imp+" points over the last three months."}),
+ T(28,"🌊",function(p,c){return p.imp!=null&&p.imp<=-80},
+   ["Due a Bounce","Between Gears","Rebuilding","Storm to Ride Out","Better Days Coming"],function(p,c){return "Down "+Math.abs(p.imp)+" over three months - it comes back."}),
+ T(26,"🕳️",function(p,c){return c.slips>=3},
+   ["Off-Days Specialist","Trap Door","The Occasional Wobble","Loses the Winnable","Keeps It Interesting"],function(p,c){return "Has dropped "+c.slips+" games to players well below them."}),
+ T(24,"👥",function(p,c){return c.opps<=5&&p.games>=15},
+   ["Small Circle","Same Faces","Closed Shop","Familiar Foes","The Usual Suspects"],function(p,c){return "Plays the same "+c.opps+" opponents over and over."}),
+ T(22,"🌧️",function(p,c){return c.last5loss},
+   ["Rough Patch","Heads Down","Grinding Through","Turning a Corner","Fortunes Will Turn"],function(p,c){return "Last five games did not go their way."}),
+ T(20,"⏳",function(p,c){return p.games>=15&&p.r<p.peak-120},
+   ["Chasing the Peak","Was Higher Once","Road Back","Remembers Better Days","The Long Climb"],function(p,c){return "Career high was "+p.peak[0]+", currently "+p.r+"."}),
+ T(10,"♟️",function(){return true},
+   ["The Regular","Club Stalwart","Board Warrior","One of the Crew","Always Game"],function(p,c){return p.games+" games across "+p.cons+" nights."})
+];
+
+function titleCtx(p){
+  var board=rank(), rank1=board.length&&board[0].n===p.n;
+  var wht=p.wh[0]+p.wh[1]+p.wh[2], blk=p.bl[0]+p.bl[1]+p.bl[2];
+  var mostImp=null;
+  P.forEach(function(x){ if(x.imp!=null&&(mostImp===null||x.imp>mostImp.imp)) mostImp=x; });
+  var strong=(p.bands||[])[0]||["",0,0,0], weak=(p.bands||[])[4]||["",0,0,0];
+  var bigNight=0; (p.nightly||[]).forEach(function(n){ if(n[1]>bigNight) bigNight=n[1]; });
+  var f=p.form||"", last5=f.slice(-5);
+  return {
+    rank1:rank1,
+    beatTop:!!(board.length&&p.opp&&p.opp[board[0].n]&&p.opp[board[0].n][0]>0&&board[0].n!==p.n),
+    win:wr(p), wpc:cpct(p.wh), bpc:cpct(p.bl), wht:wht, blk:blk,
+    att:D.nights?(p.cons||0)/D.nights:0,
+    drawRate:p.games?p.rec[1]/p.games:0,
+    opps:Object.keys(p.opp||{}).length,
+    atPeak:!!(p.peak&&Math.abs(p.r-p.peak[0])<=2),
+    mostImproved:!!(mostImp&&mostImp.n===p.n&&mostImp.imp>=40),
+    dominates:!!(p.vic&&p.vic[1]-p.vic[3]>=5),
+    hasNemesis:!!(p.nem&&p.nem[3]-p.nem[1]>=3),
+    wildcard:strong[1]>=2&&weak[3]>=3,
+    noSlips:weak[3]===0&&weak[1]>=8,
+    slips:weak[3],
+    bigNight:bigNight,
+    last5win:last5.length===5&&last5.indexOf("L")<0&&last5.indexOf("D")<0,
+    last5loss:last5.length===5&&last5.indexOf("W")<0
+  };
 }
+function titleFor(p){
+  var c=titleCtx(p), best=null;
+  for(var i=0;i<TITLES.length;i++){
+    var t=TITLES[i];
+    try{ if(t.test(p,c)&&(!best||t.w>best.w)) best=t; }catch(e){}
+  }
+  if(!best) best=TITLES[TITLES.length-1];
+  var idx=hashName(p.n)%best.names.length;
+  var why=""; try{ if(best.why) why=best.why(p,c) }catch(e){ why="" }
+  return {name:best.names[idx], ic:best.ic, why:why};
+}
+
 function facts(p){
   var out=[], wpc=cpct(p.wh), bpc=cpct(p.bl);
   var bestNight=null;
@@ -579,8 +701,12 @@ function comparePanel(p){
 function open_(n){
   var p=byN[n]; if(!p) return;
   CUR=p; if(RIVAL&&RIVAL.n===n) RIVAL=null;
-  var nk=nickname(p);
-  $("#pnick").innerHTML='<span class="ni">'+(NICKIC[nk]||"♟️")+'</span>'+nk;
+  var tt=titleFor(p);
+  var el=$("#pnick");
+  el.setAttribute("tabindex","0");
+  el.innerHTML='<span class="ni">'+tt.ic+'</span>'+tt.name+'<span class="q">?</span>'+
+    '<span class="tip"><b>Why this title</b>'+esc(tt.why||"Earned from their record.")+'</span>';
+  el.onclick=function(){ this.classList.toggle("open") };   // tap works on a phone too
   $("#pname").textContent=p.n;
   $("#psub").innerHTML=esc(p.d)+" &middot; "+p.games+" games"+(away(p)?" &middot; away":"");
   $("#kpis").innerHTML=
