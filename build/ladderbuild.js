@@ -535,6 +535,9 @@ html.gold-mode,html.dim-mode{transition:filter .4s}
 .tonight{color:var(--scarlet)!important;animation:tonightPulse 1.6s ease-in-out infinite}
 @keyframes tonightPulse{0%,100%{opacity:1}50%{opacity:.45}}
 .eggl{background:none;border:none;color:var(--ink-3);font:inherit;cursor:pointer;text-decoration:underline dotted;padding:0}
+#hintDot{background:none;border:none;padding:.5rem .7rem;margin-left:.2rem;cursor:pointer;line-height:1;
+color:var(--rule-2);font-size:1.15rem;transition:color .2s;min-height:40px;vertical-align:middle}
+#hintDot:hover,#hintDot:focus-visible{color:var(--scarlet)}
 .eggl:hover{color:var(--scarlet)}
 .recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
 .rec{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem}
@@ -894,7 +897,8 @@ window.addEventListener("hashchange",route);
   const fresh=D.built&&daysBetween(D.built,today)<=2;
   $("#upd").className="upd"+(fresh?" fresh":"");
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; includes <b>'+fshort(D.date)+'</b>'+(D.next?'<br>Next night <b>'+fshort(D.next)+'</b>':'');
-  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; seasons 8 &amp; 9: "+D.games.length+" games across "+DATES.length+" club nights &middot; seasons 1&ndash;7 archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built);
+  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; seasons 8 &amp; 9: "+D.games.length+" games across "+DATES.length+" club nights &middot; seasons 1&ndash;7 archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
+    ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
 const TABART=D.tabart||[];
 const tabSlug=d=>d==="all"?"all":slug(d);
@@ -1789,6 +1793,7 @@ $("#bk").onclick=function(){ go(boardHash||"") };
 $("#hbk").onclick=function(){ go(boardHash||"") };
 $("#rbk").onclick=function(){ go(boardHash||"") };
 document.addEventListener("click",function(e){
+  if(e.target.closest("#hintDot")){ e.stopPropagation(); giveHint(); return }
   const l=e.target.closest("#recLink"); if(!l) return;
   boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records";
 });
@@ -1807,7 +1812,7 @@ const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes"
  // and thirty more
  "castle","stalemate","fork","pin","skewer","zugzwang","opening","endgame",
  "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
- "thursday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
+ "sunday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
  "lastnight","footer","searchicon","earned"];
 function eggsFound(){
   try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
@@ -1911,7 +1916,7 @@ function profileEggs(p){
   if(att){ att.style.cursor="pointer"; att.onclick=function(){
     const on=[...this.querySelectorAll("i.on")];
     on.forEach((el,i)=>setTimeout(()=>{ el.classList.add("rip"); setTimeout(()=>el.classList.remove("rip"),450) }, i*45));
-    if(eggFind("turnout")) egg("Every one of those is a Thursday you turned up.",2800);
+    if(eggFind("turnout")) egg("Every one of those is a Sunday you turned up.",2800);
   } }
   // 13-15: things true of this player alone
   if(p.first&&p.first.slice(5)===todayMD()) egg("Today is "+p.n+"'s club anniversary. First game "+fd(p.first)+".",4000);
@@ -1934,7 +1939,7 @@ function searchEgg(v){
   if(k==="gambit"){ egg("A gambit: give away a pawn, receive an argument.",2800,null,"gambit"); return true }
   if(k==="positional"){ egg("Positional chess: losing slowly, with dignity.",2800,null,"positional"); return true }
   if(k==="theory"){ egg("Theory is what you quote after you have already lost.",2800,null,"theory"); return true }
-  if(k==="blunder"){ egg("We have all been there. Most of us last Thursday.",2800,null,"blunder"); return true }
+  if(k==="blunder"){ egg("We have all been there. Most of us last Sunday.",2800,null,"blunder"); return true }
   if(k==="lenny"){ egg(LENNY[Math.floor(Math.random()*LENNY.length)],4200,null,"lenny"); return true }
   if(k==="checkers"){ egg("Have you considered checkers? I hear you can win as White every time.",3200,null,"checkers"); return true }
   if(k==="backgammon"){ egg("Backgammon has gambling in it. Maybe try that instead.",3200,null,"backgammon"); return true }
@@ -1965,7 +1970,8 @@ function searchEgg(v){
   if(k==="clock"){ egg("The clock has beaten more players than any opening.",3000,null,"clock"); return true }
   if(k==="blitz"){ egg("Blitz: chess with the thinking taken out.",2800,null,"blitz"); return true }
   if(k==="bullet"){ egg("One minute each. No regrets. Many regrets.",2800,null,"bullet"); return true }
-  if(k==="thursday"){ egg("Thursday is a chess word around here.",2600,null,"thursday"); return true }
+  if(k==="sunday"){ egg("Sunday is a chess word around here.",2600,null,"sunday"); return true }
+  if(k==="thursday"){ egg("Wrong day. It happens here on a Sunday.",2600,null,"sunday"); return true }
   if(k==="elo"){ egg("Arpad Elo did not expect this much arguing.",2800,null,"elo"); return true }
   if(k==="glicko"){ egg("Glicko-2. The plus-minus is the interesting half.",2800,null,"glicko"); return true }
   if(k==="beginner"||k==="newbie"){ egg("Everyone was. Several of us still are.",2800,null,"beginner"); return true }
@@ -2006,7 +2012,7 @@ function searchEgg(v){
 // the last-night heading, the footer, the search icon, the earned label
 document.addEventListener("click",function(e){
   if(e.target.closest("#ln .lh b")) egg("The one that just happened.",2400,null,"lastnight");
-  if(e.target.closest("footer")&&!e.target.closest("#recLink"))
+  if(e.target.closest("footer")&&!e.target.closest("#recLink")&&!e.target.closest("#hintDot"))
     egg("Turn up, play someone, write it down. That is the whole club.",3200,null,"footer");
   if(e.target.closest(".srch svg")) egg("Looking for someone? So is everyone.",2600,null,"searchicon");
   if(e.target.closest(".achhead small")) egg("Slowly. That is rather the point.",2600,null,"earned");
@@ -2025,7 +2031,7 @@ const QUIPS=[
  ()=>"Still waiting on a chess update. Last patch shipped about "+(new Date().getFullYear()-1475)+" years ago.",
  "You know the knight can also be called a pony.",
  "The bishop is stuck on one colour for life. Sit with that.",
- "Reminder: pawns cannot go backwards. Neither can Thursday.",
+ "Reminder: pawns cannot go backwards. Neither can Sunday.",
  "Nobody in recorded history has won an argument about the Sicilian.",
  "En passant is still legal, no matter how loudly it is discussed.",
  "The clock is not your enemy. The clock is simply honest.",
@@ -2043,6 +2049,82 @@ function quip(){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return t
   if(roll<0.04){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
   if(roll<0.20) setTimeout(function(){ egg(quip(),4600) },1600);
 })();
+
+/* One hint per visit, from the dim dot in the footer. Always points at
+   something this browser has not found, and never gives the whole answer.   */
+const HINTS={
+ "badge":"The club badge has somewhere it would rather be.",
+ "seasons":"The line under the club name remembers when this started.",
+ "updated":"The small print about when this was built has more to say.",
+ "ladder-name":"The word Ladder is not attached very firmly.",
+ "wiggle":"The plus-minus does exactly what it says, if you poke it.",
+ "away":"Somebody has to go looking for the players who stopped coming.",
+ "vibes":"Open the fun sorts a few times. They get suspicious.",
+ "self-cell":"In the crosstable, find where a player meets themselves.",
+ "rating":"A big rating on a profile did not start there. Ask it how.",
+ "record":"A W-D-L can be written three ways. Tap it twice.",
+ "trophy":"Cups like being handled.",
+ "spirit":"A portrait will tell you what that player really is.",
+ "turnout":"The little blocks counting nights will wave back.",
+ "code":"Up, up, down, down. Keys or thumbs, either works.",
+ "e4":"Type the first move most people ever learn.",
+ "e5":"Type Black's most stubborn reply to it.",
+ "d4":"Type the quiet first move.",
+ "sicilian":"Type the opening half this club argues about.",
+ "gambit":"Type the word for giving a pawn away on purpose.",
+ "positional":"Type the polite word for slow chess.",
+ "theory":"Type the thing people quote after they have lost.",
+ "blunder":"Type what happened on move nine.",
+ "lenny":"Somebody here knows every line and will tell you. Type his name.",
+ "goblin":"Something small and loud lives in the search box. Two words.",
+ "checkers":"Type the game with no bishops.",
+ "backgammon":"Type the game with dice.",
+ "pony":"Type the other word for a knight.",
+ "update":"Type the thing software gets and chess never does.",
+ "kava":"Type where you are.",
+ "leet":"Type the four-digit number that means elite.",
+ "checkmate":"Type how the game ends.",
+ "records":"Type what a club keeps besides scores.",
+ "castle":"Type the move that tucks the king away.",
+ "stalemate":"Type the draw nobody enjoys.",
+ "fork":"Type the knight's favourite meal.",
+ "pin":"Type the tactic that stops a piece moving.",
+ "skewer":"Type the pin's ruder cousin.",
+ "zugzwang":"Type the German one.",
+ "opening":"Type the start of a game.",
+ "endgame":"Type the finish.",
+ "queen":"Type the strongest piece.",
+ "rook":"Type the piece that wants an open file.",
+ "bishop":"Type the piece stuck on one colour for life.",
+ "pawn":"Type the smallest piece.",
+ "king":"Type the piece the whole game is about.",
+ "draw":"Type the handshake.",
+ "resign":"Type the thing you refuse to do until move sixty.",
+ "clock":"Type the thing ticking beside the board.",
+ "blitz":"Type fast chess.",
+ "bullet":"Type even faster chess.",
+ "sunday":"Type the day this club lives for.",
+ "elo":"Type the surname behind every rating argument.",
+ "glicko":"Type the system that gives you the plus-minus.",
+ "beginner":"Type what everyone here was once.",
+ "magnus":"Type a world champion. Any of the famous two.",
+ "engine":"Type the thing that is not allowed at the board.",
+ "brilliant":"Type what a double exclamation mark means.",
+ "tilt":"Type what happens after three losses in a row.",
+ "lastnight":"The Last night heading will answer if you tap it.",
+ "footer":"The very bottom of the page has a club motto in it.",
+ "searchicon":"The magnifier in the search box is listening.",
+ "earned":"The word EARNED beside your achievements has an opinion."
+};
+function hintUsed(){ try{ return sessionStorage.getItem("kv-hint-used")==="1" }catch(e){ return false } }
+function giveHint(){
+  const found=eggsFound(), left=EGG_IDS.filter(id=>!found.has(id));
+  if(!left.length){ egg("All "+EGG_IDS.length+" found. Nothing left but chess.",3600,"goblin"); return }
+  if(hintUsed()){ egg("One hint a visit. Come back later.",2600); return }
+  try{ sessionStorage.setItem("kv-hint-used","1") }catch(e){}
+  const id=left[Math.floor(Math.random()*left.length)];
+  egg((HINTS[id]||"Keep poking about.")+"  ("+found.size+" of "+EGG_IDS.length+" found)",5200);
+}
 
 /* ---------- club records, reachable from the footer or by typing it ---------- */
 function drawRecords(){
@@ -2104,7 +2186,7 @@ $("#sorts").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;
   sortK=b.dataset.s; closeSort(); go(stateHash()); $("#live").textContent="Sorted by "+SORT().t };
 document.addEventListener("click",e=>{ if(!e.target.closest(".sortbar")) closeSort() });
 $("#awayBtn").onclick=()=>{ showAway=!showAway; draw();
-  if(showAway&&Math.random()<0.35) egg("Ghosts of Thursdays past.",2600,null,"away") };
+  if(showAway&&Math.random()<0.35) egg("Ghosts of Sundays past.",2600,null,"away") };
 $("#pod").onclick=e=>{ const t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) };
 window.matchMedia("(max-width:640px)").addEventListener("change",()=>{ if(xtShown) cross() });
 drawArchive(); drawAllTime(); drawClub(); route();

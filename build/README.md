@@ -72,6 +72,13 @@ past) are not in the count: you cannot hunt something that hunts you.
 
 The Konami code needs a keyboard, so phones get the same sequence as swipes.
 
+A dim unlabelled dot at the very end of the footer gives one hint per visit,
+always for an egg this browser has not found, phrased as a nudge. Hints live in
+`HINTS`, one per id, and the build asserts every id has one.
+
+**The club plays on Sundays** (76 of the 78 nights on record). Copy used to say
+Thursday in five places; typing `thursday` now politely corrects you.
+
 Club records live at `#/records`, linked from the footer.
 
 ## Rules the data follows
