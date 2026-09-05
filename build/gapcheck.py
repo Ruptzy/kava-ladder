@@ -44,8 +44,9 @@ for tid, d in sorted(LINKS.items(), key=lambda kv: kv[1]):
     for w, b, r in H[d]['games']:
         mine[w] += 1.0 if r == 'w' else (0.5 if r == 'd' else 0.0)
         mine[b] += 1.0 if r == 'b' else (0.5 if r == 'd' else 0.0)
+    # these nights all predate the full-point ruling; see BYE_FULL_FROM
     for x in H[d].get('byes', []):
-        mine[x] += 0.5
+        mine[x] += 1.0 if d >= '2026-09-01' else 0.5
     names = set(site) | set(mine)
     off = [n for n in names if abs(site.get(n, -1) - mine.get(n, 0.0)) > 1e-6]
     checked += len(names)

@@ -48,8 +48,18 @@ That URL is a password in URL form - anyone holding it can post into the channel
 - so it is kept the way the GitHub token is: typed in on the phone, in
 `localStorage` under `kava.discord`, never in anything published.
 
-Discord stops at 2000 characters, and a busy night runs past that, so the post
-is split on round boundaries and sent in order, each piece inside a code fence
+The post leads with a picture: `nightCanvas()` draws the night's leaderboard on
+a canvas - one section per bracket, medals on the top three, the club's colours
+and the logo - and it goes up as a PNG attachment, which is multipart rather
+than JSON. A phone cannot screenshot a page from inside it, and a
+DOM-rasterising library would mean fetching a script from a CDN, which would
+break the one thing the tool has to do: work on a phone with no signal.
+
+If the drawing or the upload fails, the same standings go out as embeds instead,
+one panel per bracket. A picture is nicer; a missing result is not acceptable.
+
+The round by round boards follow as plain text. Discord stops at 2000
+characters, so that is split on round boundaries, each piece inside a code fence
 so the columns survive Discord's proportional font. A 429 is honoured with the
 `retry_after` Discord gives. The site link goes last, if the website is set up.
 
@@ -144,6 +154,15 @@ a new player with one night earns one or two, a regular around a dozen, and the
 club's busiest member 53. Five are still unearned by anyone: they are the
 long-haul ones (150 and 200 games, 100 wins, forty different opponents, two
 years between first game and last).
+
+## A bye is a whole point
+
+From September 2026, a bye scores 1. That is Harold's ruling and what the
+pairing tool has always done. Nights before `BYE_FULL_FROM` in `ladderbuild.js`
+keep the half point they were played with: the club's own tournament pages
+scored a bye at a half, and those nights were checked against them score by
+score, so rewriting them would put the record out of step with the source it
+came from. `gapcheck.py` follows the same rule.
 
 Trophies live in `trophies/1.png`, `2.png`, `3.png` (transparent PNGs, 240px).
 Counts are worked out in the page: each club night, players who played at least

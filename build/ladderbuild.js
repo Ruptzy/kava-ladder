@@ -751,6 +751,7 @@ const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
 const TROPHY_MIN=3;   // a night only counts if you played at least three games
+const BYE_FULL_FROM="2026-09-01";   // from here a bye scores a whole point
 /* Brackets are assigned by hand, so they come from the club's own workbooks:
    each backup holds the division sheets as they stood on its date. A night uses
    the latest snapshot on or before it, which is how a trophy stays with the
@@ -802,9 +803,13 @@ function derive(){
     p.att[a[0]]=1; (byeOf[a[0]]=byeOf[a[0]]||{})[p.n]=((byeOf[a[0]]||{})[p.n]||0)+1 } });
   NIGHT=DATES.map((d,i)=>({pts:{},g:{},ni:i}));
   ALL.forEach(p=>p.log.forEach(l=>{ const N=NIGHT[l.ni]; N.pts[p.n]=(N.pts[p.n]||0)+l.s; N.g[p.n]=(N.g[p.n]||0)+1 }));
-  // a bye is worth half a point on the night, the way the club scores it
+  /* A bye is a full point from September 2026 on - Harold's ruling, and what
+     the pairing tool has always done. Before that the club's tournament pages
+     scored it at a half, and those nights were checked against them score by
+     score, so they keep the half they were played with. */
   Object.keys(byeOf).forEach(ni=>{ const N=NIGHT[ni];
-    Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+0.5*byeOf[ni][n]; N.byes=(N.byes||0)+byeOf[ni][n] }) });
+    const worth=DATES[ni]>=BYE_FULL_FROM?1:0.5;
+    Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+worth*byeOf[ni][n]; N.byes=(N.byes||0)+byeOf[ni][n] }) });
   NIGHT.forEach(N=>{
     N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
     N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });
