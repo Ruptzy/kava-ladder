@@ -79,11 +79,16 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built):
         if h.get("byes"): byes.append([i]+[id_(x) for x in h["byes"]])
     di={d:i for i,d in enumerate(dates)}
     divOf={p["n"]:p["d"] for p in roster}
+    awayOf={p["n"]:bool(p.get("away")) for p in roster}
+    activeOf={p["n"]:bool(p.get("active")) for p in roster}
     players=[]
     for n,p in P.items():
         if p["n"]<=0: continue
-        players.append({"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),"seed":round(seeds.get(n,1000)),
-                        "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"]]})
+        rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),"seed":round(seeds.get(n,1000)),
+             "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"]]}
+        if awayOf.get(n): rec["aw"]=1
+        if activeOf.get(n): rec["ac"]=1
+        players.append(rec)
     players.sort(key=lambda x:-x["r"])
     nxt=None
     if len(dates)>=3:

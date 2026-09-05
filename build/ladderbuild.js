@@ -18,11 +18,14 @@ function ladderData(P,HISTORY,R,divisions,ARCHIVE,seeds,built){
     if(h.byes&&h.byes.length) byes.push([i].concat(h.byes.map(id)));
   });
   const di={}; dates.forEach((d,i)=>di[d]=i);
-  const divOf={}; R.forEach(p=>divOf[p.n]=p.d);
+  const divOf={}, awayOf={}, activeOf={}; R.forEach(p=>{ divOf[p.n]=p.d; awayOf[p.n]=!!(p.away||p.dormant); activeOf[p.n]=!!p.active });
   const players=Object.keys(P).filter(n=>P[n].n>0).map(n=>{
     const p=P[n];
-    return {n, d:divOf[n]||"", r:Math.round(p.r), rd:Math.round(p.rd), seed:Math.round((seeds&&seeds[n])||1000),
+    const rec={n, d:divOf[n]||"", r:Math.round(p.r), rd:Math.round(p.rd), seed:Math.round((seeds&&seeds[n])||1000),
       hist:p.hist.map(x=>[di[x.d],Math.round(x.r),Math.round(x.rd)])};
+    if(awayOf[n]) rec.aw=1;
+    if(activeOf[n]) rec.ac=1;
+    return rec;
   }).sort((a,b)=>b.r-a.r);
   let next=null;
   if(dates.length>=3){
@@ -484,7 +487,8 @@ const fdate=fd;
 const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5);
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
-const away=p=>p.idle!=null&&p.idle>IDLE;
+const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
+const awayWhy=p=>p.aw?"taking a break":"no games in "+p.idle+" days";
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
 const av=(n,size)=>'<span class="av '+size+'" aria-hidden="true"><span>'+E(n.charAt(0).toUpperCase())+'</span><img src="photos/'+slug(n)+'.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add(&quot;has&quot;)"></span>';
 let NIGHT=[];
@@ -682,13 +686,13 @@ function draw(){
   $("#sorts").innerHTML=SORTS.map(s=>'<button data-s="'+s.k+'" aria-pressed="'+(s.k===sortK)+'">'+s.t+'</button>').join("");
   const on=$("#sorts").querySelector('[aria-pressed="true"]'); if(on&&on.scrollIntoView) try{ on.scrollIntoView({block:"nearest",inline:"nearest"}) }catch(e){}
   $("#thMetric").textContent=SORT().col; $("#sortNote").textContent=SORT().note||"";
-  $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — no games in "+IDLE+"+ days"):"";
+  $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
   $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
   $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r")).join("")
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
-  $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>no games in '+IDLE+'+ days — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
+  $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
   $("#pod").innerHTML=rank().slice(0,3).map((p,i)=>'<button class="pc '+(i===0?"one":"")+'" data-n="'+E(p.n)+'">'+
    '<span class="rk">'+(i+1)+'</span>'+av(p.n,"m")+'<div><div class="nm">'+E(p.n)+'</div>'+
    '<div class="rt">'+p.r+'<sub>±'+p.rd+'</sub></div></div></button>').join("");
@@ -832,7 +836,7 @@ var TITLES=[
  T(46,"💥",function(p,c){return p.bigNight>=60},["Big Night Merchant","The Spike","Peaks Hard","One Great Evening","Boom and Bust"],function(p,c){return "Once gained "+p.bigNight+" rating points in a single night."}),
  T(44,"🛡️",function(p,c){return p.games>=15&&p.avgOpp&&p.avgOpp<=p.r-80},["Front Runner","Protects the Lead","Handles the Field","Business as Usual","Holds Station"],function(p,c){return "Average opponent rated "+p.avgOpp+", around "+(p.r-p.avgOpp)+" below them."}),
  T(42,"🔁",function(p,c){return c.returner},["The Returner","Back in the Room","Long Time No See","Comeback Trail","Rejoined the Fray"],function(p,c){return "Back at the board after a spell away."}),
- T(40,"👻",function(p,c){return away(p)},["Missing in Action","On Sabbatical","Whereabouts Unknown","The Ghost","Seat Still Warm"],function(p,c){return "No games in "+p.idle+" days."}),
+ T(40,"👻",function(p,c){return away(p)},["Missing in Action","On Sabbatical","Whereabouts Unknown","The Ghost","Seat Still Warm"],function(p,c){return p.aw?"Away from the ladder at the moment.":"No games in "+p.idle+" days."}),
  T(38,"🧩",function(p){return p.rd>=110&&p.games>=15},["The Enigma","Hard to Read","Still a Mystery","Unresolved","Work in Progress"],function(p,c){return "Still swinging by "+p.rd+" after "+p.games+" games - hard to pin down."}),
  T(36,"🧱",function(p,c){return c.hasNemesis},["Unfinished Business","Owes Someone","One Name Haunts Them","The Rematch Wanted","A Score to Settle"],function(p,c){return p.nem[0]+" leads it "+p.nem[3]+"-"+p.nem[1]+"."}),
  T(34,"🔨",function(p){return p.games>=50},["The Workhorse","Plenty of Reps","In the Chair","Puts the Hours In","Always Playing"],function(p,c){return p.games+" games and counting."}),
@@ -1046,7 +1050,7 @@ function showProfile(n,rival){
   var hinted=false; try{ hinted=sessionStorage.getItem("kv-hint")==="1" }catch(e){}
   if(!hinted){ el.classList.add("open"); setTimeout(function(){ el.classList.remove("open") },2600); try{ sessionStorage.setItem("kv-hint","1") }catch(e){} }
   $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
-  $("#psub").innerHTML='<span>'+esc(p.d)+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · no games in '+p.idle+' days</span>':'');
+  $("#psub").innerHTML='<span>'+esc(p.d)+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
   $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("");
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"smooth",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   $("#kpis").innerHTML=
