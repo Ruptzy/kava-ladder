@@ -2,8 +2,10 @@
 
     python build/addphoto.py "Player Name" path/to/picture.jpg [--focus X,Y]
 
-Writes photos/<slug>.jpg (400x400, square-cropped, ~30 KB). The page finds it by
-name on its own, so there is nothing to rebuild: just commit and push photos/.
+Writes two files, and the page finds both by name, so there is nothing to rebuild:
+  photos/<slug>.jpg        400x400 round avatar (ladder, podium, compare)
+  photos/scene/<slug>.jpg  900x600 wide shot, keeps the board in frame (profile banner)
+The original is kept in originals/ (not published) so a photo can be recropped later.
 --focus is where the face is, as fractions of width and height (default 0.5,0.4,
 a touch above centre, which suits most portraits). Use 0.5,0.25 for a face near
 the top of a tall photo. --zoom is the crop size as a fraction of the shorter side
@@ -13,11 +15,12 @@ import sys, os, json, re, difflib
 from PIL import Image, ImageOps
 HERE=os.path.dirname(os.path.abspath(__file__)); ROOT=os.path.dirname(HERE)
 def slug(n): return re.sub(r'^-+|-+$','',re.sub(r'[^a-z0-9]+','-',n.lower()))
-skip=set(); [skip.add(i+1) for i,a in enumerate(sys.argv) if a in ('--focus','--zoom')]
+skip=set(); [skip.add(i+1) for i,a in enumerate(sys.argv) if a in ('--focus','--zoom','--scene')]
 args=[a for i,a in enumerate(sys.argv[1:],1) if not a.startswith('--') and i not in skip]
 opts={a.split('=')[0][2:]:a.split('=',1)[1] for a in sys.argv[1:] if a.startswith('--') and '=' in a}
 if '--focus' in sys.argv: opts['focus']=sys.argv[sys.argv.index('--focus')+1]
 if '--zoom' in sys.argv: opts['zoom']=sys.argv[sys.argv.index('--zoom')+1]
+if '--scene' in sys.argv: opts['scene']=sys.argv[sys.argv.index('--scene')+1]
 if len(args)<2: print(__doc__); sys.exit(1)
 name,src=args[0],args[1]
 roster=json.load(open(os.path.join(HERE,'roster.json'),encoding='utf-8'))
@@ -39,3 +42,15 @@ os.makedirs(os.path.join(ROOT,'photos'),exist_ok=True)
 out=os.path.join(ROOT,'photos',slug(name)+'.jpg')
 im.save(out,'JPEG',quality=84,optimize=True,progressive=True)
 print('wrote %s (%d KB) for %s'%(os.path.relpath(out,ROOT),os.path.getsize(out)//1024,name))
+
+# wide scene: the whole picture, uncropped, so the board and the player both stay in
+sc=ImageOps.exif_transpose(Image.open(src)).convert('RGB')
+sc.thumbnail((1000,1000),Image.LANCZOS)
+os.makedirs(os.path.join(ROOT,'photos','scene'),exist_ok=True)
+so=os.path.join(ROOT,'photos','scene',slug(name)+'.jpg')
+sc.save(so,'JPEG',quality=80,optimize=True,progressive=True)
+print('wrote %s (%d KB, %dx%d)'%(os.path.relpath(so,ROOT),os.path.getsize(so)//1024,sc.width,sc.height))
+try:
+    os.makedirs(os.path.join(ROOT,'originals'),exist_ok=True)
+    ImageOps.exif_transpose(Image.open(src)).convert('RGB').save(os.path.join(ROOT,'originals',slug(name)+'.jpg'),'JPEG',quality=92)
+except Exception: pass

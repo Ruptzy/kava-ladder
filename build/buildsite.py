@@ -107,7 +107,7 @@ if __name__=="__main__":
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
     html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
              .replace('${SITE}',SITE).replace('${DESC}',DESC).replace('<\\/script>','</script>'))
-    open("index.html","w",encoding="utf-8").write(html)
+    open('index.html','w',encoding='utf-8').write(html)
     print('players',len(D["players"]),'| games',len(D["games"]),'| nights',len(D["dates"]),'| next',D["next"])
     print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
     print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in D["players"][:5]))
