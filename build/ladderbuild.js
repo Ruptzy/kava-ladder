@@ -771,6 +771,10 @@ const divRank=d=>{ const i=DIVS.indexOf(d); return i<0?DIVS.length:i };   // 0 i
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
 const awayWhy=p=>p.aw?"taking a break":"no games in "+p.idle+" days";
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+/* somebody who has left the club and is not listed. The build has already
+   replaced the name; the number is only there to keep them apart in the data. */
+const isVis=n=>/^Visitor \d+$/.test(n);
+const anon=n=>isVis(n)?"Visitor":n;
 const PICS=(D.pics&&D.pics.length)?new Set(D.pics):null;
 const hasPic=n=>PICS?PICS.has(slug(n)):true;
 const av=(n,size)=>'<span class="av '+size+(hasPic(n)?'':' noimg')+'" aria-hidden="true"><span>'+E(n.charAt(0).toUpperCase())+'</span>'+
@@ -862,8 +866,8 @@ function derive(){
 function milestonesOf(p){
   const out=[], lg=p.log; if(!lg.length) return out;
   const add=(ni,label,detail)=>out.push([DATES[ni],label,detail||""]);
-  add(lg[0].ni,"First game","against "+lg[0].o);
-  const fw=lg.find(l=>l.s===1); if(fw) add(fw.ni,"First win","against "+fw.o);
+  add(lg[0].ni,"First game","against "+anon(lg[0].o));
+  const fw=lg.find(l=>l.s===1); if(fw) add(fw.ni,"First win","against "+anon(fw.o));
   const fu=lg.find(l=>l.s===1&&!(l.first&&lg.length>4)&&l.orat-l.mrat>=UPSET); if(fu) add(fu.ni,"First upset","beat "+fu.o+", rated "+(fu.orat-fu.mrat)+" higher");
   let cur=0, s5=false, s10=false;
   lg.forEach(l=>{ cur=l.s===1?cur+1:0; if(cur===5&&!s5){ s5=true; add(l.ni,"Five wins in a row") } if(cur===10&&!s10){ s10=true; add(l.ni,"Ten wins in a row") } });
@@ -1089,7 +1093,7 @@ function drawLastNight(){
   const tiles=[];
   if(win.length) tiles.push('<div data-n="'+E(win[0][0])+'"><dt>'+(win.length>1?"Shared the night":"Won the night")+'</dt><dd>'+E(win.map(r=>r[0]).join(" & "))+'<small>'+win[0][1]+' of '+win[0][2]+' points</small></dd></div>');
   if(riser) tiles.push('<div data-n="'+E(riser.n)+'"><dt>Biggest climb</dt><dd>'+E(riser.n)+'<small><span class="u">+'+riser.delta+'</span> rating points</small></dd></div>');
-  if(up) tiles.push('<div data-n="'+E(up.p.n)+'"><dt>Upset of the night</dt><dd>'+E(up.p.n)+'<small>beat '+E(up.o)+', rated '+up.gap+' higher</small></dd></div>');
+  if(up) tiles.push('<div data-n="'+E(up.p.n)+'"><dt>Upset of the night</dt><dd>'+E(up.p.n)+'<small>beat '+E(anon(up.o))+', rated '+up.gap+' higher</small></dd></div>');
   if(sweeps.length&&!(win.length===1&&sweeps.length===1&&sweeps[0].n===win[0][0])) tiles.push('<div data-n="'+E(sweeps[0].n)+'"><dt>Clean sweep</dt><dd>'+E(sweeps.map(p=>p.n).join(", "))+'<small>every game won</small></dd></div>');
   tiles.push('<div><dt>Turnout</dt><dd>'+N.table.length+' players<small>'+games.length+' games played</small></dd></div>');
   const results=games.map(g=>{ const w=NAMES[g[1]], b=NAMES[g[2]], r=g[3];
@@ -1300,7 +1304,7 @@ var TITLES=[
  T(74,"🥇",function(p,c){return c.atPeak&&p.games>=15},["Career Best","Peak Form","Highest Ever","Top of Their Game","New Heights"],function(p,c){return "Sitting at their highest rating ever, "+p.r+"."}),
  T(72,"♚",function(p,c){return c.bpc>=c.wpc+15&&c.blk>=8},["Nightfall","Second Mover","The Dark Side","Better in Black","Shadow Play"],function(p,c){return c.bpc+"% with Black against "+c.wpc+"% with White, over "+c.blk+" games as Black."}),
  T(72,"♔",function(p,c){return c.wpc>=c.bpc+15&&c.wht>=8},["First Strike","Opening Bell","The Initiative","Better in White","Sets the Pace"],function(p,c){return c.wpc+"% with White against "+c.bpc+"% with Black, over "+c.wht+" games as White."}),
- T(70,"🎯",function(p,c){return c.dominates},["Has Their Number","The Bogey","Nightmare Matchup","Owns the Fixture","Personal Curse"],function(p,c){return "Holds "+p.vic[1]+"-"+p.vic[2]+"-"+p.vic[3]+" over "+p.vic[0]+"."}),
+ T(70,"🎯",function(p,c){return c.dominates},["Has Their Number","The Bogey","Nightmare Matchup","Owns the Fixture","Personal Curse"],function(p,c){return "Holds "+p.vic[1]+"-"+p.vic[2]+"-"+p.vic[3]+" over "+anon(p.vic[0])+"."}),
  T(68,"🪑",function(p,c){return c.att>=0.9&&p.games>=15},["Ever-Present","The Fixture","Never Misses","The Constant","Part of the Furniture"],function(p,c){return "At the board on "+p.cons+" of "+DATES.length+" club nights."}),
  T(66,"⛏️",function(p){return p.games>=80},["The Grinder","Iron Board","Volume Dealer","Never Says No","High Mileage"],function(p,c){return p.games+" games played, more than almost anyone."}),
  T(64,"🧊",function(p,c){return p.rd<=55&&p.games>=40},["The Metronome","Known Quantity","Rock Solid","The Baseline","Steady State"],function(p,c){return "Rating settled to within "+p.rd+" after "+p.games+" games."}),
@@ -1318,7 +1322,7 @@ var TITLES=[
  T(42,"🔁",function(p,c){return c.returner},["The Returner","Back in the Room","Long Time No See","Comeback Trail","Rejoined the Fray"],function(p,c){return "Back at the board after a spell away."}),
  T(40,"👻",function(p,c){return away(p)},["Missing in Action","On Sabbatical","Whereabouts Unknown","The Ghost","Seat Still Warm"],function(p,c){return p.aw?"Away from the ladder at the moment.":"No games in "+p.idle+" days."}),
  T(38,"🧩",function(p){return p.rd>=110&&p.games>=15},["The Enigma","Hard to Read","Still a Mystery","Unresolved","Work in Progress"],function(p,c){return "Still swinging by "+p.rd+" after "+p.games+" games - hard to pin down."}),
- T(36,"🧱",function(p,c){return c.hasNemesis},["Unfinished Business","Owes Someone","One Name Haunts Them","The Rematch Wanted","A Score to Settle"],function(p,c){return p.nem[0]+" leads it "+p.nem[3]+"-"+p.nem[1]+"."}),
+ T(36,"🧱",function(p,c){return c.hasNemesis},["Unfinished Business","Owes Someone","One Name Haunts Them","The Rematch Wanted","A Score to Settle"],function(p,c){return anon(p.nem[0])+" leads it "+p.nem[3]+"-"+p.nem[1]+"."}),
  T(34,"🔨",function(p){return p.games>=50},["The Workhorse","Plenty of Reps","In the Chair","Puts the Hours In","Always Playing"],function(p,c){return p.games+" games and counting."}),
  T(65,"🌱",function(p){return p.games<8},["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten"],function(p,c){return "Only "+p.games+" games on the board so far."}),
  T(30,"🏗️",function(p,c){return p.imp!=null&&p.imp>=40},["Trending Up","Finding Form","Sharpening","On the Rise","Building Something"],function(p,c){return "Up "+p.imp+" points over the last three months."}),
@@ -1545,8 +1549,8 @@ function facts(p){
   if(p.peak&&p.games>=8) c.push([surprise(function(x){return x.peak?x.peak[0]:0},p.peak[0]),"🏔️",p.peak[0],"Career-high rating, reached "+fd(p.peak[1])+"."]);
   if(p.streak[0]>=3) c.push([surprise(function(x){return x.streak[0]},p.streak[0])+.05,"🔥",p.streak[0]+" in a row","Their longest winning run to date."]);
   if(p.upsets>=1) c.push([surprise(function(x){return x.upsets},p.upsets)+.1,"⚡",p.upsets+(p.upsets===1?" upset":" upsets"),"Wins over players rated 150 or more above them."]);
-  if(p.vic&&p.vic[1]-p.vic[3]>=2) c.push([surprise(function(x){return x.vic?x.vic[1]-x.vic[3]:0},p.vic[1]-p.vic[3]),"🎯",p.vic[1]+"–"+p.vic[2]+"–"+p.vic[3],"Their best record against anyone — "+esc(p.vic[0])+"."]);
-  if(p.nem&&p.nem[3]-p.nem[1]>=2) c.push([surprise(function(x){return x.nem?x.nem[3]-x.nem[1]:0},p.nem[3]-p.nem[1]),"🧱",p.nem[1]+"–"+p.nem[2]+"–"+p.nem[3],esc(p.nem[0])+" has their number."]);
+  if(p.vic&&p.vic[1]-p.vic[3]>=2) c.push([surprise(function(x){return x.vic?x.vic[1]-x.vic[3]:0},p.vic[1]-p.vic[3]),"🎯",p.vic[1]+"–"+p.vic[2]+"–"+p.vic[3],"Their best record against anyone — "+esc(anon(p.vic[0]))+"."]);
+  if(p.nem&&p.nem[3]-p.nem[1]>=2) c.push([surprise(function(x){return x.nem?x.nem[3]-x.nem[1]:0},p.nem[3]-p.nem[1]),"🧱",p.nem[1]+"–"+p.nem[2]+"–"+p.nem[3],esc(anon(p.nem[0]))+" has their number."]);
   if(bestNight&&bestNight.delta>=15) c.push([surprise(function(x){return x.bigNight},bestNight.delta),"🚀","+"+bestNight.delta,"Biggest single night, on "+fd(bestNight.d)+"."]);
   if(p.cons>=2) c.push([surprise(function(x){return x.cons},p.cons),"🪑",p.cons+" of "+DATES.length,"Club nights turned up to."]);
   if(Math.abs(wpc-bpc)>=10&&p.games>=10) c.push([surprise(function(x){return Math.abs(cpct(x.wh)-cpct(x.bl))},Math.abs(wpc-bpc)),"♟️",(bpc>wpc?bpc:wpc)+"%","Better with "+(bpc>wpc?"Black":"White")+" — "+wpc+"% as White, "+bpc+"% as Black."]);
@@ -1660,11 +1664,13 @@ function colourChart(p){
   return block("As White",p.wh,wp,tw)+block("As Black",p.bl,bp,tb)+'<p class="cap">'+(Math.abs(wp-bp)>=10?("Clearly stronger with "+(bp>wp?"Black":"White")+"."):"About the same either way.")+'</p>';
 }
 function rivalsChart(p){
-  var rows=Object.keys(p.opp).map(function(o){var a=p.opp[o];return [o,a[0],a[1],a[2],a[0]+a[1]+a[2],a[0]-a[2]]}).sort(function(a,b){return b[4]-a[4]}).slice(0,8);
+  var rec=oppRows(p);
+  var rows=Object.keys(rec).map(function(o){var a=rec[o];return [o,a[0],a[1],a[2],a[0]+a[1]+a[2],a[0]-a[2]]}).sort(function(a,b){return b[4]-a[4]}).slice(0,8);
   if(!rows.length) return '<p style="color:var(--ink-3)">No opponents yet.</p>';
   var mx=Math.max.apply(null,rows.map(function(r){return Math.abs(r[5])}))||1;
   return rows.map(function(r){ var w=Math.abs(r[5])/mx*50;
-    return '<div class="riv" data-o="'+esc(r[0])+'" style="cursor:pointer"><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r[0])+'</span>'+
+    var tap=!(r[0]==="Visitors"||(byN[r[0]]&&byN[r[0]].gh));
+    return '<div class="riv"'+(tap?' data-o="'+esc(r[0])+'" style="cursor:pointer"':'')+'><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(r[0])+'</span>'+
       '<span class="rb"><span class="mid"></span>'+(r[5]>0?'<i class="p" style="width:'+w+'%"></i>':r[5]<0?'<i class="m" style="width:'+w+'%"></i>':'')+'</span>'+
       '<span class="rv" style="color:'+(r[5]>0?"var(--gain)":r[5]<0?"var(--loss)":"var(--ink-3)")+'">'+(r[5]>0?"+"+r[5]:r[5]===0?"=":r[5])+'</span></div>' }).join("")+
     '<p class="cap">Most-played opponents. Bar shows how far ahead or behind. Tap one to compare.</p>';
@@ -1677,7 +1683,7 @@ function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var nd={}; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'"><i class="cc c'+l.c+'"></i>'+esc(l.o)+'<span style="font-family:var(--fm);font-size:.66rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
+    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+'<span style="font-family:var(--fm);font-size:.66rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
 }
@@ -1763,18 +1769,33 @@ function milestones(p){
   if(!p.milestones.length) return '<p style="color:var(--ink-3)">Nothing yet — first game coming.</p>';
   return '<ul class="tl">'+p.milestones.map(function(m){return '<li><small>'+fshort(m[0])+'</small><b>'+esc(m[1])+'</b>'+(m[2]?' <span style="color:var(--ink-2)">— '+esc(m[2])+'</span>':'')+'</li>'}).join("")+'</ul>';
 }
+/* Opponents as the page shows them: everyone who has left the club and is no
+   longer listed collapses into a single Visitors line, so a profile never has
+   two rows that both read the same. */
+function oppRows(p){
+  var rec={}, gone=null;
+  Object.keys(p.opp).forEach(function(o){ var a=p.opp[o];
+    if(isVis(o)){ gone=gone||[0,0,0]; gone[0]+=a[0]; gone[1]+=a[1]; gone[2]+=a[2]; return }
+    rec[o]=a });
+  if(gone) rec["Visitors"]=gone;
+  return rec;
+}
 function vsTable(p){
-  var opps=Object.keys(p.opp).sort(function(a,b){var A=p.opp[a],B=p.opp[b];return (B[0]+B[1]+B[2])-(A[0]+A[1]+A[2])});
-  return opps.length?'<table style="font-size:.85rem"><tbody>'+opps.map(function(o){ var a=p.opp[o], k=a[0]>a[2]?"var(--gain)":a[0]<a[2]?"var(--loss)":"var(--ink-2)";
-    const gh=byN[o]&&byN[o].gh;
-    return '<tr'+(gh?'':' data-o="'+esc(o)+'" style="cursor:pointer"')+'><td style="padding:.35rem .2rem">'+esc(o)+
+  var rec=oppRows(p);
+  var opps=Object.keys(rec).sort(function(a,b){var A=rec[a],B=rec[b];return (B[0]+B[1]+B[2])-(A[0]+A[1]+A[2])});
+  return opps.length?'<table style="font-size:.85rem"><tbody>'+opps.map(function(o){ var a=rec[o], k=a[0]>a[2]?"var(--gain)":a[0]<a[2]?"var(--loss)":"var(--ink-2)";
+    // the collapsed row says Visitors already, so it does not need the tag too
+    const lump=o==="Visitors", gh=!lump&&byN[o]&&byN[o].gh;
+    return '<tr'+(gh||lump?'':' data-o="'+esc(o)+'" style="cursor:pointer"')+'><td style="padding:.35rem .2rem">'+esc(o)+
       (gh?'<span style="font-family:var(--fm);font-size:.58rem;color:var(--ink-3);letter-spacing:.1em"> VISITOR</span>':'')+'</td><td style="text-align:right;padding:.35rem .2rem;font-family:var(--fm);color:'+k+';font-weight:700">'+a[0]+'–'+a[1]+'–'+a[2]+'</td></tr>'}).join("")+'</tbody></table>'
     :'<p style="color:var(--ink-3);font-size:.86rem;margin:0">No games on record yet.</p>';
 }
 function suggestRivals(p){
   var out=[], seen={};
-  var add=function(n,lab){ if(n&&n!==p.n&&byN[n]&&!seen[n]){ seen[n]=1; out.push([n,lab]) } };
-  var most=null; Object.keys(p.opp).forEach(function(o){ var g=p.opp[o][0]+p.opp[o][1]+p.opp[o][2]; if(!most||g>most[1]) most=[o,g] });
+  // only people on the board: a visitor's chip opens nothing when tapped
+  var add=function(n,lab){ if(n&&n!==p.n&&byN[n]&&!byN[n].gh&&!seen[n]){ seen[n]=1; out.push([n,lab]) } };
+  var most=null; Object.keys(p.opp).forEach(function(o){ if(byN[o]&&byN[o].gh) return;
+    var g=p.opp[o][0]+p.opp[o][1]+p.opp[o][2]; if(!most||g>most[1]) most=[o,g] });
   if(most) add(most[0],"most played");
   if(p.nem&&p.nem[4]<0) add(p.nem[0],"nemesis");
   var close=null; P.forEach(function(x){ if(x.n===p.n||away(x)) return; var d=Math.abs(x.r-p.r); if(!close||d<close[1]) close=[x.n,d] });
@@ -2257,7 +2278,7 @@ function drawRecords(){
   const mostGames=P.reduce((m,p)=>!m||p.games>m.games?p:m,null);
   const mostUps=P.reduce((m,p)=>!m||p.upsets>m.upsets?p:m,null);
   const mostGold=P.reduce((m,p)=>!m||p.trophies[0]>m.trophies[0]?p:m,null);
-  if(up) add("Biggest upset",E(up.p),"beat "+E(up.o)+", rated "+up.gap+" higher, on "+fd(up.d));
+  if(up) add("Biggest upset",E(up.p),"beat "+E(anon(up.o))+", rated "+up.gap+" higher, on "+fd(up.d));
   if(climb) add("Biggest night",E(climb.n),"+"+climb.v+" rating points on "+fd(climb.d));
   if(run) add("Longest winning run",run.v+" straight",E(run.n));
   if(nightGames) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));

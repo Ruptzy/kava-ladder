@@ -82,17 +82,24 @@ def run(history,seeds):
             if p["n"]>0: p["hist"].append((night["date"],p["r"],p["rd"]))
     return P
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built):
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=()):
+    """hidden: people who have left the club and asked not to be listed. Their
+    games stay in the replay, so nobody else's rating or record moves, but the
+    name never reaches the page - it is swapped for a neutral label here, in the
+    build, so it is not in the file at all. The page prints them as "Visitor";
+    the number only exists to keep them apart as data."""
     dates=[h["date"] for h in history]; last=dates[-1] if dates else None
     names=[]; ni={}
     def id_(n):
         if n not in ni: ni[n]=len(names); names.append(n)
         return ni[n]
     for p in roster: id_(p["n"])
+    anon={n:"Visitor %d"%(i+1) for i,n in enumerate(sorted(hidden))}
+    show=lambda n: anon.get(n,n)
     games=[]; byes=[]
     for i,h in enumerate(history):
-        for w,b,r in h["games"]: games.append([i,id_(w),id_(b),r])
-        if h.get("byes"): byes.append([i]+[id_(x) for x in h["byes"]])
+        for w,b,r in h["games"]: games.append([i,id_(show(w)),id_(show(b)),r])
+        if h.get("byes"): byes.append([i]+[id_(show(x)) for x in h["byes"]])
     di={d:i for i,d in enumerate(dates)}
     divOf={p["n"]:p["d"] for p in roster}
     awayOf={p["n"]:bool(p.get("away")) for p in roster}
@@ -100,6 +107,7 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built):
     players=[]
     for n,p in P.items():
         if p["n"]<=0: continue
+        n=show(n)
         rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),"seed":round(seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"]]}
         if n not in divOf: rec["gh"]=1        # a visitor: games count, but off the ladder
@@ -123,12 +131,16 @@ if __name__=="__main__":
     ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
     try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
     except Exception: DIVH=[]
+    try: HIDDEN=json.load(open(here('hidden.json')))
+    except Exception: HIDDEN=[]
     built=datetime.date.today().isoformat()
     P=run(HISTORY,SEEDS)
-    D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built)
+    D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,HIDDEN)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
-    D["divhist"]=DIVH
+    # the bracket snapshots name everyone the club had on a sheet, so the people
+    # who have left have to come out of those too
+    D["divhist"]=[{**s,"div":{k:v for k,v in s["div"].items() if k not in HIDDEN}} for s in DIVH]
     D["tabart"]=tab_art()
     D["achart"]=ach_art()
     src=open(here('ladderbuild.js'),encoding='utf-8').read()

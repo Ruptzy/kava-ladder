@@ -29,6 +29,26 @@ none; the tournament pages do. Anything imported from a tournament page is
 checked against that tournament's own standings, player by player, before it
 goes in.
 
+## People who have left
+
+`hidden.json` lists anyone who has left the club and is not to be listed.
+`hide.py "Name"` adds someone and clears them out of the roster and the old-era
+table in one go; `hide.py --show "Name"` reverses it; `hide.py` on its own says
+who is hidden. Rebuild afterwards. Their
+games stay in `history.json` and in the rating replay, so nobody else's rating,
+record or game count moves; what changes is that `buildsite.py` swaps the name
+for a neutral label before writing the page, so the name is not in `index.html`
+at all - not in the ladder, not in an opponent list, not in the bracket
+snapshots, not in the seasons 1-7 table, and not in the data blob for anyone
+reading the source. Their seeds stay in `seeds.json`, because the replay still
+needs them and nothing in that file reaches the page.
+
+The page prints them as "Visitor". The number in the label only exists to keep
+them apart as data, and `anon()` strips it everywhere a name is shown; a profile
+that met more than one of them shows a single Visitors line rather than a column
+of identical rows. Taking a name back out of `hidden.json` and rebuilding undoes
+all of it.
+
 A name is only merged when the club's own records merge it. "Bejamin" is Benji
 and plain "Omar" is Omar Cruz before January 2026, but "Ben (new)", "Codi" and
 "Shawn" stay as written: the club has always used a "(new)" suffix for a second
