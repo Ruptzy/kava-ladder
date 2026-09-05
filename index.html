@@ -236,7 +236,7 @@ font-size:.6rem;font-weight:700;color:#0C0D0E}
 .bandrow .lb{font-family:var(--fm);font-size:.6rem;color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}
 .bar{height:20px;background:var(--panel-3);border-radius:2px;overflow:hidden;display:flex}
 .bar i{display:block;height:100%}
-.bar i.w{background:var(--gain)}.bar i.d{background:var(--rule-2)}.bar i.l{background:var(--loss)}
+.bar i.bw{background:var(--gain)}.bar i.bd{background:var(--rule-2)}.bar i.bl{background:var(--loss)}
 .bandrow .vv{font-family:var(--fm);font-size:.74rem;text-align:right;color:var(--ink-2)}
 .riv{display:grid;grid-template-columns:7rem 1fr 2.6rem;gap:.6rem;align-items:center;margin-bottom:.4rem;font-size:.84rem}
 .riv:hover span:first-child{color:var(--scarlet)}
@@ -251,7 +251,7 @@ font-size:.6rem;font-weight:700;color:#0C0D0E}
 .rg td.o{font-weight:600;cursor:pointer;max-width:10rem;overflow:hidden;text-overflow:ellipsis}.rg td.o:hover{color:var(--scarlet)}
 .card .rg-wrap{overflow-x:auto}
 .rg .cc{display:inline-block;width:10px;height:14px;border-radius:2px;vertical-align:-2px;margin-right:.35rem}
-.rg .cc.w{background:var(--cream)}.rg .cc.b{background:#0C0D0E;border:1px solid var(--rule-2)}
+.rg .cc.cw{background:var(--cream)}.rg .cc.cb{background:#0C0D0E;border:1px solid var(--rule-2)}
 .rg td.rs{font-family:var(--fm);font-weight:700;text-align:center;width:2rem}
 .rg td.rs.W{color:var(--gain)}.rg td.rs.L{color:var(--loss)}.rg td.rs.D{color:var(--ink-2)}
 .rg td.dl2{font-family:var(--fm);font-size:.74rem;text-align:right}
@@ -894,7 +894,7 @@ function bandsChart(p){
   var mx=Math.max.apply(null,rows.map(function(b){return b[1]+b[2]+b[3]}));
   return rows.map(function(b){ var g=b[1]+b[2]+b[3];
     return '<div class="bandrow"><span class="lb">'+b[0]+'</span><span class="bar" style="width:'+(g/mx*100)+'%">'+
-      '<i class="w" style="width:'+(b[1]/g*100)+'%"></i><i class="d" style="width:'+(b[2]/g*100)+'%"></i><i class="l" style="width:'+(b[3]/g*100)+'%"></i></span>'+
+      '<i class="bw" style="width:'+(b[1]/g*100)+'%"></i><i class="bd" style="width:'+(b[2]/g*100)+'%"></i><i class="bl" style="width:'+(b[3]/g*100)+'%"></i></span>'+
       '<span class="vv">'+b[1]+'-'+b[2]+'-'+b[3]+'</span></div>' }).join("")+
     '<p class="cap">Opponent strength at the time, first night not counted. Bar length is how often, colour is how it went.</p>';
 }
@@ -903,7 +903,7 @@ function colourChart(p){
   function block(lab,a,pc,tot){
     return '<div style="margin-bottom:.8rem"><div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--ink-3);margin-bottom:.3rem">'+
       '<span>'+lab+' &middot; '+tot+' games</span><span style="color:'+(pc>=50?"var(--gain)":"var(--loss)")+';font-weight:700">'+pc+'%</span></div>'+
-      '<div class="bar"><i class="w" style="width:'+(tot?a[0]/tot*100:0)+'%"></i><i class="d" style="width:'+(tot?a[1]/tot*100:0)+'%"></i><i class="l" style="width:'+(tot?a[2]/tot*100:0)+'%"></i></div>'+
+      '<div class="bar"><i class="bw" style="width:'+(tot?a[0]/tot*100:0)+'%"></i><i class="bd" style="width:'+(tot?a[1]/tot*100:0)+'%"></i><i class="bl" style="width:'+(tot?a[2]/tot*100:0)+'%"></i></div>'+
       '<div style="font-family:var(--fm);font-size:.66rem;color:var(--ink-2);margin-top:.25rem">'+a[0]+' won &middot; '+a[1]+' drawn &middot; '+a[2]+' lost</div></div>';
   }
   return block("As White",p.wh,wp,tw)+block("As Black",p.bl,bp,tb)+'<p class="cap">'+(Math.abs(wp-bp)>=10?("Clearly stronger with "+(bp>wp?"Black":"White")+"."):"About the same either way.")+'</p>';
@@ -926,7 +926,7 @@ function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var nd={}; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'"><i class="cc '+l.c+'"></i>'+esc(l.o)+'<span style="font-family:var(--fm);font-size:.66rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
+    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'"><i class="cc c'+l.c+'"></i>'+esc(l.o)+'<span style="font-family:var(--fm);font-size:.66rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
 }
