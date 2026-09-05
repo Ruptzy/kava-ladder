@@ -8,7 +8,10 @@ The original is kept in originals/ (not published) so a photo can be recropped l
 --focus is where the face is, as fractions of width and height (default 0.5,0.4,
 a touch above centre, which suits most portraits). Use 0.5,0.25 for a face near
 the top of a tall photo. --zoom is the crop size as a fraction of the shorter side
-(default 1 = as big as fits; 0.5 = a tight head-and-shoulders crop).
+(default 1 = as big as fits; 0.5 = a tight head-and-shoulders crop). With --pad the
+crop may run past the edge of the picture and can be bigger than 1, so a subject that
+sits off to one side can be centred, or a tall shot can keep both face and board; the
+gap is filled with a blurred copy of the photo rather than a hard bar.
 """
 import sys, os, json, re, difflib
 from PIL import Image, ImageOps
@@ -33,10 +36,28 @@ if name not in names:
         if close: print('Did you mean:',', '.join(close))
         sys.exit(2)
 fx,fy=(float(v) for v in opts.get('focus','0.5,0.4').split(','))
+pad='--pad' in sys.argv
 im=ImageOps.exif_transpose(Image.open(src)).convert('RGB')
-w,h=im.size; s=max(64,int(min(w,h)*min(1.0,max(0.15,float(opts.get('zoom','1'))))))
-left=min(max(0,int(fx*w-s/2)),w-s); top=min(max(0,int(fy*h-s/2)),h-s)
-im=im.crop((left,top,left+s,top+s)).resize((400,400),Image.LANCZOS)
+w,h=im.size
+zoom=max(0.15,float(opts.get('zoom','1')))
+if not pad: zoom=min(1.0,zoom)
+s=max(64,int(min(w,h)*zoom))
+left=int(fx*w-s/2); top=int(fy*h-s/2)
+if not pad:
+    left=min(max(0,left),max(0,w-s)); top=min(max(0,top),max(0,h-s))
+if pad:
+    from PIL import ImageFilter, ImageEnhance
+    bg=ImageOps.fit(im,(400,400),Image.LANCZOS).filter(ImageFilter.GaussianBlur(22))
+    bg=ImageEnhance.Brightness(bg).enhance(0.62)
+    fg=im.crop((left,top,left+s,top+s))              # transparent outside the picture
+    box=Image.new('RGB',(s,s)); box.paste(im,(-left,-top))
+    mask=Image.new('L',(s,s),0)
+    mx0,my0=max(0,-left),max(0,-top)
+    mask.paste(255,(mx0,my0,mx0+min(s,w-max(0,left)),my0+min(s,h-max(0,top))))
+    box=box.resize((400,400),Image.LANCZOS); mask=mask.resize((400,400),Image.LANCZOS)
+    im=Image.composite(box,bg,mask)
+else:
+    im=im.crop((left,top,left+s,top+s)).resize((400,400),Image.LANCZOS)
 os.makedirs(os.path.join(ROOT,'photos'),exist_ok=True)
 out=os.path.join(ROOT,'photos',slug(name)+'.jpg')
 im.save(out,'JPEG',quality=84,optimize=True,progressive=True)
