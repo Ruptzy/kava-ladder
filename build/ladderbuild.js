@@ -352,6 +352,24 @@ font-size:.6rem;font-weight:700;color:#0C0D0E}
 .rg td.rs{font-family:var(--fm);font-weight:700;text-align:center;width:2rem}
 .rg td.rs.W{color:var(--gain)}.rg td.rs.L{color:var(--loss)}.rg td.rs.D{color:var(--ink-2)}
 .rg td.dl2{font-family:var(--fm);font-size:.74rem;text-align:right}
+.cab{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;text-align:center}
+.cab .it{padding:.4rem .2rem .5rem;border-radius:8px;background:radial-gradient(120% 90% at 50% 10%,rgba(254,39,58,.08),transparent 70%)}
+.cab .it.z{opacity:.3}
+.cab .pic{display:block;width:100%;max-width:96px;aspect-ratio:1;margin:0 auto .35rem;
+background-size:contain;background-repeat:no-repeat;background-position:center}
+.cab .n{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 900;
+font-size:1.5rem;line-height:1;color:var(--cream)}
+.cab .lb{display:block;font-family:var(--fm);font-size:.52rem;letter-spacing:.22em;text-transform:uppercase;
+color:var(--ink-3);margin-top:.35rem}
+.cab .lb i{font-style:normal;color:var(--scarlet-dim);margin:0 .25rem}
+.t1{background-image:url(trophies/1.png)}
+.t2{background-image:url(trophies/2.png)}
+.t3{background-image:url(trophies/3.png)}
+.trow{display:inline-flex;align-items:center;gap:.1rem;font-family:var(--fm);font-weight:700;font-size:.82rem}
+.trow i{width:16px;height:16px;display:inline-block;background-size:contain;background-repeat:no-repeat;
+background-position:center;margin-left:.5rem;vertical-align:-3px}
+.trow i:first-child{margin-left:0}
+.trow s{text-decoration:none;color:var(--ink-3);font-weight:400}
 .tl{list-style:none;margin:0;padding:0 0 0 .2rem;border-left:2px solid var(--rule-2)}
 .tl li{position:relative;padding:0 0 .7rem 1rem;font-size:.86rem}
 .tl li::before{content:"";position:absolute;left:-7px;top:.35rem;width:10px;height:10px;border-radius:50%;background:var(--scarlet);border:2px solid var(--void)}
@@ -549,6 +567,7 @@ const fdate=fd;
 const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/864e5);
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
+const TROPHY_MIN=3;   // a night only counts if you played at least three games
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
 const awayWhy=p=>p.aw?"taking a break":"no games in "+p.idle+" days";
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -580,6 +599,12 @@ function derive(){
   NIGHT.forEach(N=>{
     N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
     N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });
+    // and again within each bracket, which is where the trophies come from
+    N.sec={}; const byDiv={};
+    N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||!p.d||row[2]<TROPHY_MIN) return;
+      (byDiv[p.d]=byDiv[p.d]||[]).push(row) });
+    Object.keys(byDiv).forEach(d=>{ let place=0, prev=null;
+      byDiv[d].forEach((row,i)=>{ if(prev===null||row[1]!==prev){ place=i+1; prev=row[1] } N.sec[row[0]]=place }) });
   });
   const cut=new Date(D.date+"T12:00"); cut.setDate(cut.getDate()-90); const cutS=cut.toISOString().slice(0,10);
   P.forEach(p=>{
@@ -614,6 +639,9 @@ function derive(){
     p.first=lg.length?DATES[lg[0].ni]:null;
     const prior=p.hist.filter(h=>DATES[h[0]]<=cutS);
     p.imp=(prior.length>=3&&p.rd<=RS&&p.games>=12)?p.r-prior[prior.length-1][1]:null;
+    p.trophies=[0,0,0]; p.trophyNights=[];
+    NIGHT.forEach((N,ni)=>{ const pl=N.sec[p.n];
+      if(pl>=1&&pl<=3){ p.trophies[pl-1]++; p.trophyNights.push([ni,pl]) } });
     p.recent=lg.slice(-10).reverse();
     p.bigNight=0; p.nightly.forEach(n=>{ if(!n.first&&n.delta>p.bigNight) p.bigNight=n.delta });
     p.milestones=milestonesOf(p);
@@ -736,6 +764,9 @@ const SORTS=[
  {k:"peace", ic:"🤝", t:"Peacemaker", col:"Draws", fun:true, min:6,
    val:p=>p.rec[1], show:p=>p.rec[1],
    note:"Games that ended in a handshake."},
+ {k:"cab", ic:"🏆", t:"Trophy cabinet", col:"Top three", fun:true, min:1,
+   val:p=>p.trophies[0]*1e6+p.trophies[1]*1e3+p.trophies[2], show:p=>trophyLine(p),
+   note:"Nights finished in the top three of your own bracket. First, then second, then third."},
  {k:"form3", ic:"🔥", t:"On form", col:"Last 3 nights", fun:true, min:4,
    val:p=>form3(p).v, show:p=>{ const f=form3(p); return f.g?f.v+"%":"—" },
    note:"Score over the last three nights you played, whoever you are."}
@@ -1206,6 +1237,22 @@ function recentGames(p){
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
 }
+function trophyCase(p){
+  const L=["First","Second","Third"], got=p.trophies[0]+p.trophies[1]+p.trophies[2];
+  const cab='<div class="cab">'+L.map(function(lab,i){
+    return '<div class="it'+(p.trophies[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
+      '<span class="n">\u00d7'+p.trophies[i]+'</span><span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i></span></div>';
+  }).join("")+'</div>';
+  const cap=got
+    ? "Top-three finishes on a club night in the "+esc(longDiv(p.d))+" bracket, from "+p.cons+" nights."
+    : "No top-three finish in the "+esc(longDiv(p.d))+" bracket yet. Three games on a night puts you in the running.";
+  return cab+'<p class="cap">'+cap+' A night counts once you have played three games; a tie shares the place.</p>';
+}
+function trophyLine(p){
+  const T=p.trophies;
+  return '<span class="trow">'+[0,1,2].map(function(i){
+    return '<i class="t'+(i+1)+'"></i>'+(T[i]?T[i]:'<s>0</s>') }).join("")+'</span>';
+}
 function milestones(p){
   if(!p.milestones.length) return '<p style="color:var(--ink-3)">Nothing yet — first game coming.</p>';
   return '<ul class="tl">'+p.milestones.map(function(m){return '<li><small>'+fshort(m[0])+'</small><b>'+esc(m[1])+'</b>'+(m[2]?' <span style="color:var(--ink-2)">— '+esc(m[2])+'</span>':'')+'</li>'}).join("")+'</ul>';
@@ -1289,6 +1336,7 @@ function drawGraphs(){
     card("Turnout", attendance(p));
   $("#graphs2").innerHTML=
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
+    card("Trophy cabinet", trophyCase(p))+
     card("Milestones", milestones(p))+
     card("Record against everyone", vsTable(p));
   var s=$("#rivalSel"); if(s) s.onchange=function(){ location.hash="#/p/"+encodeURIComponent(p.n)+(this.value?"/vs/"+encodeURIComponent(this.value):"") };

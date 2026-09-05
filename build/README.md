@@ -10,7 +10,13 @@ Inputs: `history.json` (every game by club night), `seeds.json` (starting rating
 `"active": true` to keep them on the board past the 90-day rule), and
 `archive.json` (seasons 1-7, including a per-night timeline built by
 `arc_timeline.py` from `archive_raw.json`). The build also lists `../photos/`
-so the page only requests a portrait that exists. The page template is the
+so the page only requests a portrait that exists.
+
+Trophies live in `trophies/1.png`, `2.png`, `3.png` (transparent PNGs, 240px).
+Counts are worked out in the page: each club night, players who played at least
+three games are ranked against the rest of their own bracket, and a top-three
+finish becomes a trophy. Ties share the place. A player's bracket is the one
+they are in now, since the old workbook never recorded bracket by night. The page template is the
 `ladderTemplate()` function in `ladderbuild.js`; the same file is spliced into the
 phone pairing tool so both builds produce the identical site.
 
