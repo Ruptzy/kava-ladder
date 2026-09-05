@@ -198,7 +198,8 @@
    "n": "Jay",
    "r": 1054,
    "d": "U1400",
-   "idle": 0
+   "idle": 0,
+   "active": true
   },
   {
    "n": "Omar Cruz",
