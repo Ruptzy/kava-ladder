@@ -94,6 +94,7 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built):
         if p["n"]<=0: continue
         rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),"seed":round(seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"]]}
+        if n not in divOf: rec["gh"]=1        # a visitor: games count, but off the ladder
         if awayOf.get(n): rec["aw"]=1
         if activeOf.get(n): rec["ac"]=1
         players.append(rec)
@@ -112,18 +113,24 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built):
 if __name__=="__main__":
     HISTORY=json.load(open(here('history.json'))); SEEDS=json.load(open(here('seeds.json')))
     ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
+    try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
+    except Exception: DIVH=[]
     built=datetime.date.today().isoformat()
     P=run(HISTORY,SEEDS)
     D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
+    D["divhist"]=DIVH
     src=open(here('ladderbuild.js'),encoding='utf-8').read()
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
     html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
              .replace('${SITE}',SITE).replace('${DESC}',DESC).replace('<\\/script>','</script>'))
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
-    print('players',len(D["players"]),'| games',len(D["games"]),'| nights',len(D["dates"]),
+    print('players',len([p for p in D["players"] if not p.get("gh")]),
+          '(+%d visitors)'%len([p for p in D["players"] if p.get("gh")]),
+          '| games',len(D["games"]),'| nights',len(D["dates"]),
           '| photos',len(D["pics"]),'| ->',out)
     print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
-    print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in D["players"][:5]))
+    vis=[p for p in D["players"] if not p.get("gh")][:5]
+    print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in vis))

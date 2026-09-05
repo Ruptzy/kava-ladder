@@ -26,5 +26,20 @@ phone pairing tool so both builds produce the identical site.
 Page JS inside the template must use string concatenation, never `${}`, and no
 backslashes except the closing `<\/script>`.
 
+## Rules the data follows
+
+- **Visitors count.** A one-off visitor never joins the ladder, but the games
+  regulars play against them do count. Dropping them at import once deleted 39
+  real games. `reimport.py` keeps every game; `buildsite.py` flags anyone not on
+  the roster with `"gh":1` and the page hides them from every board while still
+  counting their games, their ratings and the night's standings.
+- **A bye is half a point** on the night, the way the club's own Swiss standings
+  score it.
+- **Two Omars.** Plain "Omar" is Omar Cruz, except on a night where Cruz is
+  already written out in full ("Omar og"), when the bare name is Omar Azab.
+  17 May 2026 is the only night both played.
+- Verified: all 131 tournament player-scores match the site's own running
+  points, and all 169 workbook player-scores match the spreadsheet.
+
 Refreshing data: `extract.py` reads the Chess Ranking Assistant workbook on D:,
 `tourneys.py` scrapes SwissOnlineTournament, `roster2.py` rebuilds roster.json.

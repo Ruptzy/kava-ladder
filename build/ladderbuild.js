@@ -590,9 +590,12 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 const D=${JSON.stringify(D)};
 const $=s=>document.querySelector(s), E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 var esc=E;
-const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1, P=D.players;
+const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1;
+/* ALL includes the one-off visitors, so their games still count towards the
+   regulars' records and ratings. P is who the site actually shows. */
+const ALL=D.players, P=ALL.filter(p=>!p.gh);
 const byN={}, byI={};
-P.forEach(p=>{ byN[p.n]=p; p.id=NAMES.indexOf(p.n); byI[p.id]=p; });
+ALL.forEach(p=>{ byN[p.n]=p; p.id=NAMES.indexOf(p.n); byI[p.id]=p; });
 const fd=s=>s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"—";
 const fshort=s=>s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}):"";
 const fdate=fd;
@@ -600,22 +603,21 @@ const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
 const TROPHY_MIN=3;   // a night only counts if you played at least three games
-/* Brackets are named for the rating they cover, so a rating can be placed in one.
-   That is how a trophy is pinned to the division the player was in at the time,
-   rather than the one they sit in now. */
+/* Brackets are assigned by hand, so they come from the club's own workbooks:
+   each backup holds the division sheets as they stood on its date. A night uses
+   the latest snapshot on or before it, which is how a trophy stays with the
+   division the player was actually in when they won it. */
 const DIVS=D.divisions.slice();
-const BANDS=(function(){
-  const over=[], under=[];
-  DIVS.forEach(d=>{ const m=/([0-9]+)/.exec(d); if(!m) return;
-    const n=parseInt(m[1],10);
-    (/over|above|\+/i.test(d)?over:under).push({d:d,n:n}) });
-  over.sort((a,b)=>b.n-a.n); under.sort((a,b)=>a.n-b.n);
-  return {over:over,under:under};
-})();
-function bandFor(r){
-  for(let i=0;i<BANDS.over.length;i++) if(r>=BANDS.over[i].n) return BANDS.over[i].d;
-  for(let i=0;i<BANDS.under.length;i++) if(r<BANDS.under[i].n) return BANDS.under[i].d;
-  return DIVS[DIVS.length-1];
+const DIVHIST=(D.divhist||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+function divAt(name,date){
+  for(let i=DIVHIST.length-1;i>=0;i--){
+    const s=DIVHIST[i];
+    if(s.date<=date&&s.div[name]) return s.div[name];
+  }
+  for(let i=0;i<DIVHIST.length;i++){          // before the first snapshot, use the earliest on record
+    if(DIVHIST[i].div[name]) return DIVHIST[i].div[name];
+  }
+  const p=byN[name]; return p?p.d:DIVS[DIVS.length-1];
 }
 const divRank=d=>{ const i=DIVS.indexOf(d); return i<0?DIVS.length:i };   // 0 is the strongest
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
@@ -629,7 +631,7 @@ let NIGHT=[];
 
 /* ---------- everything derived from the games ---------- */
 function derive(){
-  P.forEach(p=>{
+  ALL.forEach(p=>{
     p.log=[]; p.opp={}; p.rec=[0,0,0]; p.wh=[0,0,0]; p.bl=[0,0,0]; p.games=0; p.att={}; p.rb={};
     let prev=p.seed; p.hist.forEach(h=>{ p.rb[h[0]]=prev; prev=h[1]; });
   });
@@ -643,22 +645,27 @@ function derive(){
     w.rec[k]++; b.rec[2-k]++; w.wh[k]++; b.bl[2-k]++;
     (w.opp[b.n]=w.opp[b.n]||[0,0,0])[k]++; (b.opp[w.n]=b.opp[w.n]||[0,0,0])[2-k]++;
   });
-  D.byes.forEach(a=>{ for(let i=1;i<a.length;i++){ const p=byI[a[i]]; if(p) p.att[a[0]]=1 } });
+  const byeOf={};
+  D.byes.forEach(a=>{ for(let i=1;i<a.length;i++){ const p=byI[a[i]]; if(!p) continue;
+    p.att[a[0]]=1; (byeOf[a[0]]=byeOf[a[0]]||{})[p.n]=((byeOf[a[0]]||{})[p.n]||0)+1 } });
   NIGHT=DATES.map((d,i)=>({pts:{},g:{},ni:i}));
-  P.forEach(p=>p.log.forEach(l=>{ const N=NIGHT[l.ni]; N.pts[p.n]=(N.pts[p.n]||0)+l.s; N.g[p.n]=(N.g[p.n]||0)+1 }));
+  ALL.forEach(p=>p.log.forEach(l=>{ const N=NIGHT[l.ni]; N.pts[p.n]=(N.pts[p.n]||0)+l.s; N.g[p.n]=(N.g[p.n]||0)+1 }));
+  // a bye is worth half a point on the night, the way the club scores it
+  Object.keys(byeOf).forEach(ni=>{ const N=NIGHT[ni];
+    Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+0.5*byeOf[ni][n]; N.byes=(N.byes||0)+byeOf[ni][n] }) });
   NIGHT.forEach(N=>{
     N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
     N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });
     // and again within each bracket, which is where the trophies come from
     N.sec={}; N.secDiv={}; const byDiv={};
-    N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||row[2]<TROPHY_MIN) return;
-      const d=bandFor(p.rb[N.ni]!=null?p.rb[N.ni]:p.seed);
+    N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||p.gh||row[2]<TROPHY_MIN) return;
+      const d=divAt(p.n,DATES[N.ni]);
       N.secDiv[row[0]]=d; (byDiv[d]=byDiv[d]||[]).push(row) });
     Object.keys(byDiv).forEach(d=>{ let place=0, prev=null;
       byDiv[d].forEach((row,i)=>{ if(prev===null||row[1]!==prev){ place=i+1; prev=row[1] } N.sec[row[0]]=place }) });
   });
   const cut=new Date(D.date+"T12:00"); cut.setDate(cut.getDate()-90); const cutS=cut.toISOString().slice(0,10);
-  P.forEach(p=>{
+  ALL.forEach(p=>{
     const lg=p.log, hl=p.hist.length;
     const nightsIn=Object.keys(p.att).map(Number).sort((a,b)=>a-b);
     p.cons=nightsIn.length;
@@ -730,7 +737,7 @@ function stateHash(){ const a=[]; if(div!=="all") a.push("b",div); if(sortK!=="r
 function go(h){ if(location.hash===h||(h===""&&!location.hash)){ route(); return } location.hash=h }
 function route(){
   const parts=location.hash.replace(/^#[/]?/,"").split("/").map(s=>{ try{return decodeURIComponent(s)}catch(e){return s} }).filter(Boolean);
-  if(parts[0]==="p"&&byN[parts[1]]){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]?parts[3]:null); return }
+  if(parts[0]==="p"&&byN[parts[1]]&&!byN[parts[1]].gh){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]&&!byN[parts[3]].gh?parts[3]:null); return }
   if(parts[0]==="history"){ showHistory(); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
@@ -1324,7 +1331,9 @@ function milestones(p){
 function vsTable(p){
   var opps=Object.keys(p.opp).sort(function(a,b){var A=p.opp[a],B=p.opp[b];return (B[0]+B[1]+B[2])-(A[0]+A[1]+A[2])});
   return opps.length?'<table style="font-size:.85rem"><tbody>'+opps.map(function(o){ var a=p.opp[o], k=a[0]>a[2]?"var(--gain)":a[0]<a[2]?"var(--loss)":"var(--ink-2)";
-    return '<tr data-o="'+esc(o)+'" style="cursor:pointer"><td style="padding:.35rem .2rem">'+esc(o)+'</td><td style="text-align:right;padding:.35rem .2rem;font-family:var(--fm);color:'+k+';font-weight:700">'+a[0]+'–'+a[1]+'–'+a[2]+'</td></tr>'}).join("")+'</tbody></table>'
+    const gh=byN[o]&&byN[o].gh;
+    return '<tr'+(gh?'':' data-o="'+esc(o)+'" style="cursor:pointer"')+'><td style="padding:.35rem .2rem">'+esc(o)+
+      (gh?'<span style="font-family:var(--fm);font-size:.58rem;color:var(--ink-3);letter-spacing:.1em"> VISITOR</span>':'')+'</td><td style="text-align:right;padding:.35rem .2rem;font-family:var(--fm);color:'+k+';font-weight:700">'+a[0]+'–'+a[1]+'–'+a[2]+'</td></tr>'}).join("")+'</tbody></table>'
     :'<p style="color:var(--ink-3);font-size:.86rem;margin:0">No games on record yet.</p>';
 }
 function suggestRivals(p){
@@ -1359,7 +1368,7 @@ function comparePanel(p){
 }
 
 /* ---------- profile ---------- */
-function openProfile(n,rival){ if(!byN[n]) return; if(!CUR){ boardHash=stateHash(); boardScroll=scrollY } location.hash="#/p/"+encodeURIComponent(n)+(rival&&byN[rival]&&rival!==n?"/vs/"+encodeURIComponent(rival):"") }
+function openProfile(n,rival){ if(!byN[n]||byN[n].gh) return; if(!CUR){ boardHash=stateHash(); boardScroll=scrollY } location.hash="#/p/"+encodeURIComponent(n)+(rival&&byN[rival]&&rival!==n?"/vs/"+encodeURIComponent(rival):"") }
 function showProfile(n,rival){
   var p=byN[n]; if(!p) return;
   var same=CUR&&CUR.n===n; CUR=p; RIVAL=rival&&rival!==n?byN[rival]:null;
