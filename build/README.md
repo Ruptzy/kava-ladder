@@ -98,8 +98,12 @@ becomes a trophy. Ties share the place. The bracket used is the one the club
 had the player in on that night, read from the workbook snapshots in
 `divhistory.json`, so cups won on the way up stay with the division they were
 won in. The earliest snapshot is 30 November 2025; nights before it fall back to
-the player's bracket today, which is worth remembering for the five February and
-March 2025 nights, where a bracket can come down to one or two people. The
+the player's bracket today, which is worth remembering for the early 2025
+nights, where a bracket can come down to one or two people.
+
+A bracket of one still awards the cup. Harold's call, asked and answered: you
+turned up and nobody in your bracket outscored you. Fifteen of the cups on the
+board are won that way, five of them Omar Cruz's. Do not quietly add a minimum. The
 header shows the strongest division a player has won in and lists anything below
 it underneath. The page template is the
 `ladderTemplate()` function in `ladderbuild.js`; the same file is spliced into the
