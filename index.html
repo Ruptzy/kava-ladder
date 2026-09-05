@@ -1750,7 +1750,12 @@ $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; lo
 const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes","self-cell",
  "rating","record","trophy","spirit","turnout","code",
  "e4","e5","d4","sicilian","gambit","positional","theory","blunder",
- "lenny","goblin","checkers","backgammon","pony","update","kava","leet","checkmate","records"];
+ "lenny","goblin","checkers","backgammon","pony","update","kava","leet","checkmate","records",
+ // and thirty more
+ "castle","stalemate","fork","pin","skewer","zugzwang","opening","endgame",
+ "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
+ "thursday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
+ "lastnight","footer","searchicon","earned"];
 function eggsFound(){
   try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
   catch(e){ return new Set() }
@@ -1889,11 +1894,37 @@ function searchEgg(v){
   if(k==="records"||k==="record"){ eggFind("records"); location.hash="#/records"; return true }
   if(k==="1337"||k==="leet"){ flash("gold-mode",2600); egg("Elite.",2000,null,"leet"); return true }
   if(k==="checkmate"){ egg("Not on this page. Take it to the board.",2600,null,"checkmate"); return true }
+  if(k==="castle"||k==="castling"){ egg("Castle early, castle often, regret nothing.",2800,null,"castle"); return true }
+  if(k==="stalemate"){ egg("Half a point is still a point. Take it and say nothing.",3000,null,"stalemate"); return true }
+  if(k==="fork"){ egg("The knight's favourite meal.",2600,null,"fork"); return true }
+  if(k==="pin"){ egg("It is only a pin if the piece cannot move. Otherwise it is a suggestion.",3200,null,"pin"); return true }
+  if(k==="skewer"){ egg("Like a pin, but ruder.",2600,null,"skewer"); return true }
+  if(k==="zugzwang"){ egg("The cruellest rule in chess: you have to move.",3000,null,"zugzwang"); return true }
+  if(k==="opening"){ egg("Everyone has one. Not everyone has two.",2800,null,"opening"); return true }
+  if(k==="endgame"){ egg("Where the pawns finally get their moment.",2800,null,"endgame"); return true }
+  if(k==="queen"){ egg("Nine points of strong opinion.",2600,null,"queen"); return true }
+  if(k==="rook"){ egg("Belongs on an open file. It knows this. You know this.",3000,null,"rook"); return true }
+  if(k==="bishop"){ egg("Half the board, all of the confidence.",2800,null,"bishop"); return true }
+  if(k==="pawn"){ egg("Small, ambitious, and occasionally a queen.",2800,null,"pawn"); return true }
+  if(k==="king"){ egg("Slow, dramatic, and the entire point.",2800,null,"king"); return true }
+  if(k==="draw"){ egg("A handshake is a result too.",2600,null,"draw"); return true }
+  if(k==="resign"){ egg("Never. Well. Sometimes. Around move sixty.",2800,null,"resign"); return true }
+  if(k==="clock"){ egg("The clock has beaten more players than any opening.",3000,null,"clock"); return true }
+  if(k==="blitz"){ egg("Blitz: chess with the thinking taken out.",2800,null,"blitz"); return true }
+  if(k==="bullet"){ egg("One minute each. No regrets. Many regrets.",2800,null,"bullet"); return true }
+  if(k==="thursday"){ egg("Thursday is a chess word around here.",2600,null,"thursday"); return true }
+  if(k==="elo"){ egg("Arpad Elo did not expect this much arguing.",2800,null,"elo"); return true }
+  if(k==="glicko"){ egg("Glicko-2. The plus-minus is the interesting half.",2800,null,"glicko"); return true }
+  if(k==="beginner"||k==="newbie"){ egg("Everyone was. Several of us still are.",2800,null,"beginner"); return true }
+  if(k==="magnus"||k==="hikaru"){ egg("Not a member. The bracket is open if they fancy it.",3000,null,"magnus"); return true }
+  if(k==="engine"||k==="cheat"){ egg("No engines at the board. The kava is the only enhancement.",3200,null,"engine"); return true }
+  if(k==="brilliant"){ egg("Double exclamation mark. Somebody write it down.",2800,null,"brilliant"); return true }
+  if(k==="tilt"){ egg("Stand up. Walk about. The pieces will wait.",2800,null,"tilt"); return true }
   return false;
 }
 // 20: the old code still works
 (function(){
-  const seq=["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+  const seq=["ArrowUp","ArrowUp","ArrowDown","ArrowDown"];
   let i=0;
   document.addEventListener("keydown",function(e){
     const k=e.key.length===1?e.key.toLowerCase():e.key;
@@ -1903,7 +1934,7 @@ function searchEgg(v){
 })();
 // the code needs a keyboard, so phones get the same thing as a swipe
 (function swipeCode(){
-  const want=["up","up","down","down","left","right","left","right"];
+  const want=["up","up","down","down"];
   let i=0, x0=0, y0=0, t0=0;
   addEventListener("touchstart",function(e){
     const t=e.changedTouches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now();
@@ -1918,6 +1949,15 @@ function searchEgg(v){
     if(i===want.length){ i=0; flash("gold-mode",5000); egg("Tournament mode. Purely decorative.",3200,null,"code") }
   },{passive:true});
 })();
+
+// the last-night heading, the footer, the search icon, the earned label
+document.addEventListener("click",function(e){
+  if(e.target.closest("#ln .lh b")) egg("The one that just happened.",2400,null,"lastnight");
+  if(e.target.closest("footer")&&!e.target.closest("#recLink"))
+    egg("Turn up, play someone, write it down. That is the whole club.",3200,null,"footer");
+  if(e.target.closest(".srch svg")) egg("Looking for someone? So is everyone.",2600,null,"searchicon");
+  if(e.target.closest(".achhead small")) egg("Slowly. That is rather the point.",2600,null,"earned");
+});
 
 // and one on the crosstable's own diagonal
 document.addEventListener("click",function(e){

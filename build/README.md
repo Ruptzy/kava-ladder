@@ -53,9 +53,7 @@ rating (counts up from the seed), its record (cycles to percentages), a trophy
 (spins), the portrait (shows a spirit piece), the turnout blocks (ripple), and a
 crosstable diagonal cell.
 
-Type into search: `en passant`, `kava`, `records`, `1337`, `checkmate`, `e4`,
-`e5`, `d4`, `sicilian`, `gambit`, `positional`, `theory`, `blunder`, `lenny`,
-`goblin chess`, `checkers`, `backgammon`, `pony`, `update`. The
+Type into search (58 words): `1337`, `backgammon`, `beginner`, `bishop`, `blitz`, `blunder`, `brilliant`, `bullet`, `castle`, `castling`, `cheat`, `checkers`, `checkmate`, `chess goblin`, `clock`, `d4`, `draw`, `e4`, `e5`, `elo`, `en passant`, `endgame`, `engine`, `enpassant`, `fork`, `gambit`, `glicko`, `goblin`, `goblin chess`, `hikaru`, `kava`, `king`, `knight`, `leet`, `lenny`, `magnus`, `newbie`, `opening`, `patch`, `pawn`, `pin`, `pony`, `positional`, `queen`, `r`, `record`, `records`, `resign`, `rook`, `sicilian`, `skewer`, `stalemate`, `theory`, `thursday`, `tilt`, `update`, `vibes`, `zugzwang`. The
 Konami code works anywhere. Opening the fun-sort menu three times unlocks a
 joke sort. On the day of a club night the header reads TONIGHT; a profile shows
 a note on the player's club anniversary, at exactly 64 games, and at 1337.
@@ -65,8 +63,8 @@ shouting CHYEEEEEEECK on about one in twenty-five. The page is a static file wit
 no server, so there is no shared tally to increment; flat odds give the same
 club-wide rate without anyone's browser phoning home.
 
-Thirty-two of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
-"Easter egg N of 32" to its toast and records it in this browser, and the
+Sixty-two of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
+"Easter egg N of 62" to its toast and records it in this browser, and the
 Achievements section leads with an Egg hunter tile showing progress. It is the
 only entry there that describes the viewer rather than the player, so it says so
 and is styled apart. Passive ones (the goblin dropping in, a quip on the way
