@@ -24,7 +24,7 @@ html{background:var(--void) url(bg.jpg) center top/cover no-repeat fixed;scroll-
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 body{margin:0;color:var(--cream);font-family:var(--fb);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
 background:linear-gradient(rgba(12,13,14,.8),rgba(12,13,14,.89) 32%,rgba(12,13,14,.94) 62%,rgba(12,13,14,.97))}
-.w{max-width:1080px;margin:0 auto;padding:0 clamp(.8rem,3vw,2rem) 4rem}
+.w{max-width:1080px;margin:0 auto;padding:0 clamp(.95rem,3vw,2rem) 4rem}
 h1,h2,h3{margin:0}button{font:inherit;color:inherit}
 a{color:var(--scarlet)}
 :focus-visible{outline:2px solid var(--scarlet);outline-offset:2px}
@@ -385,7 +385,7 @@ border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;backgroun
 .ach .pg{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.6rem;color:var(--ink-3)}
 .ach .pgb{display:block;height:3px;border-radius:2px;background:var(--panel-3);margin-top:.25rem;overflow:hidden}
 .ach .pgb i{display:block;height:100%;background:var(--ink-3)}
-.achmore{margin-top:.6rem;width:100%;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.5rem;
+.achmore{margin-top:.6rem;width:100%;min-height:42px;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.6rem;
 color:var(--ink-3);font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .achmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
 .cab{display:grid;grid-template-columns:repeat(3,1fr);gap:.6rem;text-align:center}
@@ -465,7 +465,26 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   padding:.45rem 0 0;text-align:left;display:flex;align-items:baseline;gap:.5rem}
   .season b{font-size:.95rem}
   .season small{margin:0}
-  .tools{gap:.5rem;padding-bottom:.7rem}
+  .tools{gap:.5rem;padding-bottom:.8rem}
+  /* everything tappable gets a thumb-sized box */
+  .howbtn{padding:.62rem .9rem;font-size:.62rem;min-height:40px;display:inline-flex;align-items:center}
+  .sorts button,.sortbtn{min-height:40px;display:inline-flex;align-items:center}
+  .srch input{padding:.7rem .9rem .7rem 2.2rem;font-size:1rem}
+  .sorts button,.sortbtn{padding:.62rem .95rem}
+  .sortmenu button{padding:.7rem .65rem}
+  .showaway{padding:.85rem}
+  .xbtn{padding:.95rem}
+  .back{padding:.7rem 0;font-size:.7rem}
+  .chip,.cmpbtn{padding:.6rem .95rem}
+  .cmpsel select,.xsel select{padding:.7rem 2.2rem .7rem .8rem}
+  .card{padding:.9rem .85rem}
+  .achs{gap:.55rem}
+  .ach{padding:.6rem .65rem}
+  .kpis>div{padding:.85rem .9rem}
+  .fact{padding:.85rem .9rem}
+  .lg>div{padding:.8rem .95rem}
+  .sh{margin:1.7rem 0 .7rem}
+  p.l{margin-bottom:1rem}
   .upd{margin-left:0;text-align:left;flex:1 1 100%;order:5;line-height:1.5}
   .srch{flex:1 1 100%;max-width:none;order:4}
   .howbtn{order:3}
