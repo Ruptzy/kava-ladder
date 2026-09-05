@@ -11,7 +11,8 @@ It used to be built by hand, which is how its roster drifted a rename and a
 removal behind the site, and how it ended up with no charset: every em dash,
 middot and half point in the Discord post came out as mojibake.
 """
-import json, io, os, base64, datetime
+import json, io, os, base64
+import buildsite
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
@@ -28,14 +29,36 @@ try:
 except Exception:
     hidden = set()
 
+# The phone renders the same page from its own copy of the history, so it has to
+# arrive already relabelled. Doing the swap only in the site build put every
+# removed name straight back the moment Harold published from his phone.
+history, seeds = buildsite.anonymise(history, seeds, hidden)
+
+# The roster file carries the club's hand-kept numbers, which drift behind the
+# replayed ones - up to sixty points, which is enough to pair two people who
+# should not meet. Pair on the same rating the site shows.
+rated = buildsite.run(history, seeds)
+board = []
+for p in roster["roster"]:
+    if p["n"] in hidden:
+        continue
+    q = dict(p)
+    r = rated.get(p["n"])
+    if r and r["n"] > 0:
+        q["r"] = round(r["r"])
+    board.append(q)
+board.sort(key=lambda p: -p["r"])
+
 # people who have left are not offered for pairing, and their names do not go
 # into a file that gets carried about on a phone
 DATA = {
     "divisions": roster["divisions"],
-    "roster": [p for p in roster["roster"] if p["n"] not in hidden],
+    "roster": board,
     "dormantDays": 90,
     "history": history,
-    "seeds": {k: v for k, v in seeds.items() if k not in hidden},
+    # seeds keep every player: dropping the ones who left would change the
+    # replay for everybody else. They are relabelled, not removed.
+    "seeds": seeds,
 }
 
 logo = base64.b64encode(io.open(os.path.join(ROOT, 'logo.png'), 'rb').read()).decode()

@@ -22,10 +22,38 @@ carries the same page template as `buildsite.py`, so the ladder it publishes is
 the identical page, plus the roster, seeds and history it needs to pair and to
 replay ratings offline. People in `hidden.json` are left out of both.
 
-It was built by hand until now, which is how its roster drifted a rename and a
-removal behind the site, and how it ended up with no `<meta charset>`: every em
-dash, middot and half point in the Discord post came out as mojibake. Rebuild it
-whenever the roster changes.
+It was built by hand until now, which is how it drifted. Rebuild it whenever the
+roster changes; `buildpairings.py` and `buildsite.py` are then guaranteed to
+agree, which is checked by comparing all 91 players' ratings from the two
+builds.
+
+Two things the hand-building hid. The tool paired on the roster file's hand-kept
+numbers, up to sixty points behind the replayed ones, so it now pairs on the
+replayed rating. And Brad, Jenny and Vinny had no entry in `seeds.json`: the site
+build falls back to 1000 for a missing seed, the phone build fell back to
+whatever the roster file carried, so the ladder came out a few points different
+depending on which one built it. They are now seeded at 1000 explicitly, which
+is the number the site had been using all along, so nothing published moved.
+
+### Posting to Discord
+
+No bot. A Discord incoming webhook is a URL for one channel: POST to it and the
+message appears. Nothing to host, no token to keep alive, no process that has to
+be running when the club is not, and Discord allows the request from a browser,
+so the phone posts directly. Server Settings -> Integrations -> Webhooks -> New
+Webhook, point it at the channel, Copy Webhook URL, paste it into the tool's
+settings.
+
+That URL is a password in URL form - anyone holding it can post into the channel
+- so it is kept the way the GitHub token is: typed in on the phone, in
+`localStorage` under `kava.discord`, never in anything published.
+
+Discord stops at 2000 characters, and a busy night runs past that, so the post
+is split on round boundaries and sent in order, each piece inside a code fence
+so the columns survive Discord's proportional font. A 429 is honoured with the
+`retry_after` Discord gives. The site link goes last, if the website is set up.
+
+### Known rough edges
 
 A night in progress is saved to `localStorage` **with its own copy of the
 roster**, so that the list cannot shift under you mid-pairing. The effect is

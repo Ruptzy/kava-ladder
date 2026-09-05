@@ -82,20 +82,40 @@ def run(history,seeds):
             if p["n"]>0: p["hist"].append((night["date"],p["r"],p["rd"]))
     return P
 
+def anon_map(hidden):
+    """People who have left the club and asked not to be listed. Their games stay
+    in the replay, so nobody else's rating or record moves, but the name is
+    swapped for a neutral label before anything is written, so it is not in the
+    file at all. The page prints these as "Visitor"; the number only exists to
+    keep them apart as data.
+
+    The phone build calls this too. It has to: the pairing tool renders the same
+    page from its own copy of the history, so a swap that happened only here
+    would put every name straight back the first time Harold published from his
+    phone."""
+    return {n: "Visitor %d" % (i + 1) for i, n in enumerate(sorted(hidden))}
+
+
+def anonymise(history, seeds, hidden):
+    """History and seeds with the names already swapped. Relabelling before the
+    replay rather than after it keeps both builds on identical numbers."""
+    a = anon_map(hidden)
+    if not a:
+        return history, seeds
+    h = [{"date": n["date"],
+          "games": [[a.get(w, w), a.get(b, b), r] for w, b, r in n["games"]],
+          "byes": [a.get(x, x) for x in n.get("byes", [])]} for n in history]
+    return h, {a.get(k, k): v for k, v in seeds.items()}
+
+
 def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=()):
-    """hidden: people who have left the club and asked not to be listed. Their
-    games stay in the replay, so nobody else's rating or record moves, but the
-    name never reaches the page - it is swapped for a neutral label here, in the
-    build, so it is not in the file at all. The page prints them as "Visitor";
-    the number only exists to keep them apart as data."""
     dates=[h["date"] for h in history]; last=dates[-1] if dates else None
     names=[]; ni={}
     def id_(n):
         if n not in ni: ni[n]=len(names); names.append(n)
         return ni[n]
     for p in roster: id_(p["n"])
-    anon={n:"Visitor %d"%(i+1) for i,n in enumerate(sorted(hidden))}
-    show=lambda n: anon.get(n,n)
+    show=lambda n: n
     games=[]; byes=[]
     for i,h in enumerate(history):
         for w,b,r in h["games"]: games.append([i,id_(show(w)),id_(show(b)),r])
@@ -134,6 +154,7 @@ if __name__=="__main__":
     try: HIDDEN=json.load(open(here('hidden.json')))
     except Exception: HIDDEN=[]
     built=datetime.date.today().isoformat()
+    HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
     P=run(HISTORY,SEEDS)
     D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,HIDDEN)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])

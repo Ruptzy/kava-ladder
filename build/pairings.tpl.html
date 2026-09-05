@@ -170,7 +170,10 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
 .tog .lb{flex:1}
 .tog .lb b{display:block;font-size:.92rem}
 .tog .lb small{color:var(--ink-3);font-size:.76rem}
-.sheet .close{width:100%;background:var(--panel-3);border:1px solid var(--rule-2);border-radius:10px;
+/* not only in the sheets: the two buttons under the standings carry this class
+   too, and scoping it to .sheet left them as unstyled browser buttons - cream
+   text on the default near-white face, unreadable, and 30px tall */
+.close{width:100%;background:var(--panel-3);border:1px solid var(--rule-2);border-radius:10px;
   padding:.8rem;margin-top:.6rem;font-family:var(--f-mono);font-size:.65rem;letter-spacing:.1em;
   text-transform:uppercase;cursor:pointer;min-height:48px}
 /* lock screen */
@@ -272,6 +275,8 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
       <tbody id="stand"></tbody></table>
     <div id="finish"></div>
     <button class="close" id="copyBtn" style="margin-top:1rem">Copy results for Discord</button>
+    <button class="close" id="dscBtn">Post to Discord</button>
+    <p class="hintline" id="dscState"></p>
     <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
     <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
     <button class="close" id="ladderBtn">Save the page as a file instead</button>
@@ -314,6 +319,12 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   <input class="fld" id="pTok" type="password" placeholder="Access token" autocomplete="off">
   <p class="hintline">Kept on this phone only. It is never part of the page anyone else opens.</p>
   <button class="close" id="pTest">Check it works</button>
+  <div class="lbl">Discord</div>
+  <p class="hintline" id="dscCfgState"></p>
+  <input class="fld" id="dHook" type="password" placeholder="Webhook URL" autocomplete="off" autocapitalize="off">
+  <p class="hintline">In Discord: Server Settings &rarr; Integrations &rarr; Webhooks &rarr; New Webhook,
+    point it at #ladder-standings, then Copy Webhook URL. Kept on this phone only, like the token above.</p>
+  <button class="close" id="dTest">Send a test message</button>
   <div class="lbl">This device</div>
   <button class="close" id="lockBtn" style="color:var(--loss);border-color:#4A2E16">Lock — hand the phone over safely</button>
   <button class="close" id="closeSheet">Done</button>
@@ -3320,6 +3331,84 @@ async function publishSite(html,status){
   }
   return siteUrl(c);
 }
+/* ---------- posting the night to Discord ----------
+   A webhook is one URL for one channel. It needs no bot and no server: this
+   phone POSTs the text and Discord puts it in the channel. The URL is a
+   password, so it lives here the same way the token does - on this phone,
+   never in anything published.                                             */
+const DSC_KEY="kava.discord";
+const DSC_LIMIT=1900;          // Discord stops at 2000; the fence needs the rest
+function dscCfg(){ try{ return JSON.parse(localStorage.getItem(DSC_KEY)||"{}") }catch(e){ return {} } }
+function setDsc(c){ try{ localStorage.setItem(DSC_KEY,JSON.stringify(c)) }catch(e){} }
+
+/* Split on blank lines, which in this post means between rounds, so a message
+   never stops halfway through one. A single block longer than the limit is cut
+   by line instead. */
+function dscChunks(text){
+  const blocks=text.split(NL+NL), out=[]; let cur="";
+  const flush=()=>{ if(cur.trim()) out.push(cur.replace(/\s+$/,"")); cur="" };
+  blocks.forEach(bl=>{
+    if(bl.length>DSC_LIMIT){
+      flush();
+      let part="";
+      bl.split(NL).forEach(line=>{
+        if((part+line).length>DSC_LIMIT){ out.push(part.replace(/\s+$/,"")); part="" }
+        part+=line+NL;
+      });
+      if(part.trim()) out.push(part.replace(/\s+$/,""));
+      return;
+    }
+    if((cur+bl).length+2>DSC_LIMIT) flush();
+    cur+=bl+NL+NL;
+  });
+  flush();
+  return out;
+}
+
+async function dscSend(hook,content){
+  const url=hook+(hook.indexOf("?")<0?"?wait=true":"&wait=true");
+  for(let tries=0;tries<4;tries++){
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({content, allowed_mentions:{parse:[]}})});
+    if(r.status===429){                       // Discord asks us to slow down
+      let wait=1; try{ wait=(await r.json()).retry_after||1 }catch(e){}
+      await new Promise(s=>setTimeout(s,Math.ceil(wait*1000)+250));
+      continue;
+    }
+    if(r.status===401||r.status===403) throw new Error("Discord would not accept that webhook.");
+    if(r.status===404) throw new Error("That webhook no longer exists — make a new one in Discord.");
+    if(!r.ok){ let m=""; try{ m=(await r.json()).message||"" }catch(e){}
+      throw new Error("Discord said "+r.status+(m?" — "+m:"")); }
+    return;
+  }
+  throw new Error("Discord kept asking us to slow down. Try again in a minute.");
+}
+
+/* One message per chunk, in order, each fenced so the columns line up. The
+   link goes last so the channel ends on somewhere to click. */
+async function postNight(status){
+  const c=dscCfg();
+  if(!c.hook) throw new Error("Add the webhook in settings first.");
+  const parts=dscChunks(resultsText());
+  for(let i=0;i<parts.length;i++){
+    status&&status("posting "+(i+1)+" of "+parts.length+"…");
+    await dscSend(c.hook,"```"+NL+parts[i]+NL+"```");
+  }
+  const pc=pubCfg();
+  if(pc.owner&&pc.repo){
+    status&&status("posting the link…");
+    await dscSend(c.hook,"Full ladder, every player's page and the club history: "+siteUrl(pc));
+  }
+  return parts.length;
+}
+
+function renderDsc(){
+  const c=dscCfg(), el=$("#dHook");
+  if(el&&document.activeElement!==el) el.value=c.hook||"";
+  const st=$("#dscCfgState");
+  if(st) st.textContent=c.hook?"Posting to the channel this webhook belongs to."
+                              :"Not set up yet — no bot needed, just a webhook URL.";
+}
 function renderPub(){
   const c=pubCfg();
   const o=$("#pOwner"), rp=$("#pRepo"), tk=$("#pTok");
@@ -3335,6 +3424,39 @@ function renderPub(){
     c.owner=$("#pOwner").value.trim(); c.repo=$("#pRepo").value.trim(); c.token=$("#pTok").value.trim();
     c.branch=c.branch||"main"; c.path=c.path||"index.html"; setPub(c); renderPub(); render(); };
 });
+{
+  const el=document.getElementById("dHook");
+  if(el) el.oninput=()=>{ const c=dscCfg(); c.hook=el.value.trim(); setDsc(c); renderDsc() };
+}
+{
+  const b=document.getElementById("dTest");
+  if(b) b.onclick=async()=>{
+    const c=dscCfg(); b.textContent="Sending…";
+    try{
+      if(!c.hook) throw new Error("Paste the webhook URL first.");
+      await dscSend(c.hook,"Test from the KAVA pairing tool. Nothing to see here.");
+      b.textContent="Sent — check the channel";
+    }catch(e){ b.textContent=e.message }
+    setTimeout(()=>{ b.textContent="Send a test message" },4500);
+  };
+}
+{
+  const b=document.getElementById("dscBtn");
+  if(b) b.onclick=async()=>{
+    const was=b.textContent, st=$("#dscState");
+    b.disabled=true;
+    try{
+      const n=await postNight(m=>{ if(st) st.textContent=m });
+      b.textContent="Posted";
+      if(st) st.textContent="In the channel"+(n>1?" as "+n+" messages":"")+".";
+    }catch(e){
+      b.textContent="Post to Discord";
+      if(st) st.textContent=e.message;
+    }
+    b.disabled=false;
+    setTimeout(()=>{ b.textContent=was },4000);
+  };
+}
 $("#pTest").onclick=async()=>{
   const b=$("#pTest"), c=pubCfg(); b.textContent="Checking…";
   try{ const r=await ghCheck(c);
