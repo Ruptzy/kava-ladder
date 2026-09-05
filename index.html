@@ -299,7 +299,11 @@ font-size:.6rem;font-weight:700;color:#0C0D0E}
 .rg td.rs{font-family:var(--fm);font-weight:700;text-align:center;width:2rem}
 .rg td.rs.W{color:var(--gain)}.rg td.rs.L{color:var(--loss)}.rg td.rs.D{color:var(--ink-2)}
 .rg td.dl2{font-family:var(--fm);font-size:.74rem;text-align:right}
-.ptro{display:flex;gap:1.1rem;margin-left:auto;padding-left:1.2rem;border-left:1px solid var(--rule-2)}
+.ptro{margin-left:auto;padding-left:1.2rem;border-left:1px solid var(--rule-2)}
+.ptro .tset{display:flex;gap:1.1rem}
+.ptro .lb em{display:block;font-style:normal;color:var(--scarlet);letter-spacing:.14em;margin-top:.2rem}
+.tprev{margin:.55rem 0 0;font-family:var(--fm);font-size:.55rem;letter-spacing:.1em;
+text-transform:uppercase;color:var(--ink-3);text-align:right}
 .ptro .it{text-align:center;min-width:96px;position:relative}
 .ptro .it.z{opacity:.22;filter:saturate(.25)}
 .ptro .it:not(.z)::before{content:"";position:absolute;left:50%;top:6%;width:118%;height:78%;
@@ -402,8 +406,9 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .pod{gap:.4rem;margin:.9rem 0}
   .pc{padding:.55rem .6rem .5rem;gap:.45rem}.pc .av.m{width:32px;height:32px;font-size:.8rem}
   .av.l{width:72px;height:72px;font-size:1.7rem}.ph2row{gap:.8rem;flex-wrap:wrap}
-  .ptro{margin:1rem 0 0;padding:.9rem 0 0;border-left:none;border-top:1px solid var(--rule-2);
-  flex:1 1 100%;justify-content:space-around;gap:.3rem}
+  .ptro{margin:1rem 0 0;padding:.9rem 0 0;border-left:none;border-top:1px solid var(--rule-2);flex:1 1 100%}
+  .ptro .tset{justify-content:space-around;gap:.3rem}
+  .tprev{text-align:center}
   .ptro .it{min-width:0}
   .ptro .pic{width:76px;height:76px}
   .ptro .n{font-size:1.5rem}
@@ -542,6 +547,24 @@ const daysBetween=(a,b)=>Math.round((new Date(b+"T12:00")-new Date(a+"T12:00"))/
 const dtx=v=>v>0?"▲ +"+v:v<0?"▼ −"+Math.abs(v):"— 0";
 const res=l=>l.s===1?"W":l.s===.5?"D":"L";
 const TROPHY_MIN=3;   // a night only counts if you played at least three games
+/* Brackets are named for the rating they cover, so a rating can be placed in one.
+   That is how a trophy is pinned to the division the player was in at the time,
+   rather than the one they sit in now. */
+const DIVS=D.divisions.slice();
+const BANDS=(function(){
+  const over=[], under=[];
+  DIVS.forEach(d=>{ const m=/([0-9]+)/.exec(d); if(!m) return;
+    const n=parseInt(m[1],10);
+    (/over|above|\+/i.test(d)?over:under).push({d:d,n:n}) });
+  over.sort((a,b)=>b.n-a.n); under.sort((a,b)=>a.n-b.n);
+  return {over:over,under:under};
+})();
+function bandFor(r){
+  for(let i=0;i<BANDS.over.length;i++) if(r>=BANDS.over[i].n) return BANDS.over[i].d;
+  for(let i=0;i<BANDS.under.length;i++) if(r<BANDS.under[i].n) return BANDS.under[i].d;
+  return DIVS[DIVS.length-1];
+}
+const divRank=d=>{ const i=DIVS.indexOf(d); return i<0?DIVS.length:i };   // 0 is the strongest
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
 const awayWhy=p=>p.aw?"taking a break":"no games in "+p.idle+" days";
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
@@ -568,15 +591,16 @@ function derive(){
     (w.opp[b.n]=w.opp[b.n]||[0,0,0])[k]++; (b.opp[w.n]=b.opp[w.n]||[0,0,0])[2-k]++;
   });
   D.byes.forEach(a=>{ for(let i=1;i<a.length;i++){ const p=byI[a[i]]; if(p) p.att[a[0]]=1 } });
-  NIGHT=DATES.map(()=>({pts:{},g:{}}));
+  NIGHT=DATES.map((d,i)=>({pts:{},g:{},ni:i}));
   P.forEach(p=>p.log.forEach(l=>{ const N=NIGHT[l.ni]; N.pts[p.n]=(N.pts[p.n]||0)+l.s; N.g[p.n]=(N.g[p.n]||0)+1 }));
   NIGHT.forEach(N=>{
     N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
     N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });
     // and again within each bracket, which is where the trophies come from
-    N.sec={}; const byDiv={};
-    N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||!p.d||row[2]<TROPHY_MIN) return;
-      (byDiv[p.d]=byDiv[p.d]||[]).push(row) });
+    N.sec={}; N.secDiv={}; const byDiv={};
+    N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||row[2]<TROPHY_MIN) return;
+      const d=bandFor(p.rb[N.ni]!=null?p.rb[N.ni]:p.seed);
+      N.secDiv[row[0]]=d; (byDiv[d]=byDiv[d]||[]).push(row) });
     Object.keys(byDiv).forEach(d=>{ let place=0, prev=null;
       byDiv[d].forEach((row,i)=>{ if(prev===null||row[1]!==prev){ place=i+1; prev=row[1] } N.sec[row[0]]=place }) });
   });
@@ -613,9 +637,15 @@ function derive(){
     p.first=lg.length?DATES[lg[0].ni]:null;
     const prior=p.hist.filter(h=>DATES[h[0]]<=cutS);
     p.imp=(prior.length>=3&&p.rd<=RS&&p.games>=12)?p.r-prior[prior.length-1][1]:null;
-    p.trophies=[0,0,0]; p.trophyNights=[];
+    p.trophies=[0,0,0]; p.trophyNights=[]; p.byDiv={};
     NIGHT.forEach((N,ni)=>{ const pl=N.sec[p.n];
-      if(pl>=1&&pl<=3){ p.trophies[pl-1]++; p.trophyNights.push([ni,pl]) } });
+      if(pl>=1&&pl<=3){
+        const d=N.secDiv[p.n]||p.d;
+        p.trophies[pl-1]++; p.trophyNights.push([ni,pl,d]);
+        (p.byDiv[d]=p.byDiv[d]||[0,0,0])[pl-1]++;
+      } });
+    // the strongest bracket they have ever taken a cup in
+    p.topDiv=Object.keys(p.byDiv).sort((a,b)=>divRank(a)-divRank(b))[0]||p.d;
     p.recent=lg.slice(-10).reverse();
     p.bigNight=0; p.nightly.forEach(n=>{ if(!n.first&&n.delta>p.bigNight) p.bigNight=n.delta });
     p.milestones=milestonesOf(p);
@@ -740,7 +770,7 @@ const SORTS=[
    note:"Games that ended in a handshake."},
  {k:"cab", ic:"🏆", t:"Trophy cabinet", col:"Top three", fun:true, min:1,
    val:p=>p.trophies[0]*1e6+p.trophies[1]*1e3+p.trophies[2], show:p=>trophyLine(p),
-   note:"Nights finished in the top three of your own bracket. First, then second, then third."},
+   note:"Nights finished in the top three of the bracket you were in at the time."},
  {k:"form3", ic:"🔥", t:"On form", col:"Last 3 nights", fun:true, min:4,
    val:p=>form3(p).v, show:p=>{ const f=form3(p); return f.g?f.v+"%":"—" },
    note:"Score over the last three nights you played, whoever you are."}
@@ -1213,13 +1243,21 @@ function recentGames(p){
 }
 function trophyHead(p){
   const L=["First","Second","Third"];
-  const tip=(p.trophies[0]+p.trophies[1]+p.trophies[2])
-    ? "Top-three finishes on a club night in the "+longDiv(p.d)+" bracket"
-    : "No top-three finish in the "+longDiv(p.d)+" bracket yet";
-  return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+L.map(function(lab,i){
-    return '<div class="it'+(p.trophies[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
-      '<span class="n">\u00d7'+p.trophies[i]+'</span><span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i></span></div>';
+  const top=p.topDiv||p.d, counts=p.byDiv[top]||[0,0,0];
+  const any=counts[0]+counts[1]+counts[2];
+  const tip=any ? "Top-three finishes on a club night in "+longDiv(top)
+                : "No top-three finish yet in "+longDiv(p.d);
+  const cups='<div class="tset">'+L.map(function(lab,i){
+    return '<div class="it'+(counts[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
+      '<span class="n">\u00d7'+counts[i]+'</span>'+
+      '<span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i><em>'+esc(shortDiv(any?top:p.d))+'</em></span></div>';
   }).join("")+'</div>';
+  // anything won in a lower bracket, before they climbed
+  const rest=Object.keys(p.byDiv).filter(d=>d!==top).sort((a,b)=>divRank(a)-divRank(b))
+    .map(d=>{ const c=p.byDiv[d];
+      return esc(shortDiv(d))+" "+[0,1,2].filter(i=>c[i]).map(i=>c[i]+"\u00d7"+["1st","2nd","3rd"][i]).join(", ") });
+  return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+cups+
+    (rest.length?'<p class="tprev">Before that: '+rest.join(" \u00b7 ")+'</p>':'')+'</div>';
 }
 function trophyLine(p){
   const T=p.trophies;
