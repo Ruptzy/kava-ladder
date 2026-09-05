@@ -40,10 +40,15 @@ box-shadow:0 0 46px -8px rgba(254,39,58,.75),0 0 0 1px rgba(255,246,232,.14)}
 .wm>b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
 font-size:clamp(1.15rem,4.2vw,2.5rem);letter-spacing:-.015em;line-height:.94;text-transform:uppercase}
 .wm>b span{color:var(--scarlet)}
-.wm small{display:inline-block;font-family:var(--fm);font-size:.82rem;letter-spacing:.26em;color:var(--cream);
-text-transform:uppercase;margin-top:.6rem;padding:.2rem .75rem;border:1px solid var(--rule-2);border-radius:20px;
-background:rgba(12,13,14,.55);text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap}
-.wm small b{display:inline;font:inherit;font-weight:700;color:var(--scarlet);letter-spacing:inherit}
+.wm small{display:inline-flex;align-items:baseline;gap:.45rem;margin-top:.65rem;white-space:nowrap;
+font-family:var(--fd);font-variation-settings:"wdth" 104,"wght" 800;font-size:.92rem;letter-spacing:.1em;
+text-transform:uppercase;color:var(--cream);padding:.22rem .8rem .26rem .65rem;
+border:1px solid var(--rule-2);border-left:3px solid var(--scarlet);border-radius:2px;
+background:linear-gradient(90deg,rgba(254,39,58,.16),rgba(12,13,14,.6) 65%);
+text-shadow:0 1px 8px rgba(0,0,0,.85)}
+.wm small b{display:inline;font-family:var(--fd);font-variation-settings:"wdth" 104,"wght" 900;
+color:var(--scarlet);letter-spacing:.04em}
+.wm small i{font-style:normal;color:var(--ink-3);font-variation-settings:"wght" 600;font-size:.8em}
 .season{flex:none;text-align:right;border-left:2px solid var(--rule-2);padding-left:1rem}
 .season b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;
 font-size:1.15rem;line-height:1;color:var(--cream)}
@@ -430,7 +435,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 @media(max-width:640px){
   .tb{gap:.7rem;padding:.9rem 0 .7rem}
   .tb img{width:66px;height:66px}
-  .wm small{font-size:.68rem;letter-spacing:.2em;margin-top:.4rem;padding:.15rem .55rem}
+  .wm small{font-size:.76rem;letter-spacing:.08em;margin-top:.45rem;padding:.18rem .6rem .2rem .5rem;gap:.35rem}
   .season{border-left:none;border-top:1px solid var(--rule);padding:.5rem 0 0;text-align:left;flex:1 1 100%}
   .season b{display:inline;font-size:1rem}
   .season small{display:inline;margin-left:.4rem}
@@ -488,7 +493,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <div class="top"><div class="w">
 <div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="112" height="112">
-<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8</b> &amp; <b>9</b></small></div>
+<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8</b><i>&amp;</i><b>9</b></small></div>
 <div class="season"><b>Season 10</b><small>up next</small></div></div>
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
