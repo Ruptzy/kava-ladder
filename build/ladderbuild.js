@@ -566,6 +566,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .hm{display:none!important}
   td .chev{display:inline}
   .sml{display:block;margin-top:.15rem}
+  .trow{font-size:.72rem}
+  .trow i{width:13px;height:13px;margin-left:.28rem;vertical-align:-2px}
   #alltime .nmc{max-width:8rem}
   .nmc{max-width:9.5rem}
   td,th{padding:.5rem .45rem}
