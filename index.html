@@ -118,11 +118,48 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .sk{display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--ink-3)}
 .hid{display:none!important}
 /* player profile */
-.pnick{font-family:var(--fm);font-size:.66rem;letter-spacing:.22em;text-transform:uppercase;color:var(--scarlet);margin-bottom:.5rem}
-.phead2{padding-bottom:1.1rem;border-bottom:2px solid var(--rule-2);margin-bottom:1.3rem}
+.back{margin-bottom:1.6rem}
+.pnick{display:inline-flex;align-items:center;gap:.5rem;background:var(--scarlet-wash);
+border:1px solid var(--scarlet-dim);border-radius:100px;padding:.4rem .95rem .4rem .8rem;
+font-family:var(--fm);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+color:var(--scarlet);margin-bottom:1rem}
+.pnick .ni{font-size:1rem;line-height:1}
+.phead2{padding-bottom:1.4rem;border-bottom:2px solid var(--rule-2);margin-bottom:1.5rem}
 .phead2 h1{font-family:var(--fd);font-variation-settings:"wdth" 118,"wght" 900;
-font-size:clamp(2rem,7vw,3.4rem);letter-spacing:-.03em;line-height:.95;margin-bottom:.45rem}
-.psub{font-family:var(--fm);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+font-size:clamp(2.2rem,8vw,4rem);letter-spacing:-.035em;line-height:.92;margin-bottom:.6rem}
+.psub{font-family:var(--fm);font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+/* compare */
+.cmpsel{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
+.cmpsel label{font-family:var(--fm);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.cmpsel select{appearance:none;background:var(--panel-2);color:var(--cream);border:1px solid var(--rule-2);
+border-radius:8px;padding:.55rem 2.2rem .55rem .8rem;font-family:var(--fb);font-size:.92rem;cursor:pointer;flex:1;min-width:180px;
+background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+background-position:calc(100% - 17px) 52%,calc(100% - 12px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.cmpsel select:hover{border-color:var(--scarlet)}
+.vsbar{display:grid;grid-template-columns:1fr auto 1fr;gap:1rem;align-items:center;
+background:linear-gradient(160deg,var(--panel-2),var(--panel) 70%);border:1px solid var(--rule-2);
+border-radius:8px;padding:1rem;margin-bottom:1.1rem}
+.vsbar .side{min-width:0;text-align:center}
+.vsbar .side b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;
+font-size:1.15rem;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vsbar .side span{font-family:var(--fm);font-size:.68rem;color:var(--ink-3)}
+.vsbar .side em{display:block;font-style:normal;font-family:var(--fm);font-size:.52rem;letter-spacing:.16em;
+text-transform:uppercase;color:var(--scarlet);margin-top:.25rem}
+.vsbar .mid{text-align:center}
+.vsbar .mid .sc2{font-family:var(--fm);font-size:2rem;font-weight:700;line-height:1;white-space:nowrap}
+.vsbar .mid em{display:block;font-style:normal;font-family:var(--fm);font-size:.5rem;letter-spacing:.2em;
+text-transform:uppercase;color:var(--ink-3);margin-bottom:.35rem}
+.cmprow{margin-bottom:.85rem}
+.cmprow .lab{text-align:center;font-family:var(--fm);font-size:.55rem;letter-spacing:.16em;
+text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
+.cmprow .line{display:grid;grid-template-columns:3.4rem 1fr 3.4rem;gap:.6rem;align-items:center}
+.cmprow .va,.cmprow .vb{font-family:var(--fm);font-size:.88rem;font-weight:700;color:var(--ink-2)}
+.cmprow .va{text-align:right}
+.cmprow .va.win,.cmprow .vb.win{color:var(--gain)}
+.cmpbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--panel-3)}
+.cmpbar i{display:block;height:100%}
+.cmpbar i.a{background:var(--rule-2)}.cmpbar i.b{background:var(--rule-2)}
+.cmpbar i.a.win{background:var(--gain)}.cmpbar i.b.win{background:var(--gain)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--rule);
 border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;margin-bottom:1.2rem}
 .kpis>div{background:var(--panel);padding:.8rem .9rem}
@@ -364,6 +401,9 @@ function cpct(a){var g=a[0]+a[1]+a[2];return g?Math.round((a[0]+a[1]/2)/g*100):0
 function fdate(s){return s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"}):"—"}
 function fshort(s){return s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"}):""}
 
+var NICKIC={"Giant Killer":"⚡","The Streak":"🔥","Ever-Present":"🪑","Nightfall":"♚","First Strike":"♔",
+"The Climber":"🚀","The Machine":"⚙️","The Grinder":"⛏️","The Metronome":"🎯","Punching Up":"🥊",
+"On A Roll":"📈","The Newcomer":"🌱","The Regular":"♟️"};
 function nickname(p){
   var wpc=cpct(p.wh), bpc=cpct(p.bl), att=D.nights?(p.cons||0)/D.nights:0;
   if(p.upsets>=4)                       return "Giant Killer";
@@ -503,36 +543,44 @@ function attendance(p){
 }
 function comparePanel(p){
   var opts=P.filter(function(x){return x.n!==p.n}).sort(function(a,b){return b.r-a.r});
-  var sel='<select id="rivalSel"><option value="">Pick someone to compare…</option>'+
-    opts.map(function(o){return '<option value="'+esc(o.n)+'"'+(RIVAL&&RIVAL.n===o.n?" selected":"")+'>'+esc(o.n)+' — '+o.r+'</option>'}).join("")+'</select>';
-  if(!RIVAL) return sel+'<p style="margin:.8rem 0 0;color:var(--ink-3);font-size:.86rem">Their rating line will appear over this one, with the head-to-head and a stat-by-stat comparison.</p>';
-  var a=p.opp[RIVAL.n], me=sc(p), you=sc(RIVAL);
-  var rowsHtml=[["Rating",p.r,RIVAL.r],["Win rate",wr(p)+"%",wr(RIVAL)+"%"],["Games",p.games,RIVAL.games],
-    ["Nights",(p.cons||0)+"/"+D.nights,(RIVAL.cons||0)+"/"+D.nights],
-    ["Best run",p.streak[0],RIVAL.streak[0]],["As White",cpct(p.wh)+"%",cpct(RIVAL.wh)+"%"],
-    ["As Black",cpct(p.bl)+"%",cpct(RIVAL.bl)+"%"],["Upsets",p.upsets,RIVAL.upsets]]
-    .map(function(r){
-      var an=parseFloat(String(r[1])), bn=parseFloat(String(r[2]));
-      var aw=!isNaN(an)&&!isNaN(bn)&&an>bn, bw=!isNaN(an)&&!isNaN(bn)&&bn>an;
-      return '<tr><td style="text-align:right;font-family:var(--fm);font-weight:700;color:'+(aw?"var(--gain)":"var(--ink-2)")+'">'+r[1]+'</td>'+
-        '<td style="text-align:center;font-family:var(--fm);font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);padding:0 .8rem">'+r[0]+'</td>'+
-        '<td style="font-family:var(--fm);font-weight:700;color:'+(bw?"var(--gain)":"var(--ink-2)")+'">'+r[2]+'</td></tr>';
-    }).join("");
-  var h2h = a ? (a[0]+" won &middot; "+a[1]+" drawn &middot; "+a[2]+" lost") : "They have never played";
-  var net = a ? a[0]-a[2] : 0;
+  var sel='<div class="cmpsel"><label for="rivalSel">Compare with</label><select id="rivalSel">'+
+    '<option value="">Pick a player…</option>'+
+    opts.map(function(o){return '<option value="'+esc(o.n)+'"'+(RIVAL&&RIVAL.n===o.n?" selected":"")+'>'+esc(o.n)+' — '+o.r+'</option>'}).join("")+'</select></div>';
+  if(!RIVAL) return sel+'<p style="margin:.2rem 0 0;color:var(--ink-3);font-size:.88rem;line-height:1.5">'+
+    'Their rating line drops onto the chart above, with the head-to-head and every stat side by side.</p>';
+  var a=p.opp[RIVAL.n]||null, net=a?a[0]-a[2]:0;
+  var rows=[["Rating",p.r,RIVAL.r],["Win rate",wr(p),wr(RIVAL),"%"],["Games",p.games,RIVAL.games],
+    ["Nights",p.cons||0,RIVAL.cons||0],["Best run",p.streak[0],RIVAL.streak[0]],
+    ["As White",cpct(p.wh),cpct(RIVAL.wh),"%"],["As Black",cpct(p.bl),cpct(RIVAL.bl),"%"],
+    ["Upsets",p.upsets,RIVAL.upsets]];
+  var body=rows.map(function(r){
+    var A=r[1], B=r[2], suf=r[3]||"", tot=(A+B)||1;
+    var pa=Math.round(A/tot*100), pb=100-pa;
+    var aw=A>B, bw=B>A;
+    return '<div class="cmprow"><div class="lab">'+r[0]+'</div><div class="line">'+
+      '<span class="va'+(aw?" win":"")+'">'+A+suf+'</span>'+
+      '<span class="cmpbar"><i class="a'+(aw?" win":"")+'" style="width:'+pa+'%"></i>'+
+      '<i class="b'+(bw?" win":"")+'" style="width:'+pb+'%"></i></span>'+
+      '<span class="vb'+(bw?" win":"")+'">'+B+suf+'</span></div></div>';
+  }).join("");
   return sel+
-   '<div style="display:flex;align-items:center;justify-content:center;gap:1rem;margin:1rem 0 .4rem;text-align:center;flex-wrap:wrap">'+
-   '<div style="flex:1 1 7rem"><b style="font-family:var(--fd);font-variation-settings:\'wdth\' 108,\'wght\' 800">'+esc(p.n)+'</b></div>'+
-   '<div style="font-family:var(--fm);font-size:1.8rem;font-weight:700;color:'+(net>0?"var(--gain)":net<0?"var(--loss)":"var(--cream)")+'">'+(a?(a[0]+"–"+a[2]):"—")+'</div>'+
-   '<div style="flex:1 1 7rem"><b style="font-family:var(--fd);font-variation-settings:\'wdth\' 108,\'wght\' 800">'+esc(RIVAL.n)+'</b></div></div>'+
-   '<p style="text-align:center;font-family:var(--fm);font-size:.66rem;color:var(--ink-3);margin:0 0 1rem">'+h2h+'</p>'+
-   '<table style="width:100%"><tbody>'+rowsHtml+'</tbody></table>';
+   '<div class="vsbar">'+
+   '<div class="side"><b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
+   '<div class="mid"><em>Head to head</em><div class="sc2">'+
+     (a?('<span style="color:'+(net>0?"var(--gain)":"var(--ink-2)")+'">'+a[0]+'</span>'+
+         '<span style="color:var(--ink-3)">–</span>'+
+         '<span style="color:'+(net<0?"var(--gain)":"var(--ink-2)")+'">'+a[2]+'</span>')
+        :'<span style="color:var(--ink-3);font-size:.9rem">never met</span>')+
+   '</div></div>'+
+   '<div class="side"><b>'+esc(RIVAL.n)+'</b><span>'+RIVAL.r+'</span></div></div>'+
+   (a&&a[1]?'<p style="text-align:center;font-family:var(--fm);font-size:.62rem;color:var(--ink-3);margin:-.6rem 0 1rem">plus '+a[1]+' drawn</p>':'')+
+   body;
 }
-
 function open_(n){
   var p=byN[n]; if(!p) return;
   CUR=p; if(RIVAL&&RIVAL.n===n) RIVAL=null;
-  $("#pnick").textContent=nickname(p);
+  var nk=nickname(p);
+  $("#pnick").innerHTML='<span class="ni">'+(NICKIC[nk]||"♟️")+'</span>'+nk;
   $("#pname").textContent=p.n;
   $("#psub").innerHTML=esc(p.d)+" &middot; "+p.games+" games"+(away(p)?" &middot; away":"");
   $("#kpis").innerHTML=
