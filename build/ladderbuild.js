@@ -76,7 +76,7 @@ html{background:var(--void) url(bg.jpg) center top/cover no-repeat fixed;scroll-
 @media(max-width:900px){html{background-attachment:scroll;background-position:center top;background-size:180% auto}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important;animation:none!important}}
 body{margin:0;color:var(--cream);font-family:var(--fb);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;
-background:linear-gradient(rgba(12,13,14,.62),rgba(12,13,14,.76) 32%,rgba(12,13,14,.85) 62%,rgba(12,13,14,.91))}
+background:linear-gradient(rgba(12,13,14,.8),rgba(12,13,14,.89) 32%,rgba(12,13,14,.94) 62%,rgba(12,13,14,.97))}
 .w{max-width:1080px;margin:0 auto;padding:0 clamp(.8rem,3vw,2rem) 4rem}
 h1,h2,h3{margin:0}button{font:inherit;color:inherit}
 a{color:var(--scarlet)}
@@ -85,16 +85,18 @@ a{color:var(--scarlet)}
 .skip{position:absolute;left:-999px;top:.5rem;background:var(--scarlet);color:#fff;padding:.5rem .8rem;border-radius:4px;z-index:50;font-weight:700}
 .skip:focus{left:.5rem}
 .top .w{padding-bottom:0}
-.top{border-bottom:1px solid var(--rule);background:radial-gradient(130% 200% at 6% 0%,rgba(36,19,24,.7) 0%,rgba(12,13,14,.55) 60%)}
+.top{border-bottom:1px solid var(--rule);background:radial-gradient(130% 200% at 6% 0%,rgba(36,19,24,.8) 0%,rgba(12,13,14,.7) 60%)}
 .tb{display:flex;align-items:center;gap:1rem;padding:1.4rem 0 1rem}
 .tb img{width:clamp(78px,9vw,112px);height:clamp(78px,9vw,112px);border-radius:50%;flex:none;
 box-shadow:0 0 46px -8px rgba(254,39,58,.75),0 0 0 1px rgba(255,246,232,.14)}
 .wm{margin-right:auto;min-width:0}
-.wm b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
+.wm>b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
 font-size:clamp(1.15rem,4.2vw,2.5rem);letter-spacing:-.015em;line-height:.94;text-transform:uppercase}
-.wm b span{color:var(--scarlet)}
-.wm small{display:block;font-family:var(--fm);font-size:.58rem;letter-spacing:.34em;color:var(--ink-3);
-text-transform:uppercase;margin-top:.45rem}
+.wm>b span{color:var(--scarlet)}
+.wm small{display:inline-block;font-family:var(--fm);font-size:.82rem;letter-spacing:.26em;color:var(--cream);
+text-transform:uppercase;margin-top:.6rem;padding:.2rem .75rem;border:1px solid var(--rule-2);border-radius:20px;
+background:rgba(12,13,14,.55);text-shadow:0 1px 6px rgba(0,0,0,.9);white-space:nowrap}
+.wm small b{display:inline;font:inherit;font-weight:700;color:var(--scarlet);letter-spacing:inherit}
 .season{flex:none;text-align:right;border-left:2px solid var(--rule-2);padding-left:1rem}
 .season b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;
 font-size:1.15rem;line-height:1;color:var(--cream)}
@@ -481,7 +483,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 @media(max-width:640px){
   .tb{gap:.7rem;padding:.9rem 0 .7rem}
   .tb img{width:66px;height:66px}
-  .wm small{letter-spacing:.24em;margin-top:.3rem}
+  .wm small{font-size:.68rem;letter-spacing:.2em;margin-top:.4rem;padding:.15rem .55rem}
   .season{border-left:none;border-top:1px solid var(--rule);padding:.5rem 0 0;text-align:left;flex:1 1 100%}
   .season b{display:inline;font-size:1rem}
   .season small{display:inline;margin-left:.4rem}
@@ -539,7 +541,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <div class="top"><div class="w">
 <div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="112" height="112">
-<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons 8 &amp; 9</small></div>
+<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8</b> &amp; <b>9</b></small></div>
 <div class="season"><b>Season 10</b><small>up next</small></div></div>
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
