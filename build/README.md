@@ -63,14 +63,25 @@ shouting CHYEEEEEEECK on about one in twenty-five. The page is a static file wit
 no server, so there is no shared tally to increment; flat odds give the same
 club-wide rate without anyone's browser phoning home.
 
-Sixty-two of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
-"Easter egg N of 62" to its toast and records it in this browser, and the
+Sixty-six of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
+"Easter egg N of 66" to its toast and records it in this browser, and the
 Achievements section leads with an Egg hunter tile showing progress. It is the
 only entry there that describes the viewer rather than the player, so it says so
 and is styled apart. Passive ones (the goblin dropping in, a quip on the way
 past) are not in the count: you cannot hunt something that hunts you.
 
 The Konami code needs a keyboard, so phones get the same sequence as swipes.
+
+**But Harold.** The study-night catchphrase, in three places. Typing it gives the
+objection, then the toast rewrites itself with the deeper motif. It also turns up
+uninvited on about one visit in seventeen. The real one hangs off the data: any
+profile with a night where they won more games than they lost and still lost
+rating points carries a "But Harold..." under the nightly chart, and tapping it
+explains that night with its own numbers, opponents' average rating included.
+Fourteen players currently have such a night.
+
+Opening the club's number one after a night they dropped a game gets "the bigger
+they are"; opening anyone with a winning record occasionally gets a line about it.
 
 A dim unlabelled dot at the very end of the footer gives one hint per visit,
 always for an egg this browser has not found, phrased as a nudge. Hints live in

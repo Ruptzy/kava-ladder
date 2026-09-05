@@ -265,6 +265,11 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .back:hover{color:var(--scarlet)}
 .card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:3px;padding:1rem;min-width:0}
 .card h3{font-family:var(--fm);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:.8rem}
+.bh{display:inline-block;margin:.6rem 0 0;background:none;border:none;padding:.35rem 0;cursor:pointer;
+font-family:var(--fm);font-size:.66rem;letter-spacing:.1em;color:var(--scarlet);text-decoration:underline dotted}
+.bh:hover{color:#ff4455}
+.bhx{margin:.55rem 0 0;padding:.6rem .7rem;border-left:2px solid var(--scarlet-dim);background:rgba(254,39,58,.06);
+border-radius:0 6px 6px 0;font-size:.84rem;line-height:1.5;color:var(--ink-2)}
 .cap{margin:.6rem 0 0;font-family:var(--fm);font-size:.6rem;color:var(--ink-3);line-height:1.6}
 .hid{display:none!important}
 .pnick{display:inline-flex;align-items:center;gap:.5rem;background:var(--scarlet-wash);
@@ -1537,6 +1542,26 @@ function journey(p,rival){
     (rival?'<span><i style="display:inline-block;width:14px;border-top:2px dashed #8A8276;vertical-align:.25em;margin-right:.3rem"></i>'+esc(rival.n)+'</span>':'')+'</div>'+
     '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fshort(p.peak[1]):'')+'.</p>';
 }
+/* the night that looks like a refutation of the whole rating system: won more
+   than you lost, still went down. There is a deeper motif, and it is who you
+   played.                                                                    */
+function oddNight(p){
+  return p.nightly.filter(n=>!n.first&&n.w>n.l&&n.delta<0)
+    .sort((a,b)=>((b.w-b.l)-(a.w-a.l))||(a.delta-b.delta))[0]||null;
+}
+function oddNightWhy(p,ni){
+  const n=p.nightly.find(x=>x.ni===ni); if(!n) return "";
+  const gs=p.log.filter(l=>l.ni===ni); if(!gs.length) return "";
+  const avg=Math.round(gs.reduce((s,l)=>s+l.orat,0)/gs.length), mine=gs[0].mrat;
+  const lost=gs.filter(l=>l.s===0), beat=gs.filter(l=>l.s===1);
+  const bits=[];
+  bits.push(esc(p.n)+" went "+n.w+"\u2013"+n.dr+"\u2013"+n.l+" on "+fd(n.d)+" and still lost "+Math.abs(n.delta)+" points.");
+  bits.push("Everyone that night averaged "+avg+", against "+mine+" going in.");
+  if(beat.length) bits.push("Beating someone below you is what the number already expects, so it pays almost nothing.");
+  if(lost.length) bits.push("Losing to one of them costs more than those wins earn. That is the whole of it.");
+  bits.push("The system is not broken. It is just counting who, not how many.");
+  return bits.join(" ");
+}
 function nightly(p){
   var d=(p.nightly.length>1?p.nightly.filter(function(n){return !n.first}):p.nightly).slice(-16); if(!d.length) return '<p style="color:var(--ink-3)">No nights recorded.</p>';
   var W=620,H=190,L=40,R=12,T=14,B=34, mx=Math.max(20,Math.max.apply(null,d.map(function(x){return Math.abs(x.delta)})));
@@ -1553,6 +1578,7 @@ function nightly(p){
     }).join("")+
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fshort(x.d)+'</text>':""}).join(""),
     W,H,"Rating points won or lost each night")+
+    (oddNight(p)?'<button class="bh" data-bh="'+oddNight(p).ni+'">But Harold&hellip;</button>':'')+
     '<p class="cap">Points gained or lost on each of the last '+d.length+' nights played'+(p.nightly.length>1?', not counting the first night while the rating was still a guess':'')+'. Hover a bar for the record and where they finished that night.</p>';
 }
 function formStrip(p){
@@ -1601,6 +1627,27 @@ function recentGames(p){
     return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'"><i class="cc c'+l.c+'"></i>'+esc(l.o)+'<span style="font-family:var(--fm);font-size:.66rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
+}
+/* the club's number one, caught losing */
+const WINNERS=[
+ "More wins than losses. The number takes its time agreeing.",
+ "A winning record. Somebody had to be on the good side of it.",
+ "Wins outnumber losses here. Quietly, without fuss.",
+ "Ahead on the count. The hard part is staying there."];
+function openingEggs(p){
+  const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0];
+  const lastN=p.nightly[p.nightly.length-1];
+  if(top&&top.n===p.n&&lastN&&lastN.l>0&&Math.random()<0.7){
+    setTimeout(function(){
+      egg("The bigger they are, the harder they fall. Or something like that.",4000,null,"mighty-fall");
+    },1500);
+    return;
+  }
+  if(p.rec[0]>p.rec[2]&&p.games>=10&&Math.random()<0.15){
+    setTimeout(function(){
+      egg(WINNERS[Math.floor(Math.random()*WINNERS.length)],3400,null,"winning-record");
+    },1500);
+  }
 }
 function scoutLine(p){
   const w=wr(p);
@@ -1685,6 +1732,7 @@ function showProfile(n,rival){
   document.title=p.n+" · KAVA Ladder";
   var tt=titleFor(p), el=$("#pnick");
   if(Math.random()<0.12) setTimeout(function(){ egg(scoutLine(p),3600) },900);
+  try{ openingEggs(p) }catch(e){}
   el.setAttribute("tabindex","0");
   el.innerHTML='<span class="ni">'+tt.ic+'</span>'+tt.name+'<span class="q" aria-hidden="true">?</span><span class="tip"><b>Why this title</b>'+esc(tt.why||"Earned from their record.")+'</span>';
   el.onclick=function(){ this.classList.toggle("open") };
@@ -1740,6 +1788,14 @@ $("#bk").onclick=function(){ go(boardHash||"") };
 $("#hbk").onclick=function(){ go(boardHash||"") };
 $("#rbk").onclick=function(){ go(boardHash||"") };
 document.addEventListener("click",function(e){
+  const bh=e.target.closest("[data-bh]");
+  if(bh&&CUR){
+    const why=oddNightWhy(CUR,parseInt(bh.dataset.bh,10));
+    const box=document.createElement("p"); box.className="bhx"; box.innerHTML=why;
+    bh.replaceWith(box); eggFind("deeper-motif");
+    egg("There is a deeper motif.",2600);
+    return;
+  }
   if(e.target.closest("#hintDot")){ e.stopPropagation(); giveHint(); return }
   const l=e.target.closest("#recLink"); if(!l) return;
   boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records";
@@ -1760,7 +1816,7 @@ const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes"
  "castle","stalemate","fork","pin","skewer","zugzwang","opening","endgame",
  "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
  "sunday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
- "lastnight","footer","searchicon","earned"];
+ "lastnight","footer","searchicon","earned","but-harold","deeper-motif","mighty-fall","winning-record"];
 function eggsFound(){
   try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
   catch(e){ return new Set() }
@@ -1785,6 +1841,20 @@ function egg(msg,ms,cls,id){
 function flash(cls,ms){
   const h=document.documentElement; h.classList.add(cls);
   setTimeout(function(){ h.classList.remove(cls) }, ms||3000);
+}
+/* Study night: somebody spots a refutation, and a deeper motif allows it after
+   all. The toast objects, waits, then corrects itself.                       */
+const BUT_HAROLD=[
+ ["But Harold, doesn't Nxe5 just win a pawn?","It does not. There is a deeper motif. There is always a deeper motif."],
+ ["But Harold, can't Black simply take with the queen?","Simply. He said simply. Look three moves further."],
+ ["But Harold, that hangs the rook.","It hangs nothing. The rook is doing something you have not noticed yet."],
+ ["But Harold, surely the king just walks away?","The king would love to. The king may not. Look at the diagonal."],
+ ["But Harold, isn't that refuted by the pin?","The pin is the point. That is why it works."],
+ ["But Harold, the engine says it's equal.","The engine is not sitting at the board on Sunday. You are."]];
+function butHarold(){
+  const pair=BUT_HAROLD[Math.floor(Math.random()*BUT_HAROLD.length)];
+  egg(pair[0],2600,null,"but-harold");
+  setTimeout(function(){ egg(pair[1],3800) },2500);
 }
 const PIECES=["\u265F pawn","\u265E knight","\u265D bishop","\u265C rook","\u265B queen","\u265A king"];
 const spiritOf=n=>PIECES[hashName(n)%PIECES.length];
@@ -1926,6 +1996,7 @@ function searchEgg(v){
   if(k==="engine"||k==="cheat"){ egg("No engines at the board. The kava is the only enhancement.",3200,null,"engine"); return true }
   if(k==="brilliant"){ egg("Double exclamation mark. Somebody write it down.",2800,null,"brilliant"); return true }
   if(k==="tilt"){ egg("Stand up. Walk about. The pieces will wait.",2800,null,"tilt"); return true }
+  if(k==="but harold"||k==="butharold"||k==="harold?"){ butHarold(); return true }
   return false;
 }
 // 20: the old code still works
@@ -1994,7 +2065,8 @@ function quip(){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return t
 (function goblinWatch(){
   const roll=Math.random();
   if(roll<0.04){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
-  if(roll<0.20) setTimeout(function(){ egg(quip(),4600) },1600);
+  if(roll<0.06){ setTimeout(butHarold,1600); return }
+  if(roll<0.22) setTimeout(function(){ egg(quip(),4600) },1600);
 })();
 
 /* One hint per visit, from the dim dot in the footer. Always points at
@@ -2061,7 +2133,11 @@ const HINTS={
  "lastnight":"The Last night heading will answer if you tap it.",
  "footer":"The very bottom of the page has a club motto in it.",
  "searchicon":"The magnifier in the search box is listening.",
- "earned":"The word EARNED beside your achievements has an opinion."
+ "earned":"The word EARNED beside your achievements has an opinion.",
+ "but-harold":"Study night has a catchphrase. Two words, one of them is a name.",
+ "deeper-motif":"Somewhere a player won more games than they lost and still went down. That page argues back.",
+ "mighty-fall":"Open the top of the ladder after a night they did not win everything.",
+ "winning-record":"Open somebody who has won more than they have lost. Keep opening them."
 };
 function hintUsed(){ try{ return sessionStorage.getItem("kv-hint-used")==="1" }catch(e){ return false } }
 function giveHint(){
