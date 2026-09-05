@@ -12,6 +12,14 @@ Inputs: `history.json` (every game by club night), `seeds.json` (starting rating
 `arc_timeline.py` from `archive_raw.json`). The build also lists `../photos/`
 so the page only requests a portrait that exists.
 
+Bracket tabs are art: `tabs/all.png`, `tabs/over-1400.png`, `tabs/u1400.png`,
+`tabs/u1000.png` (the file name is the bracket slugged). The wording is part of
+the picture, so the button text is kept for screen readers and hidden on screen.
+If any panel is missing the tabs fall back to plain text buttons.
+
+Podium cards live in `podium/1.png`, `2.png`, `3.png`; the circle position for
+each is set per card in the CSS, measured off the art.
+
 Trophies live in `trophies/1.png`, `2.png`, `3.png` (transparent PNGs, 240px).
 Counts are worked out in the page: each club night, players who played at least
 three games are ranked against the rest of their bracket, and a top-three finish
