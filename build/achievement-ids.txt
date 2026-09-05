@@ -20,7 +20,7 @@ games-100
 games-150
 games-200
 night-5
-night-6
+full-card-15
 full-card-5
 full-card-10
 white-25
@@ -35,8 +35,8 @@ all-brackets
 beat-brackets
 own-bracket
 welcomer-3
+rivalry-6
 rivalry-10
-rivalry-20
 punch-up-50
 punch-up-150
 tough-10
@@ -51,11 +51,11 @@ sweep
 sweep-3
 perfect-5
 upset-3
-upset-10
+upset-6
 beat-top
 comeback
 nemesis-beaten
-draws-10
+draws-4
 decisive-40
 podium-3
 podium-10
@@ -68,4 +68,4 @@ settled
 climb-150
 climb-300
 at-peak
-improve-150
+improve-120

@@ -452,6 +452,33 @@ text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
 .mbox h2 span{color:var(--scarlet)}
 .mbox .x{position:absolute;right:.7rem;top:.7rem;background:none;border:1px solid var(--rule-2);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--ink-2)}
 .faq{margin:0}.faq dt{font-weight:700;margin-top:.8rem}.faq dd{margin:.15rem 0 0;color:var(--ink-2);font-size:.92rem}
+/* easter eggs */
+#eggToast{position:fixed;left:50%;bottom:1.1rem;transform:translate(-50%,120%);z-index:80;
+max-width:min(420px,92vw);padding:.7rem 1rem;border-radius:24px;background:rgba(22,23,25,.97);
+border:1px solid var(--scarlet-dim);color:var(--cream);font-size:.9rem;line-height:1.4;text-align:center;
+box-shadow:0 16px 40px -14px rgba(0,0,0,.9);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
+#eggToast.on{transform:translate(-50%,0);opacity:1}
+@keyframes knightHop{0%{transform:translate(0,0)}25%{transform:translate(0,-26px)}
+50%{transform:translate(34px,-26px) rotate(8deg)}75%{transform:translate(34px,0)}100%{transform:translate(0,0)}}
+.hop{animation:knightHop .9s ease-in-out}
+@keyframes wig{0%,100%{transform:rotate(0)}25%{transform:rotate(-14deg)}75%{transform:rotate(14deg)}}
+.wig{display:inline-block;animation:wig .45s ease-in-out 2}
+@keyframes spinCup{to{transform:rotateY(360deg)}}
+.spun{animation:spinCup .7s ease-in-out}
+@keyframes ripple{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.8)}}
+.att i.rip{animation:ripple .45s ease}
+.gold-mode{filter:sepia(.35) saturate(1.5) hue-rotate(-14deg) brightness(1.1)}
+.dim-mode{filter:brightness(.62) contrast(1.1) saturate(1.25)}
+html.gold-mode,html.dim-mode{transition:filter .4s}
+.tonight{color:var(--scarlet)!important;animation:tonightPulse 1.6s ease-in-out infinite}
+@keyframes tonightPulse{0%,100%{opacity:1}50%{opacity:.45}}
+.eggl{background:none;border:none;color:var(--ink-3);font:inherit;cursor:pointer;text-decoration:underline dotted;padding:0}
+.eggl:hover{color:var(--scarlet)}
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
+.rec{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem}
+.rec dt{font-family:var(--fm);font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.rec dd{margin:.35rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.35rem;line-height:1.1}
+.rec dd small{display:block;font-family:var(--fb);font-weight:400;font-size:.8rem;color:var(--ink-2);margin-top:.3rem;line-height:1.4}
 footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);font-family:var(--fm);font-size:.6rem;color:var(--ink-3);line-height:1.9}
 /* phones */
 @media(max-width:640px){
@@ -607,6 +634,12 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="box"><div class="sc"><table><thead><tr>
 <th style="padding-left:1rem">Player</th><th class="r">Games</th><th class="hm">Seasons 1&ndash;7</th><th class="hm">Seasons 8 &amp; 9</th><th>All time</th>
 </tr></thead><tbody id="alltime"></tbody></table></div></div>
+</main>
+<main id="rv" class="hid">
+<button class="back" id="rbk">&larr; Back to the ladder</button>
+<div class="sh"><h2>Club <span>records</span></h2><p>Every night on record</p></div>
+<p class="l">The high-water marks, worked out from every game the club has kept.</p>
+<dl class="recs" id="recs"></dl>
 </main>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
@@ -784,6 +817,7 @@ function route(){
   const parts=location.hash.replace(/^#[/]?/,"").split("/").map(s=>{ try{return decodeURIComponent(s)}catch(e){return s} }).filter(Boolean);
   if(parts[0]==="p"&&byN[parts[1]]&&!byN[parts[1]].gh){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]&&!byN[parts[3]].gh?parts[3]:null); return }
   if(parts[0]==="history"){ showHistory(); return }
+  if(parts[0]==="records"){ showRecords(); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
     else if(parts[i]==="sort"&&SORTS.some(s=>s.k===parts[i+1])){ ns=parts[i+1]; i+=2 } else i++; }
@@ -798,7 +832,7 @@ window.addEventListener("hashchange",route);
   const fresh=D.built&&daysBetween(D.built,today)<=2;
   $("#upd").className="upd"+(fresh?" fresh":"");
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; includes <b>'+fshort(D.date)+'</b>'+(D.next?'<br>Next night <b>'+fshort(D.next)+'</b>':'');
-  $("#foot").innerHTML="KAVA Social Chess Club &middot; seasons 8 &amp; 9: "+D.games.length+" games across "+DATES.length+" club nights &middot; seasons 1&ndash;7 archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built);
+  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; seasons 8 &amp; 9: "+D.games.length+" games across "+DATES.length+" club nights &middot; seasons 1&ndash;7 archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built);
 })();
 const TABART=D.tabart||[];
 const tabSlug=d=>d==="all"?"all":slug(d);
@@ -840,7 +874,9 @@ function drawSearch(){
 function hideSearch(){ $("#sres").classList.add("hid"); sIdx=0 }
 function pickSearch(b){ if(!b) return; $("#q").value=""; hideSearch(); $("#q").blur();
   if(b.dataset.arc){ location.hash="#/history"; setTimeout(()=>{ const tr=$("#arc").querySelector('tr[data-arc="'+CSS.escape(b.dataset.n)+'"]'); if(tr){ tr.scrollIntoView({block:"center"}); tr.style.outline="2px solid var(--scarlet)" } },80) } else openProfile(b.dataset.n) }
-$("#q").oninput=()=>{ sIdx=0; drawSearch() };
+$("#q").oninput=function(){ sIdx=0;
+  if(searchEgg(this.value)){ this.value=""; hideSearch(); this.blur(); return }
+  drawSearch() };
 $("#q").onfocus=drawSearch;
 $("#q").onkeydown=e=>{ const bs=[...$("#sres").querySelectorAll("button")];
   if(e.key==="ArrowDown"){ sIdx=Math.min(bs.length-1,sIdx+1); drawSearch(); e.preventDefault() }
@@ -951,7 +987,7 @@ function draw(){
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 KAVA Ladder";
-  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.remove("hid");
+  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#hv").classList.remove("hid");
   scrollTo({top:0,behavior:"instant"});
 }
 function fitPodium(){
@@ -966,7 +1002,7 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitPodium);
 addEventListener("resize",()=>{ document.querySelectorAll("#pod .nm").forEach(e=>e.style.fontSize=""); fitPodium() });
 function showBoard(){
   if(CUR){ CUR=null; RIVAL=null; document.title="KAVA Ladder"; }
-  $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#board").classList.remove("hid");
+  $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#board").classList.remove("hid");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
 }
@@ -1328,7 +1364,7 @@ var ACH=[
  A("games-150","⛏️","The Grind","Play 150 games.",(p,c)=>p.games>=150,(p,c)=>[p.games,150]),
  A("games-200","🗿","Double Century","Play 200 games.",(p,c)=>p.games>=200,(p,c)=>[p.games,200]),
  A("night-5","🏃","Full Card","Play five games in a single night.",(p,c)=>c.maxNight>=5,(p,c)=>[c.maxNight,5]),
- A("night-6","🥵","Marathon","Play six games in a single night.",(p,c)=>c.maxNight>=6,(p,c)=>[c.maxNight,6]),
+ A("full-card-15","🥵","Every Round, Every Time","Play a five-game night, fifteen times over.",(p,c)=>c.fullNights>=15,(p,c)=>[c.fullNights,15]),
  A("full-card-5","📈","Five Full Nights","Play a five-game night, five times over.",(p,c)=>c.fullNights>=5,(p,c)=>[c.fullNights,5]),
  A("full-card-10","🎯","Ten Full Nights","Play a five-game night, ten times over.",(p,c)=>c.fullNights>=10,(p,c)=>[c.fullNights,10]),
  // both sides of the board
@@ -1345,8 +1381,8 @@ var ACH=[
  A("beat-brackets","🏳️","Beaten All Comers","Beat someone from every bracket.",(p,c)=>c.beatDivs>=D.divisions.length,(p,c)=>[c.beatDivs,D.divisions.length]),
  A("own-bracket","📋","Faced the Field","Play every ranked player in your own bracket.",(p,c)=>c.fieldLeft===0&&c.fieldSize>2,(p,c)=>[c.fieldSize-c.fieldLeft,c.fieldSize]),
  A("welcomer-3","🌱","Welcoming","Sit down with three people on their first night.",(p,c)=>c.debuts>=3,(p,c)=>[c.debuts,3]),
- A("rivalry-10","🔁","A Proper Rivalry","Play the same person ten times.",(p,c)=>c.topRival>=10,(p,c)=>[c.topRival,10]),
- A("rivalry-20","♾️","The Long Feud","Play the same person twenty times.",(p,c)=>c.topRival>=20,(p,c)=>[c.topRival,20]),
+ A("rivalry-6","🔁","A Proper Rivalry","Play the same person six times.",(p,c)=>c.topRival>=6,(p,c)=>[c.topRival,6]),
+ A("rivalry-10","♾️","The Long Feud","Play the same person ten times.",(p,c)=>c.topRival>=10,(p,c)=>[c.topRival,10]),
  // taking on the hard games
  A("punch-up-50","🥊","Punching Up","Average opponent 50 above you, over 20 games.",(p,c)=>p.games>=20&&!!p.avgOpp&&p.avgOpp-p.r>=50),
  A("punch-up-150","🏋️","No Easy Nights","Average opponent 150 above you, over 25 games.",(p,c)=>p.games>=25&&!!p.avgOpp&&p.avgOpp-p.r>=150),
@@ -1363,11 +1399,11 @@ var ACH=[
  A("sweep-3","🌀","Three Clean Sweeps","Sweep a night three times over.",(p,c)=>c.sweeps>=3,(p,c)=>[c.sweeps,3]),
  A("perfect-5","💎","Perfect Night","Win all five games on a night.",(p,c)=>c.perfect5),
  A("upset-3","🗡️","Giant Killer","Three wins over players 150 or more above you.",(p,c)=>p.upsets>=3,(p,c)=>[p.upsets,3]),
- A("upset-10","💣","Serial Upsetter","Ten wins over players 150 or more above you.",(p,c)=>p.upsets>=10,(p,c)=>[p.upsets,10]),
+ A("upset-6","💣","Serial Upsetter","Six wins over players 150 or more above you.",(p,c)=>p.upsets>=6,(p,c)=>[p.upsets,6]),
  A("beat-top","👑","Regicide","Beat the player at the top of the ladder.",(p,c)=>c.topBeaten),
  A("comeback","🧱","Bounced Back","Win straight after losing three in a row.",(p,c)=>c.bounced),
  A("nemesis-beaten","⛓️","Monkey Off Your Back","Beat someone who had already beaten you four times.",(p,c)=>c.nemesisBeaten),
- A("draws-10","🤝","Peacemaker","Draw ten games.",(p,c)=>p.rec[1]>=10,(p,c)=>[p.rec[1],10]),
+ A("draws-4","🤝","Peacemaker","Draw four games.",(p,c)=>p.rec[1]>=4,(p,c)=>[p.rec[1],4]),
  A("decisive-40","⚔️","No Middle Ground","Play 40 games without a single draw.",(p,c)=>p.games>=40&&p.rec[1]===0,(p,c)=>[Math.min(p.games,40),40]),
  // the night itself
  A("podium-3","🏅","On the Podium","Finish top three on a night, three times.",(p,c)=>c.podium>=3,(p,c)=>[c.podium,3]),
@@ -1382,7 +1418,7 @@ var ACH=[
  A("climb-150","🏔️","Climbing","Rise 150 points from your lowest, over 25 games.",(p,c)=>p.games>=25&&c.climb>=150,(p,c)=>[c.climb,150]),
  A("climb-300","🚀","Long Climb","Rise 300 points from your lowest, over 25 games.",(p,c)=>p.games>=25&&c.climb>=300,(p,c)=>[c.climb,300]),
  A("at-peak","🌞","Career Best","Sit at your highest rating yet, after 25 games.",(p,c)=>p.games>=25&&!!(p.peak&&Math.abs(p.r-p.peak[0])<=2)),
- A("improve-150","📈","On the Up","Gain 150 points over three months.",(p,c)=>p.imp!=null&&p.imp>=150,(p,c)=>[Math.max(0,p.imp||0),150])
+ A("improve-120","📈","On the Up","Gain 120 points over three months.",(p,c)=>p.imp!=null&&p.imp>=120,(p,c)=>[Math.max(0,p.imp||0),120])
 ];
 var ACHART=(D.achart&&D.achart.length)?D.achart:[];
 function achFor(p){
@@ -1636,9 +1672,10 @@ function showProfile(n,rival){
     '<div class="hm"><dt>Peak</dt><dd>'+(p.peak?p.peak[0]+'<small>'+fshort(p.peak[1])+'</small>':'—')+'</dd></div>';
   $("#facts").innerHTML=facts(p).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><b>'+f[1]+'</b><span>'+f[2]+'</span></div>'}).join("");
   drawGraphs();
-  $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#pv").classList.remove("hid");
+  $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#rv").classList.add("hid"); $("#pv").classList.remove("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
+  try{ profileEggs(p) }catch(e){}
 }
 function card(title,body,cls,id){ return '<div class="card'+(cls?" "+cls:"")+'"'+(id?' id="'+id+'"':'')+'><h3>'+title+'</h3>'+body+'</div>' }
 function drawGraphs(){
@@ -1670,7 +1707,176 @@ $("#pv").onclick=function(e){
 };
 $("#bk").onclick=function(){ go(boardHash||"") };
 $("#hbk").onclick=function(){ go(boardHash||"") };
+$("#rbk").onclick=function(){ go(boardHash||"") };
+document.addEventListener("click",function(e){
+  const l=e.target.closest("#recLink"); if(!l) return;
+  boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records";
+});
 $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/history" };
+
+/* ---------- easter eggs ----------
+   All of them hang off something people already touch. None of them block a tap
+   that was meant for navigation, and none change any number on the page.      */
+function egg(msg,ms){
+  let el=document.getElementById("eggToast");
+  if(!el){ el=document.createElement("div"); el.id="eggToast"; document.body.appendChild(el) }
+  el.textContent=msg; el.classList.add("on");
+  clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove("on") }, ms||2400);
+}
+function flash(cls,ms){
+  const h=document.documentElement; h.classList.add(cls);
+  setTimeout(function(){ h.classList.remove(cls) }, ms||3000);
+}
+const PIECES=["\u265F pawn","\u265E knight","\u265D bishop","\u265C rook","\u265B queen","\u265A king"];
+const spiritOf=n=>PIECES[hashName(n)%PIECES.length];
+const todayMD=()=>{ const d=new Date(); return String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0") };
+
+// 1. the badge hops like a knight
+$(".tb img").style.cursor="pointer";
+$(".tb img").onclick=function(){ this.classList.remove("hop"); void this.offsetWidth; this.classList.add("hop");
+  egg("Knight to e4.") };
+// 2. the seasons tag remembers when it all started
+$(".wm small").style.cursor="pointer";
+$(".wm small").onclick=()=>egg("Kava has been playing since September 2022. "+D.games.length+" games this era alone.");
+// 3. the updated line owns up to what it knows
+$("#upd").style.cursor="pointer";
+$("#upd").onclick=()=>egg("Built "+fd(D.built)+" from "+D.games.length+" games over "+DATES.length+" nights. Nothing typed in by hand.");
+// 4. tonight
+(function(){ const t=new Date().toISOString().slice(0,10);
+  if(D.next===t){ const u=$("#upd"); u.innerHTML=u.innerHTML.replace(/Next night <b>[^<]*<\/b>/,'<b class="tonight">TONIGHT</b>') } })();
+// 5. the ladder is called a few things
+const LADNAMES=["Ladder","Pecking Order","Table","Standings","Ladder"];
+let ladIdx=0;
+$("#bt").style.cursor="pointer";
+$("#bt").onclick=function(){ ladIdx=(ladIdx+1)%LADNAMES.length;
+  const sp=this.querySelector("span"); if(sp) sp.textContent=LADNAMES[ladIdx];
+  if(ladIdx===1) egg("Call it what you like.") };
+// 6. the wiggle room wiggles
+document.addEventListener("click",function(e){
+  const b=e.target.closest("p.l b"); if(!b||b.textContent.indexOf("\u00b1")<0) return;
+  b.classList.remove("wig"); void b.offsetWidth; b.classList.add("wig");
+});
+// 7. open the fun menu enough times and it offers something silly
+let funOpens=0;
+function maybeVibes(){
+  funOpens++;
+  if(funOpens<3||SORTS.some(s=>s.k==="vibes")) return;
+  const seed=Math.random();
+  SORTS.push({k:"vibes", ic:"\uD83D\uDD2E", t:"By vibes", col:"Vibe", fun:true,
+    val:p=>((hashName(p.n)>>>0)%1000)/10+seed, show:p=>((hashName(p.n)>>>0)%1000)/10>50?"immaculate":"questionable",
+    note:"Not a real measurement. Scientifically useless. Sorts the same way every time you look."});
+  egg("You found the vibes. They are now sortable.",3200);
+}
+// 8-12 live on a profile, wired when one is drawn
+function profileEggs(p){
+  const rate=$("#kpis dd");
+  if(rate){ rate.style.cursor="pointer"; rate.onclick=function(){
+    const to=p.r, from=p.seed; let i=0; const steps=26;
+    const small=this.querySelector("small"); const tick=setInterval(()=>{
+      i++; const v=Math.round(from+(to-from)*(i/steps));
+      this.firstChild.nodeValue=v; if(i>=steps){ clearInterval(tick); this.firstChild.nodeValue=to }
+    },28);
+    egg("From "+from+" to "+to+", one game at a time.");
+  } }
+  const rec=$("#kpis>div:nth-child(2) dd");
+  if(rec){ let mode=0; rec.style.cursor="pointer"; rec.onclick=function(){
+    mode=(mode+1)%3; const g=p.games||1;
+    const txt=mode===0?p.rec.join("\u2013")
+      :mode===1?Math.round(p.rec[0]/g*100)+"% / "+Math.round(p.rec[1]/g*100)+"% / "+Math.round(p.rec[2]/g*100)+"%"
+      :"won "+p.rec[0]+" of "+g;
+    this.childNodes[0].nodeValue=txt;
+  } }
+  document.querySelectorAll("#ptro .it").forEach(function(it){
+    it.style.cursor="pointer";
+    it.onclick=function(){ const pic=this.querySelector(".pic");
+      pic.classList.remove("spun"); void pic.offsetWidth; pic.classList.add("spun") };
+  });
+  const av=$("#pav");
+  if(av){ av.style.cursor="pointer"; av.onclick=function(){
+    const box=this.querySelector(".av"); if(!box||box._busy) return; box._busy=1;
+    const keep=box.innerHTML; box.innerHTML='<span style="font-size:2.2rem;line-height:1">'+spiritOf(p.n).split(" ")[0]+'</span>';
+    egg(p.n+" plays like a "+spiritOf(p.n).split(" ")[1]+".");
+    setTimeout(function(){ box.innerHTML=keep; box._busy=0 },1800);
+  } }
+  const att=$(".att");
+  if(att){ att.style.cursor="pointer"; att.onclick=function(){
+    const on=[...this.querySelectorAll("i.on")];
+    on.forEach((el,i)=>setTimeout(()=>{ el.classList.add("rip"); setTimeout(()=>el.classList.remove("rip"),450) }, i*45));
+  } }
+  // 13-15: things true of this player alone
+  if(p.first&&p.first.slice(5)===todayMD()) egg("Today is "+p.n+"'s club anniversary. First game "+fd(p.first)+".",4000);
+  if(p.r===1337) egg("1337. Somebody had to.",3500);
+  if(p.games===64) egg("Exactly 64 games. One for every square.",3500);
+}
+// 16-19: type these into the search box
+function searchEgg(v){
+  const k=v.trim().toLowerCase();
+  if(k==="en passant"||k==="enpassant"){ egg("En passant is forced.",2600); return true }
+  if(k==="kava"){ flash("dim-mode",2600); egg("Lights down. Bowls up.",2600); return true }
+  if(k==="records"||k==="record"){ location.hash="#/records"; return true }
+  if(k==="1337"||k==="leet"){ flash("gold-mode",2600); egg("Elite.",2000); return true }
+  if(k==="checkmate"){ egg("Not on this page. Take it to the board.",2600); return true }
+  return false;
+}
+// 20: the old code still works
+(function(){
+  const seq=["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
+  let i=0;
+  document.addEventListener("keydown",function(e){
+    const k=e.key.length===1?e.key.toLowerCase():e.key;
+    i=(k===seq[i])?i+1:(k===seq[0]?1:0);
+    if(i===seq.length){ i=0; flash("gold-mode",5000); egg("Tournament mode. Purely decorative.",3200) }
+  });
+})();
+// and one on the crosstable's own diagonal
+document.addEventListener("click",function(e){
+  if(e.target.classList&&e.target.classList.contains("self")) egg("You cannot play yourself. Believe me, it has been tried.");
+});
+
+/* ---------- club records, reachable from the footer or by typing it ---------- */
+function drawRecords(){
+  const rows=[];
+  const add=(label,value,note)=>rows.push('<div class="rec"><dt>'+label+'</dt><dd>'+value+
+    (note?'<small>'+note+'</small>':'')+'</dd></div>');
+  let up=null, big=null, run=null, rival=null, nightGames=null, climb=null;
+  P.forEach(p=>{
+    p.log.forEach(l=>{ const gap=l.orat-l.mrat;
+      if(l.s===1&&(!up||gap>up.gap)) up={p:p.n,o:l.o,gap:gap,d:DATES[l.ni]} });
+    p.nightly.forEach(n=>{
+      const g=n.w+n.dr+n.l;
+      if(!nightGames||g>nightGames.g) nightGames={n:p.n,g:g,d:n.d};
+      if(!n.first&&(!climb||n.delta>climb.v)) climb={n:p.n,v:n.delta,d:n.d};
+    });
+    if(!run||p.streak[0]>run.v) run={n:p.n,v:p.streak[0]};
+    Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2];
+      if(!rival||g>rival.g) rival={a:p.n,b:o,g:g} });
+  });
+  const nights=nightsAll();
+  const busiest=nights.reduce((m,r)=>!m||r[1]>m[1]?r:m,null);
+  const turnout=nights.reduce((m,r)=>!m||r[2]>m[2]?r:m,null);
+  const mostNights=P.reduce((m,p)=>!m||p.cons>m.cons?p:m,null);
+  const mostGames=P.reduce((m,p)=>!m||p.games>m.games?p:m,null);
+  const mostUps=P.reduce((m,p)=>!m||p.upsets>m.upsets?p:m,null);
+  const mostGold=P.reduce((m,p)=>!m||p.trophies[0]>m.trophies[0]?p:m,null);
+  if(up) add("Biggest upset",E(up.p),"beat "+E(up.o)+", rated "+up.gap+" higher, on "+fd(up.d));
+  if(climb) add("Biggest night",E(climb.n),"+"+climb.v+" rating points on "+fd(climb.d));
+  if(run) add("Longest winning run",run.v+" straight",E(run.n));
+  if(nightGames) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
+  if(busiest) add("Busiest club night",busiest[1]+" games",fd(busiest[0]));
+  if(turnout) add("Best turnout",turnout[2]+" players",fd(turnout[0]));
+  if(rival) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
+  if(mostNights) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
+  if(mostGames) add("Most games",mostGames.games,E(mostGames.n));
+  if(mostUps) add("Most upsets",mostUps.upsets,E(mostUps.n));
+  if(mostGold) add("Most nights won",mostGold.trophies[0],E(mostGold.n));
+  $("#recs").innerHTML=rows.join("");
+}
+function showRecords(){
+  CUR=null; RIVAL=null; document.title="Club records \u00b7 KAVA Ladder";
+  drawRecords();
+  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.add("hid");
+  $("#rv").classList.remove("hid"); scrollTo({top:0,behavior:"instant"});
+}
 
 /* ---------- wiring ---------- */
 function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
@@ -1678,6 +1884,7 @@ function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[dat
 function closeSort(){ $("#sortMenu").classList.add("hid"); $("#sortBtn").setAttribute("aria-expanded","false") }
 $("#sortBtn").onclick=e=>{ e.stopPropagation();
   const open=$("#sortMenu").classList.toggle("hid")===false;
+  if(open){ try{ maybeVibes(); draw() }catch(err){} }
   $("#sortBtn").setAttribute("aria-expanded",open?"true":"false");
   if(open){ const on=$('#sortMenu [aria-checked="true"]'); if(on) on.focus() } };
 $("#sortMenu").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;

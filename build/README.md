@@ -42,6 +42,24 @@ phone pairing tool so both builds produce the identical site.
 Page JS inside the template must use string concatenation, never `${}`, and no
 backslashes except the closing `<\/script>`.
 
+## Easter eggs
+
+Twenty of them, all hanging off things people already touch, none blocking a tap
+meant for navigation. Search `easter eggs` in `ladderbuild.js`.
+
+Tap: the club badge (knight hops), the seasons tag, the updated line, the word
+"Ladder" in the heading (it renames itself), the wiggle-room symbol, a profile's
+rating (counts up from the seed), its record (cycles to percentages), a trophy
+(spins), the portrait (shows a spirit piece), the turnout blocks (ripple), and a
+crosstable diagonal cell.
+
+Type into search: `en passant`, `kava`, `records`, `1337`, `checkmate`. The
+Konami code works anywhere. Opening the fun-sort menu three times unlocks a
+joke sort. On the day of a club night the header reads TONIGHT; a profile shows
+a note on the player's club anniversary, at exactly 64 games, and at 1337.
+
+Club records live at `#/records`, linked from the footer.
+
 ## Rules the data follows
 
 - **Visitors count.** A one-off visitor never joins the ladder, but the games
