@@ -3745,7 +3745,8 @@ async function postSeason(status){
   const c=dscCfg();
   if(!c.hook) throw new Error("Add the webhook in settings first.");
   const S=seasonStats(), pc=pubCfg();
-  const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long"});
+  // the season crosses a year, so both ends carry theirs
+  const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
   const head="# That is the season\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
     "  \u00b7  "+S.bounds.nights+" nights  \u00b7  "+
     HISTORY.filter(n=>n.date>=S.bounds.from).reduce((a,n)=>a+n.games.length,0)+" games";
