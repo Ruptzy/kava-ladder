@@ -28,11 +28,22 @@ a{color:var(--scarlet)}
 .skip:focus{left:.5rem}
 .top .w{padding-bottom:0}
 .top{border-bottom:1px solid var(--rule);background:radial-gradient(130% 200% at 6% 0%,#241318 0%,var(--void) 60%)}
-.tb{display:flex;align-items:center;gap:.9rem;padding:1rem 0 .8rem;flex-wrap:wrap}
-.tb img{width:56px;height:56px;border-radius:50%;box-shadow:0 0 34px -6px rgba(254,39,58,.6);flex:none}
-.wm{margin-right:auto}.wm b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 122,"wght" 900;font-size:1.5rem;letter-spacing:.03em;line-height:1}
-.wm small{font-family:var(--fm);font-size:.55rem;letter-spacing:.3em;color:var(--ink-3);text-transform:uppercase}
-.upd{font-family:var(--fm);font-size:.62rem;letter-spacing:.08em;color:var(--ink-3);text-transform:uppercase;line-height:1.7;text-align:right}
+.tb{display:flex;align-items:center;gap:1rem;padding:1.4rem 0 1rem}
+.tb img{width:66px;height:66px;border-radius:50%;box-shadow:0 0 34px -6px rgba(254,39,58,.6);flex:none}
+.wm{margin-right:auto;min-width:0}
+.wm b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
+font-size:clamp(1.35rem,4.2vw,2.5rem);letter-spacing:-.01em;line-height:.94;text-transform:uppercase}
+.wm b span{color:var(--scarlet)}
+.wm small{display:block;font-family:var(--fm);font-size:.58rem;letter-spacing:.34em;color:var(--ink-3);
+text-transform:uppercase;margin-top:.45rem}
+.season{flex:none;text-align:right;border-left:2px solid var(--rule-2);padding-left:1rem}
+.season b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;
+font-size:1.15rem;line-height:1;color:var(--cream)}
+.season small{display:block;font-family:var(--fm);font-size:.55rem;letter-spacing:.16em;
+text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
+.tools{display:flex;align-items:center;gap:.8rem;flex-wrap:wrap;padding-bottom:.9rem}
+.upd{margin-left:auto;font-family:var(--fm);font-size:.62rem;letter-spacing:.08em;color:var(--ink-3);
+text-transform:uppercase;line-height:1.7;text-align:right}
 .upd b{color:var(--cream);font-weight:700}
 .upd.fresh b.d{color:var(--gain)}
 .howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;white-space:nowrap}
@@ -120,12 +131,36 @@ td .chev{display:none;color:var(--ink-3);margin-left:.3rem}
 .spk{display:block;width:60px;height:18px}
 tr.pv td{background:#131416}
 tr.pv td.k{color:var(--rule-2)}
-.sortwrap{position:relative;margin:0 0 .8rem}
+.sortbar{display:flex;align-items:center;gap:.5rem;margin:0 0 .55rem;flex-wrap:wrap}
 .sorts{display:flex;gap:.4rem;flex-wrap:wrap}
-.sorts button{background:var(--panel);border:1px solid var(--rule-2);border-radius:20px;padding:.4rem .8rem;
-font-family:var(--fm);font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;white-space:nowrap;scroll-snap-align:start}
+.sorts button{background:var(--panel);border:1px solid var(--rule-2);border-radius:20px;padding:.45rem .85rem;
+font-family:var(--fm);font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);
+cursor:pointer;white-space:nowrap;scroll-snap-align:start}
+.sorts button:hover{border-color:var(--ink-3);color:var(--cream)}
 .sorts button[aria-pressed=true]{background:var(--scarlet-wash);border-color:var(--scarlet);color:var(--scarlet);font-weight:700}
-.rule-note{font-family:var(--fm);font-size:.6rem;color:var(--ink-3);letter-spacing:.04em;margin:-.3rem 0 .6rem}
+.funwrap{position:relative}
+.sortbtn{display:inline-flex;align-items:center;gap:.5rem;background:var(--panel);border:1px dashed var(--rule-2);
+border-radius:20px;padding:.45rem .85rem;cursor:pointer;white-space:nowrap;
+font-family:var(--fm);font-size:.62rem;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2)}
+.sortbtn[aria-pressed=true]{background:var(--scarlet-wash);border-style:solid;border-color:var(--scarlet);color:var(--scarlet);font-weight:700}
+.sortbtn:hover,.sortbtn[aria-expanded=true]{border-color:var(--scarlet)}
+.sortbtn b{font-weight:inherit}
+.sortbtn .caret{font-size:.55rem;opacity:.7}
+.sortmenu{position:absolute;top:calc(100% + .45rem);right:0;z-index:45;width:min(430px,94vw);
+background:var(--panel-2);border:1px solid var(--rule-2);border-radius:12px;padding:.35rem;
+box-shadow:0 20px 44px -16px rgba(0,0,0,.9);max-height:min(70vh,520px);overflow:auto}
+.sortmenu h4{margin:.55rem .6rem .25rem;font-family:var(--fm);font-size:.55rem;letter-spacing:.18em;
+text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.sortmenu h4+button{margin-top:0}
+.sortmenu button{display:grid;grid-template-columns:1.4rem minmax(0,1fr);gap:.6rem;align-items:start;width:100%;
+text-align:left;background:none;border:none;border-radius:9px;padding:.5rem .6rem;cursor:pointer}
+.sortmenu button:hover,.sortmenu button:focus-visible{background:var(--panel-3);outline:none}
+.sortmenu button[aria-checked=true]{background:var(--scarlet-wash);box-shadow:inset 0 0 0 1px var(--scarlet-dim)}
+.sortmenu button[aria-checked=true] b{color:var(--scarlet)}
+.sortmenu .ic{font-size:.95rem;line-height:1.3}
+.sortmenu b{display:block;font-weight:600;font-size:.92rem}
+.sortmenu small{display:block;color:var(--ink-2);font-size:.78rem;line-height:1.4;margin-top:.1rem}
+.rule-note{flex:1 1 16rem;min-width:0;font-family:var(--fm);font-size:.6rem;color:var(--ink-3);letter-spacing:.04em;margin:0;line-height:1.5}
 .showaway{width:100%;margin-top:.7rem;background:none;border:1px dashed var(--rule-2);border-radius:8px;
 padding:.7rem;color:var(--ink-3);font-family:var(--fm);font-size:.63rem;letter-spacing:.1em;
 text-transform:uppercase;cursor:pointer}
@@ -313,10 +348,14 @@ text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
 footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);font-family:var(--fm);font-size:.6rem;color:var(--ink-3);line-height:1.9}
 /* phones */
 @media(max-width:640px){
-  .tb{gap:.6rem;padding:.8rem 0 .6rem}
-  .tb img{width:44px;height:44px}
-  .wm b{font-size:1.2rem}
-  .upd{text-align:left;flex:1 1 100%;order:5;line-height:1.5}
+  .tb{gap:.7rem;padding:.9rem 0 .7rem}
+  .tb img{width:46px;height:46px}
+  .wm small{letter-spacing:.24em;margin-top:.3rem}
+  .season{border-left:none;border-top:1px solid var(--rule);padding:.5rem 0 0;text-align:left;flex:1 1 100%}
+  .season b{display:inline;font-size:1rem}
+  .season small{display:inline;margin-left:.4rem}
+  .tools{gap:.5rem;padding-bottom:.7rem}
+  .upd{margin-left:0;text-align:left;flex:1 1 100%;order:5;line-height:1.5}
   .srch{flex:1 1 100%;max-width:none;order:4}
   .howbtn{order:3}
   .tabs .lg{display:none}.tabs .sm{display:inline}
@@ -328,9 +367,11 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .pc .nm{font-size:.86rem;padding-right:1.3rem;margin-bottom:.2rem}
   .pc .rt{font-size:1.2rem}.pc .rt sub{display:none}
   .sh{margin:1.5rem 0 .6rem}.sh p{margin-left:0;flex:1 1 100%}
-  .sortwrap::after{content:"";position:absolute;right:0;top:0;bottom:0;width:36px;background:linear-gradient(90deg,transparent,var(--void));pointer-events:none}
-  .sorts{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory;padding-right:2rem;-webkit-overflow-scrolling:touch;scrollbar-width:none}
-  .sorts::-webkit-scrollbar{display:none}
+  .sortbar{gap:.4rem;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-right:.5rem}
+  .sortbar::-webkit-scrollbar{display:none}
+  .sorts{flex-wrap:nowrap}
+  .funwrap{position:static}
+  .sortmenu{width:calc(100vw - 1.6rem);right:auto;left:.8rem}
   .hm{display:none!important}
   td .chev{display:inline}
   .nmc{max-width:9.5rem}
@@ -358,11 +399,14 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 </style></head><body>
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <div class="top"><div class="w">
-<div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="56" height="56">
-<div class="wm"><b>KAVA</b><small>Social Chess Club</small></div>
+<div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="66" height="66">
+<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons 8 &amp; 9</small></div>
+<div class="season"><b>Season 10</b><small>up next</small></div></div>
+<div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player"><div class="sres hid" id="sres"></div></div>
 <button class="howbtn" id="howBtn">How ratings work</button>
+<button class="howbtn" id="histBtn">Club history</button>
 <div class="upd" id="upd"></div></div>
 <nav class="tabs" id="tabs" aria-label="Brackets"></nav></div></div>
 <div class="sr" id="live" aria-live="polite"></div>
@@ -372,18 +416,19 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="pod" id="pod"></div>
 <div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p>Seasons 8 &amp; 9 &middot; tap a name</p></div>
 <p class="l">Beat someone better, gain more. The <b>&plusmn;</b> is wiggle room &mdash; it shrinks as you play.</p>
-<div class="sortwrap"><div class="sorts" id="sorts"></div></div>
+<div class="sortbar">
+<div class="sorts" id="sorts"></div>
+<div class="funwrap">
+<button class="sortbtn" id="sortBtn" aria-haspopup="true" aria-expanded="false" aria-pressed="false"><b id="sortNow">Just for fun</b><span class="caret">&#9660;</span></button>
+<div class="sortmenu hid" id="sortMenu" role="menu" aria-label="Fun ways to sort the ladder"></div>
+</div>
+</div>
 <p class="rule-note" id="sortNote"></p>
 <div class="box"><div class="sc"><table><thead><tr>
 <th style="padding-left:1rem">#</th><th>Player</th><th class="r">Rating</th><th class="r" id="thMetric">Last night</th><th class="hm">Trend</th><th class="hm">W&ndash;D&ndash;L</th>
 </tr></thead><tbody id="tb"></tbody></table></div></div>
 <button class="showaway" id="awayBtn"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
-<section id="arcSec"><div class="sh"><h2>KAVA Social <span>History</span></h2><p id="arcMeta"></p></div>
-<p class="l">Seasons 1&ndash;7. Old-system ratings, not comparable with today&rsquo;s ladder &mdash; this is the record of what happened.</p>
-<div class="box"><div class="sc"><table><thead><tr>
-<th style="padding-left:1rem">#</th><th>Player</th><th class="r">Old-system rating</th><th class="r hm">Games</th><th class="hm">W&ndash;D&ndash;L</th><th>Since then</th>
-</tr></thead><tbody id="arc"></tbody></table></div></div></section>
 <div class="sh"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
 <button class="xbtn" id="xtBtn">Show the crosstable</button>
@@ -398,6 +443,19 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <span><i style="background:#573510"></i>Well behind</span>
 <span>&middot; = never played</span></div>
 </div>
+</main>
+<main id="hv" class="hid">
+<button class="back" id="hbk">&larr; Back to the ladder</button>
+<div class="sh"><h2>KAVA Social <span>History</span></h2><p id="arcMeta"></p></div>
+<p class="l">Seasons 1&ndash;7, the club before this ladder. Old-system ratings, not comparable with today&rsquo;s numbers &mdash; this is the record of what happened. Players still with us link through to their page.</p>
+<div class="box"><div class="sc"><table><thead><tr>
+<th style="padding-left:1rem">#</th><th>Player</th><th class="r">Old-system rating</th><th class="r hm">Games</th><th class="hm">W&ndash;D&ndash;L</th><th>Since then</th>
+</tr></thead><tbody id="arc"></tbody></table></div></div>
+<div class="sh"><h2>All <span>time</span></h2><p>Seasons 1&ndash;7 and 8&ndash;9 added together</p></div>
+<p class="l">Everyone who played in both eras, with their whole record at the club.</p>
+<div class="box"><div class="sc"><table><thead><tr>
+<th style="padding-left:1rem">Player</th><th class="r">Games</th><th>Seasons 1&ndash;7</th><th>Seasons 8 &amp; 9</th><th>All time</th>
+</tr></thead><tbody id="alltime"></tbody></table></div></div>
 </main>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
@@ -521,12 +579,14 @@ derive();
 /* ---------- state + routing ---------- */
 let div="all", sortK="r", showAway=false, CUR=null, RIVAL=null, boardHash="", boardScroll=0, xtShown=false;
 const shortDiv=d=>{ if(d==="all") return "Club"; const m=/^over ([0-9]+)$/i.exec(d); if(m) return m[1]+"+"; const u=/^under ([0-9]+)$/i.exec(d); if(u) return "U"+u[1]; return d };
-const longDiv=d=>d==="all"?"Whole Club":d.charAt(0).toUpperCase()+d.slice(1);
+const DIVNAME={"over 1400":"Over 1400 ELO","U1400":"Under 1400 ELO","U1000":"U1000"};
+const longDiv=d=>d==="all"?"Whole Club":(DIVNAME[d]||d.charAt(0).toUpperCase()+d.slice(1));
 function stateHash(){ const a=[]; if(div!=="all") a.push("b",div); if(sortK!=="r") a.push("sort",sortK); return a.length?"#/"+a.map(encodeURIComponent).join("/"):"" }
 function go(h){ if(location.hash===h||(h===""&&!location.hash)){ route(); return } location.hash=h }
 function route(){
   const parts=location.hash.replace(/^#[/]?/,"").split("/").map(s=>{ try{return decodeURIComponent(s)}catch(e){return s} }).filter(Boolean);
   if(parts[0]==="p"&&byN[parts[1]]){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]?parts[3]:null); return }
+  if(parts[0]==="history"){ showHistory(); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
     else if(parts[i]==="sort"&&SORTS.some(s=>s.k===parts[i+1])){ ns=parts[i+1]; i+=2 } else i++; }
@@ -550,7 +610,8 @@ $("#tabs").onclick=e=>{ const b=e.target.closest("[data-d]"); if(!b) return; div
 $("#howBtn").onclick=()=>{ $("#how").classList.add("open"); $("#howX").focus() };
 $("#howX").onclick=()=>$("#how").classList.remove("open");
 $("#how").onclick=e=>{ if(e.target===$("#how")) $("#how").classList.remove("open") };
-document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ $("#how").classList.remove("open"); hideSearch() } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ $("#how").classList.remove("open"); hideSearch();
+  const m=document.getElementById("sortMenu"); if(m&&!m.classList.contains("hid")){ m.classList.add("hid"); $("#sortBtn").setAttribute("aria-expanded","false"); $("#sortBtn").focus() } } });
 
 /* ---------- search ---------- */
 const ARC=D.archive, ARCBY=Object.fromEntries((ARC?ARC.players:[]).map(p=>[p.n,p]));
@@ -561,7 +622,7 @@ function searchHits(q){
   const hit=[];
   P.forEach(p=>{ const i=p.n.toLowerCase().indexOf(q); if(i>=0) hit.push({p, w:i===0?0:1}) });
   hit.sort((a,b)=>a.w-b.w||b.p.r-a.p.r);
-  const out=hit.slice(0,6).map(h=>({n:h.p.n, sub:(h.p.d||"")+" · "+h.p.r+(away(h.p)?" · away":h.p.rd>RS?" · settling":"")}));
+  const out=hit.slice(0,6).map(h=>({n:h.p.n, sub:(h.p.d?longDiv(h.p.d):"")+" · "+h.p.r+(away(h.p)?" · away":h.p.rd>RS?" · settling":"")}));
   if(out.length<6&&ARC) ARC.players.forEach(a=>{ if(out.length>=6||stillPlaying[a.n]) return; if(a.n.toLowerCase().indexOf(q)>=0) out.push({n:a.n, sub:"seasons 1–7 only", arc:true}) });
   return out;
 }
@@ -573,7 +634,7 @@ function drawSearch(){
 }
 function hideSearch(){ $("#sres").classList.add("hid"); sIdx=0 }
 function pickSearch(b){ if(!b) return; $("#q").value=""; hideSearch(); $("#q").blur();
-  if(b.dataset.arc){ go(""); setTimeout(()=>{ const tr=$("#arc").querySelector('tr[data-arc="'+CSS.escape(b.dataset.n)+'"]'); if(tr){ tr.scrollIntoView({block:"center"}); tr.focus() } },60) } else openProfile(b.dataset.n) }
+  if(b.dataset.arc){ location.hash="#/history"; setTimeout(()=>{ const tr=$("#arc").querySelector('tr[data-arc="'+CSS.escape(b.dataset.n)+'"]'); if(tr){ tr.scrollIntoView({block:"center"}); tr.style.outline="2px solid var(--scarlet)" } },80) } else openProfile(b.dataset.n) }
 $("#q").oninput=()=>{ sIdx=0; drawSearch() };
 $("#q").onfocus=drawSearch;
 $("#q").onkeydown=e=>{ const bs=[...$("#sres").querySelectorAll("button")];
@@ -590,15 +651,40 @@ const rank=()=>pool().filter(p=>!away(p)&&p.rd<=RS);
 const prov=()=>pool().filter(p=>!away(p)&&p.rd>RS);
 const gone=()=>pool().filter(away);
 const SORTS=[
- {k:"r",   t:"Rating",         col:"Last night", val:p=>p.r, show:null, note:"Ranked once the ± is 110 or less. Away after 90 days without a game."},
- {k:"win", t:"Win rate",       col:"Win rate",   val:p=>pct(p.rec[0],p.rec[1],p.games), show:p=>pct(p.rec[0],p.rec[1],p.games)+"%", min:8, note:"Draws count half. Fewer than 8 games drops to the bottom."},
- {k:"g",   t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game in seasons 8 and 9."},
- {k:"imp", t:"Most improved",  col:"3 months",   val:p=>p.imp==null?-9999:p.imp,
-   show:p=>p.imp==null?'<span style="font-size:.7rem;color:var(--ink-3)">settling</span>':(p.imp>0?"+"+p.imp:p.imp), sign:true, note:"Change over the last 90 days. Settled ratings only, at least 12 games."},
- {k:"con", t:"Most consistent",col:"Nights",     val:p=>p.cons||0, show:p=>(p.cons||0)+" of "+DATES.length, note:"Club nights turned up to."},
- {k:"blk", t:"Best as Black",  col:"As Black",   val:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g):-1},
-   show:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g)+"%":"—"}, min:6, note:"Score with the Black pieces. Fewer than 6 games as Black drops to the bottom."}
+ {k:"r", ic:"🏆", t:"Rating",         col:"Last night", val:p=>p.r, show:null, note:"Ranked once the ± is 110 or less. Away after 90 days without a game."},
+ {k:"win", ic:"🎯", t:"Win rate",       col:"Win rate",   val:p=>pct(p.rec[0],p.rec[1],p.games), show:p=>pct(p.rec[0],p.rec[1],p.games)+"%", min:8, note:"Draws count half. Fewer than 8 games drops to the bottom."},
+ {k:"g", ic:"♟️", t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game in seasons 8 and 9."},
+ {k:"imp", ic:"📈", t:"Most improved",  col:"3 months",   val:p=>p.imp==null?-9999:p.imp,
+   show:p=>p.imp==null?'<span style="font-size:.7rem;color:var(--ink-3)">settling</span>':(p.imp>0?"+"+p.imp:p.imp), sign:p=>p.imp||0, note:"Change over the last 90 days. Settled ratings only, at least 12 games."},
+ {k:"con", ic:"🪑", t:"Most consistent",col:"Nights",     val:p=>p.cons||0, show:p=>(p.cons||0)+" of "+DATES.length, note:"Club nights turned up to."},
+ {k:"blk", ic:"♚", t:"Best as Black",  col:"As Black",   val:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g):-1},
+   show:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g)+"%":"—"}, min:6, note:"Score with the Black pieces. Fewer than 6 games as Black drops to the bottom."},
+ {k:"ups", ic:"⚡", t:"Giant killer", col:"Upsets", fun:true, val:p=>p.upsets, min:4,
+   show:p=>p.upsets>0?p.upsets:'<span style="color:var(--ink-3)">0</span>',
+   note:"Wins over someone rated 150 or more above you. The lower you are, the more chances you get."},
+ {k:"up", ic:"🥊", t:"Punching up", col:"Who you play", fun:true, min:8,
+   val:p=>p.avgOpp?p.avgOpp-p.r:-9999, sign:p=>p.avgOpp?p.avgOpp-p.r:0,
+   show:p=>{ if(!p.avgOpp) return "—"; const v=p.avgOpp-p.r; return (v>0?"+":"")+v },
+   note:"How much stronger your average opponent has been than you. Take on the tough ones."},
+ {k:"opps", ic:"🌍", t:"Plays everyone", col:"Opponents", fun:true, min:4,
+   val:p=>Object.keys(p.opp).length, show:p=>Object.keys(p.opp).length,
+   note:"Different people you have faced. Turn up, say yes to a game, climb this one."},
+ {k:"big", ic:"🚀", t:"Best night", col:"Best night", fun:true, min:4,
+   val:p=>p.bigNight, sign:p=>p.bigNight,
+   show:p=>p.bigNight>0?"+"+p.bigNight:'<span style="color:var(--ink-3)">—</span>',
+   note:"Biggest rating jump in a single night. One good evening is all it takes."},
+ {k:"peace", ic:"🤝", t:"Peacemaker", col:"Draws", fun:true, min:6,
+   val:p=>p.rec[1], show:p=>p.rec[1],
+   note:"Games that ended in a handshake."},
+ {k:"form3", ic:"🔥", t:"On form", col:"Last 3 nights", fun:true, min:4,
+   val:p=>form3(p).v, show:p=>{ const f=form3(p); return f.g?f.v+"%":"—" },
+   note:"Score over the last three nights you played, whoever you are."}
 ];
+function form3(p){
+  const n=p.nightly.slice(-3); let s=0,g=0;
+  n.forEach(x=>{ s+=x.w+x.dr/2; g+=x.w+x.dr+x.l });
+  return g?{v:Math.round(s/g*100),g:g}:{v:-1,g:0};
+}
 const SORT=()=>SORTS.find(s=>s.k===sortK);
 function orderOf(list){
   const s=SORT(); if(s.k==="r") return list;
@@ -615,7 +701,8 @@ function spark(p){
 function metricCell(p){
   const s=SORT();
   if(!s.show) return p.played&&p.delta!=null?'<span class="dl '+(p.delta>0?"u":p.delta<0?"d":"f")+'">'+dtx(p.delta)+'</span>':'<span class="dl f">—</span>';
-  const cls=s.sign?(p.imp>0?"u":p.imp<0?"d":"f"):"";
+  let cls="";
+  if(s.sign){ const v=s.sign(p); cls=v>0?"u":v<0?"d":"f" }
   return '<span class="dl '+cls+'">'+s.show(p)+'</span>';
 }
 function row(p,i,kind){
@@ -630,8 +717,13 @@ function row(p,i,kind){
 function draw(){
   const rk=orderOf(rank()), pv=orderOf(prov()), gn=orderOf(gone());
   [...$("#tabs").children].forEach(x=>x.setAttribute("aria-selected",x.dataset.d===div));
-  $("#sorts").innerHTML=SORTS.map(s=>'<button data-s="'+s.k+'" aria-pressed="'+(s.k===sortK)+'">'+s.t+'</button>').join("");
-  const on=$("#sorts").querySelector('[aria-pressed="true"]'); if(on&&on.scrollIntoView) try{ on.scrollIntoView({block:"nearest",inline:"nearest"}) }catch(e){}
+  const cur=SORT();
+  $("#sorts").innerHTML=SORTS.filter(s=>!s.fun).map(s=>'<button data-s="'+s.k+'" aria-pressed="'+(s.k===sortK)+'">'+s.t+'</button>').join("");
+  $("#sortNow").textContent=cur.fun?cur.ic+" "+cur.t:"Just for fun";
+  $("#sortBtn").setAttribute("aria-pressed",cur.fun?"true":"false");
+  $("#sortMenu").innerHTML='<h4>Anyone can win these</h4>'+SORTS.filter(s=>s.fun).map(s=>
+    '<button role="menuitemradio" data-s="'+s.k+'" aria-checked="'+(s.k===sortK)+'">'
+    +'<span class="ic" aria-hidden="true">'+s.ic+'</span><span><b>'+s.t+'</b><small>'+s.note+'</small></span></button>').join("");
   $("#thMetric").textContent=SORT().col; $("#sortNote").textContent=SORT().note||"";
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
@@ -646,9 +738,14 @@ function draw(){
   drawLastNight();
   if(xtShown) cross();
 }
+function showHistory(){
+  CUR=null; RIVAL=null; document.title="Club history \u00b7 KAVA Ladder";
+  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.remove("hid");
+  scrollTo({top:0,behavior:"instant"});
+}
 function showBoard(){
   if(CUR){ CUR=null; RIVAL=null; document.title="KAVA Ladder"; }
-  $("#pv").classList.add("hid"); $("#board").classList.remove("hid");
+  $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#board").classList.remove("hid");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
 }
@@ -718,7 +815,7 @@ $("#xtBtn").onclick=function(){ xtShown=!xtShown; $("#xtWrap").classList.toggle(
 
 /* ---------- archive ---------- */
 function drawArchive(){
-  if(!ARC||!ARC.players||!ARC.players.length){ $("#arcSec").classList.add("hid"); return }
+  if(!ARC||!ARC.players||!ARC.players.length){ const hb=document.getElementById("histBtn"); if(hb) hb.style.display="none"; return }
   $("#arcMeta").textContent="Seasons 1–7 · "+ARC.nights+" nights · "+ARC.games+" games";
   $("#arc").innerHTML=ARC.players.map((p,i)=>{
     const now=stillPlaying[p.n];
@@ -731,6 +828,22 @@ function drawArchive(){
      '<td style="white-space:nowrap">'+(now?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--gain)"><span class="hm">still playing — </span>'+E(now)+'</span>'
              :p.st==="dormant"?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--loss)">away</span>'
                 :'<span style="font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">—</span>')+'</td></tr>'}).join("");
+}
+function drawAllTime(){
+  if(!ARC||!ARC.link) return;
+  const rows=Object.keys(ARC.link).map(cur=>{
+    const a=ARCBY[ARC.link[cur]], p=byN[cur];
+    if(!a||!p) return null;
+    const tot=[p.rec[0]+a.rec[0],p.rec[1]+a.rec[1],p.rec[2]+a.rec[2]];
+    return {n:cur, old:a, g:p.games+a.g, now:p.rec, tot:tot};
+  }).filter(Boolean).sort((x,y)=>y.g-x.g);
+  if(!rows.length){ $("#alltime").innerHTML=''; return }
+  $("#alltime").innerHTML=rows.map(r=>'<tr data-n="'+E(r.n)+'" tabindex="0" role="button">'+
+    '<td class="nmc2" style="padding-left:1rem">'+av(r.n,"s")+'<span class="nmc">'+E(r.n)+'</span><span class="chev">\u203a</span></td>'+
+    '<td class="r wdl">'+r.g+'</td>'+
+    '<td class="wdl">'+r.old.rec.join("\u2013")+'<i style="margin-left:.4rem">as '+E(r.old.n)+'</i></td>'+
+    '<td class="wdl">'+r.now.join("\u2013")+'</td>'+
+    '<td class="wdl" style="color:var(--gain);font-weight:700">'+r.tot.join("\u2013")+'</td></tr>').join("");
 }
 function legacyFor(p){
   const key=ARC&&ARC.link?ARC.link[p.n]:null, a=key?ARCBY[key]:null;
@@ -997,7 +1110,7 @@ function showProfile(n,rival){
   var hinted=false; try{ hinted=sessionStorage.getItem("kv-hint")==="1" }catch(e){}
   if(!hinted){ el.classList.add("open"); setTimeout(function(){ el.classList.remove("open") },2600); try{ sessionStorage.setItem("kv-hint","1") }catch(e){} }
   $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
-  $("#psub").innerHTML='<span>'+esc(p.d)+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
+  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
   $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("");
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"smooth",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   $("#kpis").innerHTML=
@@ -1008,7 +1121,7 @@ function showProfile(n,rival){
     '<div class="hm"><dt>Peak</dt><dd>'+(p.peak?p.peak[0]+'<small>'+fshort(p.peak[1])+'</small>':'—')+'</dd></div>';
   $("#facts").innerHTML=facts(p).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><b>'+f[1]+'</b><span>'+f[2]+'</span></div>'}).join("");
   drawGraphs();
-  $("#board").classList.add("hid"); $("#pv").classList.remove("hid");
+  $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#pv").classList.remove("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
 }
@@ -1024,12 +1137,10 @@ function drawGraphs(){
     card("Recent games", recentGames(p))+
     card("Rivals", rivalsChart(p))+
     card("Turnout", attendance(p));
-  var leg=legacyFor(p);
   $("#graphs2").innerHTML=
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
     card("Milestones", milestones(p))+
-    card("Record against everyone", vsTable(p))+
-    (leg?card("Legacy", leg):"");
+    card("Record against everyone", vsTable(p));
   var s=$("#rivalSel"); if(s) s.onchange=function(){ location.hash="#/p/"+encodeURIComponent(p.n)+(this.value?"/vs/"+encodeURIComponent(this.value):"") };
 }
 $("#pv").onclick=function(e){
@@ -1037,13 +1148,24 @@ $("#pv").onclick=function(e){
   var o=e.target.closest("[data-o]"); if(o&&CUR){ if(e.target.closest(".riv,.rg")) openProfile(CUR.n, o.dataset.o); else openProfile(o.dataset.o) }
 };
 $("#bk").onclick=function(){ go(boardHash||"") };
+$("#hbk").onclick=function(){ go(boardHash||"") };
+$("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/history" };
 
 /* ---------- wiring ---------- */
 function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
-["#tb","#tbAway","#arc"].forEach(function(s){ $(s).onclick=function(e){ var t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) }; $(s).addEventListener("keydown",rowKeys) });
-$("#sorts").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return; sortK=b.dataset.s; go(stateHash()); $("#live").textContent="Sorted by "+SORT().t };
+["#tb","#tbAway","#arc","#alltime"].forEach(function(s){ $(s).onclick=function(e){ var t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) }; $(s).addEventListener("keydown",rowKeys) });
+function closeSort(){ $("#sortMenu").classList.add("hid"); $("#sortBtn").setAttribute("aria-expanded","false") }
+$("#sortBtn").onclick=e=>{ e.stopPropagation();
+  const open=$("#sortMenu").classList.toggle("hid")===false;
+  $("#sortBtn").setAttribute("aria-expanded",open?"true":"false");
+  if(open){ const on=$('#sortMenu [aria-checked="true"]'); if(on) on.focus() } };
+$("#sortMenu").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;
+  sortK=b.dataset.s; closeSort(); $("#sortBtn").focus(); go(stateHash()); $("#live").textContent="Sorted by "+SORT().t };
+$("#sorts").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;
+  sortK=b.dataset.s; closeSort(); go(stateHash()); $("#live").textContent="Sorted by "+SORT().t };
+document.addEventListener("click",e=>{ if(!e.target.closest(".sortbar")) closeSort() });
 $("#awayBtn").onclick=()=>{ showAway=!showAway; draw() };
 $("#pod").onclick=e=>{ const t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) };
 window.matchMedia("(max-width:640px)").addEventListener("change",()=>{ if(xtShown) cross() });
-drawArchive(); route();
+drawArchive(); drawAllTime(); route();
 </script></body></html>
