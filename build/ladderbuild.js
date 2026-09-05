@@ -511,6 +511,9 @@ max-width:min(420px,92vw);padding:.7rem 1rem;border-radius:24px;background:rgba(
 border:1px solid var(--scarlet-dim);color:var(--cream);font-size:.9rem;line-height:1.4;text-align:center;
 box-shadow:0 16px 40px -14px rgba(0,0,0,.9);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
 #eggToast.on{transform:translate(-50%,0);opacity:1}
+#eggToast.goblin{font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 900;font-size:1.15rem;
+letter-spacing:.02em;color:var(--scarlet);border-color:var(--scarlet);background:rgba(26,14,16,.98);
+box-shadow:0 0 40px -8px var(--scarlet),0 16px 40px -14px rgba(0,0,0,.9)}
 @keyframes knightHop{0%{transform:translate(0,0)}25%{transform:translate(0,-26px)}
 50%{transform:translate(34px,-26px) rotate(8deg)}75%{transform:translate(34px,0)}100%{transform:translate(0,0)}}
 .hop{animation:knightHop .9s ease-in-out}
@@ -1770,10 +1773,11 @@ $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; lo
 /* ---------- easter eggs ----------
    All of them hang off something people already touch. None of them block a tap
    that was meant for navigation, and none change any number on the page.      */
-function egg(msg,ms){
+function egg(msg,ms,cls){
   let el=document.getElementById("eggToast");
   if(!el){ el=document.createElement("div"); el.id="eggToast"; document.body.appendChild(el) }
-  el.textContent=msg; el.classList.add("on");
+  el.textContent=msg; el.className=cls?cls:"";
+  void el.offsetWidth; el.classList.add("on");
   clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove("on") }, ms||2400);
 }
 function flash(cls,ms){
@@ -1862,8 +1866,29 @@ function profileEggs(p){
   if(p.games===64) egg("Exactly 64 games. One for every square.",3500);
 }
 // 16-19: type these into the search box
+const LENNY=[
+ 'Lenny thayth: "Actually, that transposeth into the Thveshnikov. I have a databathe."',
+ 'Lenny thayth: "You played it, but did you underthtand it? No. No, you did not."',
+ 'Lenny thayth: "That line ith refuted. Page thickthty-one. I will wait."',
+ 'Lenny thayth: "Thith ith why nobody thtudies theory any more."',
+ 'Lenny thayth: "Interethting move. Wrong, but interethting."'];
 function searchEgg(v){
   const k=v.trim().toLowerCase();
+  if(k==="e4"){ egg("Best by test. Lenny disagrees, at length.",2800); return true }
+  if(k==="e5"){ egg("Straight back at it. Bold. Symmetrical. Lenny has notes.",2800); return true }
+  if(k==="d4"){ egg("The slow squeeze. Bring a flask.",2600); return true }
+  if(k==="sicilian"){ egg("The Sicilian. Half the club plays it and no two agree which one.",3000); return true }
+  if(k==="gambit"){ egg("A gambit: give away a pawn, receive an argument.",2800); return true }
+  if(k==="positional"){ egg("Positional chess: losing slowly, with dignity.",2800); return true }
+  if(k==="theory"){ egg("Theory is what you quote after you have already lost.",2800); return true }
+  if(k==="blunder"){ egg("We have all been there. Most of us last Thursday.",2800); return true }
+  if(k==="lenny"){ egg(LENNY[Math.floor(Math.random()*LENNY.length)],4200); return true }
+  if(k==="checkers"){ egg("Have you considered checkers? I hear you can win as White every time.",3200); return true }
+  if(k==="backgammon"){ egg("Backgammon has gambling in it. Maybe try that instead.",3200); return true }
+  if(k==="pony"||k==="knight"){ egg("You know the knight can also be called a pony.",3000); return true }
+  if(k==="update"||k==="patch"){ egg("Still waiting on a chess update. Last patch shipped about "+(new Date().getFullYear()-1475)+" years ago.",3600); return true }
+  if(k==="goblin"||k==="goblin chess"||k==="chess goblin"){
+    egg('The chess goblin says "CHYEEEEEEECK"',4200,"goblin"); return true }
   if(k==="en passant"||k==="enpassant"){ egg("En passant is forced.",2600); return true }
   if(k==="kava"){ flash("dim-mode",2600); egg("Lights down. Bowls up.",2600); return true }
   if(k==="records"||k==="record"){ location.hash="#/records"; return true }
@@ -1885,6 +1910,33 @@ function searchEgg(v){
 document.addEventListener("click",function(e){
   if(e.target.classList&&e.target.classList.contains("self")) egg("You cannot play yourself. Believe me, it has been tried.");
 });
+
+/* A quip on the way in, about one visit in twelve. Nothing here is aimed at
+   anybody in particular and none of it is unkind: the joke is always chess.  */
+const QUIPS=[
+ "Have you considered checkers? I hear you can win as White every time.",
+ "Backgammon has gambling in it. Maybe try that instead.",
+ ()=>"Still waiting on a chess update. Last patch shipped about "+(new Date().getFullYear()-1475)+" years ago.",
+ "You know the knight can also be called a pony.",
+ "The bishop is stuck on one colour for life. Sit with that.",
+ "Reminder: pawns cannot go backwards. Neither can Thursday.",
+ "Nobody in recorded history has won an argument about the Sicilian.",
+ "En passant is still legal, no matter how loudly it is discussed.",
+ "The clock is not your enemy. The clock is simply honest.",
+ "If you lost, it was the lighting. Obviously.",
+ "Somewhere in this club, someone is preparing a line you will never face.",
+ "Chess: eight by eight, and still nobody agrees on anything."];
+function quip(){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return typeof q==="function"?q():q }
+
+/* The goblin shows on one open in a hundred, counted across everyone: the page
+   is a static file with no server behind it, so there is no shared tally to
+   keep. A flat one per cent chance per visit gives the same club-wide rate
+   without asking anyone's browser to phone home.                              */
+(function goblinWatch(){
+  const roll=Math.random();
+  if(roll<0.01){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
+  if(roll<0.09) setTimeout(function(){ egg(quip(),4600) },1600);
+})();
 
 /* ---------- club records, reachable from the footer or by typing it ---------- */
 function drawRecords(){

@@ -53,10 +53,17 @@ rating (counts up from the seed), its record (cycles to percentages), a trophy
 (spins), the portrait (shows a spirit piece), the turnout blocks (ripple), and a
 crosstable diagonal cell.
 
-Type into search: `en passant`, `kava`, `records`, `1337`, `checkmate`. The
+Type into search: `en passant`, `kava`, `records`, `1337`, `checkmate`, `e4`,
+`e5`, `d4`, `sicilian`, `gambit`, `positional`, `theory`, `blunder`, `lenny`,
+`goblin chess`, `checkers`, `backgammon`, `pony`, `update`. The
 Konami code works anywhere. Opening the fun-sort menu three times unlocks a
 joke sort. On the day of a club night the header reads TONIGHT; a profile shows
 a note on the player's club anniversary, at exactly 64 games, and at 1337.
+
+On the way in: a one-liner on about one visit in twelve, and the chess goblin
+shouting CHYEEEEEEECK on about one in a hundred. The page is a static file with
+no server, so there is no shared tally to increment; flat odds give the same
+club-wide rate without anyone's browser phoning home.
 
 Club records live at `#/records`, linked from the footer.
 
