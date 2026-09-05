@@ -3650,6 +3650,46 @@ function seasonNotes(S,div,rows){
   return out.slice(0,4);
 }
 
+const SEASON_BASE=8;   // the run of nights in history.json opens with season 8
+const MILESTONES=[1000,1200,1400,1600,1800,2000];
+const CEILING={"U1000":1000,"U1400":1400};
+
+/* Counted from the club's breaks rather than typed in, so it stays right. */
+function seasonNumber(){
+  const ds=HISTORY.map(n=>n.date); let breaks=0;
+  for(let i=1;i<ds.length;i++)
+    if((new Date(ds[i])-new Date(ds[i-1]))/86400000>=SEASON_BREAK) breaks++;
+  return SEASON_BASE+breaks;
+}
+
+/* Three kinds of level up, all earned on the board rather than awarded: through
+   a round number for the first time, finishing above your bracket's mark, and
+   arriving mid-season and landing high. Said out loud, which is the half of the
+   club's tone that gets said out loud. */
+function levelUps(S){
+  const out=[];
+  const ranked=Object.keys(S.players).map(n=>({...S.players[n], p:byN2(n)}))
+    .filter(x=>x.p&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=SEASON_MIN_NIGHTS);
+
+  ranked.filter(x=>x.was!=null).forEach(x=>{
+    const hit=MILESTONES.filter(m=>x.was<m&&x.now>=m);
+    if(hit.length){ const top=hit[hit.length-1];
+      out.push({sort:top, line:"**"+x.n+"** went through **"+top+"** — "+
+        x.was+" to "+x.now+" across the season."}) }
+  });
+
+  ranked.filter(x=>CEILING[x.p.d]&&x.now>=CEILING[x.p.d]).forEach(x=>{
+    out.push({sort:x.now+10000, line:"**"+x.n+"** finished on **"+x.now+"**, above the "+
+      divLabel(x.p.d)+" mark. That is a promotion earned on the board."});
+  });
+
+  const fresh=ranked.filter(x=>x.fresh&&x.nights>=4).sort((a,b)=>b.now-a.now)[0];
+  if(fresh) out.push({sort:-1, line:"**"+fresh.n+"** arrived this season and finished on "+
+    fresh.now+" after "+fresh.nights+" nights. Not a bad way in."});
+
+  return out.sort((a,b)=>b.sort-a.sort).map(x=>x.line).slice(0,6);
+}
+
 async function seasonCanvas(){
   const S=seasonStats();
   const groups=DATA.divisions.map(d=>({div:d, rows:seasonTable(S,d).slice(0,10)}))
@@ -3744,10 +3784,10 @@ function seasonEmbeds(){
 async function postSeason(status){
   const c=dscCfg();
   if(!c.hook) throw new Error("Add the webhook in settings first.");
-  const S=seasonStats(), pc=pubCfg();
+  const S=seasonStats(), pc=pubCfg(), no=seasonNumber();
   // the season crosses a year, so both ends carry theirs
   const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-  const head="# That is the season\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
+  const head="# Season "+no+" is done\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
     "  \u00b7  "+S.bounds.nights+" nights  \u00b7  "+
     HISTORY.filter(n=>n.date>=S.bounds.from).reduce((a,n)=>a+n.games.length,0)+" games";
   let sent=0;
@@ -3763,9 +3803,21 @@ async function postSeason(status){
   sent++;
   status&&status("posting what happened\u2026");
   await dscSend(c.hook,"",seasonEmbeds()); sent++;
-  if(pc.owner&&pc.repo){
-    await dscSend(c.hook,"Every player's season, night by night: "+siteUrl(pc)); sent++;
+
+  const ups=levelUps(S);
+  if(ups.length){
+    status&&status("posting the level ups\u2026");
+    await dscSend(c.hook,"",[{title:"Level ups",color:DSC_RED,description:ups.join(NL+NL)}]);
+    sent++;
   }
+
+  status&&status("signing off\u2026");
+  await dscSend(c.hook,
+    "That is Season "+no+". Thank you to everyone who turned up, wrote a result down, "+
+    "or sat opposite somebody they had no business beating."+NL+NL+
+    "**Season "+(no+1)+" starts next. See you next season.**"+
+    ((pc.owner&&pc.repo)?NL+NL+"Every player's season, night by night: "+siteUrl(pc):""));
+  sent++;
   return sent;
 }
 
