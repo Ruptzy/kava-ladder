@@ -1635,18 +1635,43 @@ const WINNERS=[
  "Wins outnumber losses here. Quietly, without fuss.",
  "Ahead on the count. The hard part is staying there."];
 function openingEggs(p){
-  const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0];
+  const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0], bottom=board[board.length-1];
   const lastN=p.nightly[p.nightly.length-1];
+  const say=(msg,id,ms)=>setTimeout(function(){ egg(msg,ms||3600,null,id) },1500);
+
+  // the top of the ladder, caught dropping one
   if(top&&top.n===p.n&&lastN&&lastN.l>0&&Math.random()<0.7){
-    setTimeout(function(){
-      egg("The bigger they are, the harder they fall. Or something like that.",4000,null,"mighty-fall");
-    },1500);
-    return;
+    say("The bigger they are, the harder they fall. Or something like that.",
+        "mighty-fall",4000); return;
+  }
+  // the bottom rung. Somebody real reads this, so it is warm or it is nothing.
+  if(bottom&&bottom.n===p.n&&board.length>4&&Math.random()<0.8){
+    say("Somebody has to hold the bottom rung. It is the only one with room above it.",
+        "bottom-rung",4200); return;
+  }
+  // the most recent arrival at the club
+  const newest=P.filter(x=>x.first).sort((a,b)=>a.first<b.first?1:-1)[0];
+  if(newest&&newest.n===p.n&&Math.random()<0.8){
+    say("Newest name on the board. Everyone here started exactly where you are.",
+        "newest",4200); return;
+  }
+  // sat opposite more of the club than anyone
+  const travelled=P.reduce((m,x)=>(!m||Object.keys(x.opp).length>Object.keys(m.opp).length)?x:m,null);
+  if(travelled&&travelled.n===p.n&&Math.random()<0.7){
+    say("Has sat opposite more of this club than anybody. "+Object.keys(p.opp).length+" different people.",
+        "most-travelled",4200); return;
+  }
+  // two people on exactly the same number
+  const twin=P.filter(x=>x.n!==p.n&&!away(x)&&Math.abs(x.r-p.r)<=5)
+    .sort((a,b)=>Math.abs(a.r-p.r)-Math.abs(b.r-p.r))[0];
+  if(twin&&Math.random()<0.9){
+    const gap=Math.abs(twin.r-p.r);
+    say(gap===0?("Dead level with "+twin.n+" on "+p.r+". Somebody will have to do something about that.")
+               :("Neck and neck with "+twin.n+", "+gap+" point"+(gap===1?"":"s")+" apart. One game settles it."),
+        "twin",4200); return;
   }
   if(p.rec[0]>p.rec[2]&&p.games>=10&&Math.random()<0.15){
-    setTimeout(function(){
-      egg(WINNERS[Math.floor(Math.random()*WINNERS.length)],3400,null,"winning-record");
-    },1500);
+    say(WINNERS[Math.floor(Math.random()*WINNERS.length)],"winning-record",3400);
   }
 }
 function scoutLine(p){
@@ -1816,7 +1841,8 @@ const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes"
  "castle","stalemate","fork","pin","skewer","zugzwang","opening","endgame",
  "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
  "sunday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
- "lastnight","footer","searchicon","earned","but-harold","deeper-motif","mighty-fall","winning-record"];
+ "lastnight","footer","searchicon","earned","but-harold","deeper-motif","mighty-fall","winning-record",
+ "bottom-rung","newest","most-travelled","twin"];
 function eggsFound(){
   try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
   catch(e){ return new Set() }
@@ -2137,7 +2163,11 @@ const HINTS={
  "but-harold":"Study night has a catchphrase. Two words, one of them is a name.",
  "deeper-motif":"Somewhere a player won more games than they lost and still went down. That page argues back.",
  "mighty-fall":"Open the top of the ladder after a night they did not win everything.",
- "winning-record":"Open somebody who has won more than they have lost. Keep opening them."
+ "winning-record":"Open somebody who has won more than they have lost. Keep opening them.",
+ "bottom-rung":"Open the last ranked name on a board. It has something kind to say.",
+ "newest":"Open whoever arrived at the club most recently.",
+ "most-travelled":"Open whoever has faced the most different people.",
+ "twin":"Two players are almost level on rating. Open either of them."
 };
 function hintUsed(){ try{ return sessionStorage.getItem("kv-hint-used")==="1" }catch(e){ return false } }
 function giveHint(){

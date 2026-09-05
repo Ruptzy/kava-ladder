@@ -44,16 +44,17 @@ backslashes except the closing `<\/script>`.
 
 ## Easter eggs
 
-Twenty of them, all hanging off things people already touch, none blocking a tap
-meant for navigation. Search `easter eggs` in `ladderbuild.js`.
+Seventy huntable ones, all hanging off things people already touch, none
+blocking a tap meant for navigation. Search `easter eggs` in `ladderbuild.js`.
 
 Tap: the club badge (knight hops), the seasons tag, the updated line, the word
 "Ladder" in the heading (it renames itself), the wiggle-room symbol, a profile's
 rating (counts up from the seed), its record (cycles to percentages), a trophy
 (spins), the portrait (shows a spirit piece), the turnout blocks (ripple), and a
-crosstable diagonal cell.
+crosstable diagonal cell. Also the Last night heading, the search magnifier,
+the EARNED label beside the achievements, and the footer itself.
 
-Type into search (58 words): `1337`, `backgammon`, `beginner`, `bishop`, `blitz`, `blunder`, `brilliant`, `bullet`, `castle`, `castling`, `cheat`, `checkers`, `checkmate`, `chess goblin`, `clock`, `d4`, `draw`, `e4`, `e5`, `elo`, `en passant`, `endgame`, `engine`, `enpassant`, `fork`, `gambit`, `glicko`, `goblin`, `goblin chess`, `hikaru`, `kava`, `king`, `knight`, `leet`, `lenny`, `magnus`, `newbie`, `opening`, `patch`, `pawn`, `pin`, `pony`, `positional`, `queen`, `r`, `record`, `records`, `resign`, `rook`, `sicilian`, `skewer`, `stalemate`, `theory`, `thursday`, `tilt`, `update`, `vibes`, `zugzwang`. The
+Type into search (62 words, `but harold` among them): `1337`, `backgammon`, `beginner`, `bishop`, `blitz`, `blunder`, `brilliant`, `bullet`, `castle`, `castling`, `cheat`, `checkers`, `checkmate`, `chess goblin`, `clock`, `d4`, `draw`, `e4`, `e5`, `elo`, `en passant`, `endgame`, `engine`, `enpassant`, `fork`, `gambit`, `glicko`, `goblin`, `goblin chess`, `hikaru`, `kava`, `king`, `knight`, `leet`, `lenny`, `magnus`, `newbie`, `opening`, `patch`, `pawn`, `pin`, `pony`, `positional`, `queen`, `r`, `record`, `records`, `resign`, `rook`, `sicilian`, `skewer`, `stalemate`, `sunday`, `theory`, `thursday` (wrong day), `tilt`, `update`, `vibes`, `zugzwang`. The
 Konami code works anywhere. Opening the fun-sort menu three times unlocks a
 joke sort. On the day of a club night the header reads TONIGHT; a profile shows
 a note on the player's club anniversary, at exactly 64 games, and at 1337.
@@ -63,14 +64,27 @@ shouting CHYEEEEEEECK on about one in twenty-five. The page is a static file wit
 no server, so there is no shared tally to increment; flat odds give the same
 club-wide rate without anyone's browser phoning home.
 
-Sixty-six of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
-"Easter egg N of 66" to its toast and records it in this browser, and the
+The seventy huntable eggs are listed in `EGG_IDS`. Finding one appends
+"Easter egg N of 70" to its toast and records it in this browser, and the
 Achievements section leads with an Egg hunter tile showing progress. It is the
 only entry there that describes the viewer rather than the player, so it says so
 and is styled apart. Passive ones (the goblin dropping in, a quip on the way
 past) are not in the count: you cannot hunt something that hunts you.
 
-The Konami code needs a keyboard, so phones get the same sequence as swipes.
+The Konami code needs a keyboard, so phones get the same sequence as swipes. It
+is four steps, up-up-down-down, because nobody finishes ten.
+
+**Hints.** The dim unlabelled dot at the end of the footer gives one hint per
+visit, always for an egg this browser has not found, and it nudges rather than
+tells. `HINTS` carries a line for every id in `EGG_IDS`; the build asserts none
+is missing.
+
+**Who you open.** `openingEggs()` fires at most one egg on a profile, chosen by
+who that player is: the club's number one after a night they dropped a game, the
+last ranked name on the board (warm, because a real person reads it), the newest
+arrival, whoever has faced the most different people, and anyone sitting within
+five points of somebody else. Each is behind a probability so it stays a find
+rather than a fixture.
 
 **But Harold.** The study-night catchphrase, in three places. Typing it gives the
 objection, then the toast rewrites itself with the deeper motif. It also turns up
