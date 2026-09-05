@@ -372,6 +372,10 @@ text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.5rem}
 .ach{position:relative;display:flex;gap:.55rem;align-items:flex-start;padding:.55rem .6rem;border-radius:8px;
 border:1px solid var(--rule);background:rgba(30,32,35,.6)}
+.ach.hunt{border-style:dashed;background:linear-gradient(150deg,rgba(59,199,154,.1),rgba(30,32,35,.7) 65%)}
+.ach.hunt.got{border-color:var(--gain)}
+.ach.hunt .pgb{margin-top:.35rem}
+.ach.hunt .pgb i{background:var(--gain)}
 .ach.got{border-color:var(--scarlet-dim);background:linear-gradient(150deg,rgba(254,39,58,.12),rgba(30,32,35,.7) 65%)}
 .ach .ic{flex:none;width:30px;height:30px;display:grid;place-items:center;font-size:1.05rem;line-height:1;
 border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;background-repeat:no-repeat;background-position:center}
@@ -458,6 +462,8 @@ max-width:min(420px,92vw);padding:.7rem 1rem;border-radius:24px;background:rgba(
 border:1px solid var(--scarlet-dim);color:var(--cream);font-size:.9rem;line-height:1.4;text-align:center;
 box-shadow:0 16px 40px -14px rgba(0,0,0,.9);opacity:0;transition:transform .25s,opacity .25s;pointer-events:none}
 #eggToast.on{transform:translate(-50%,0);opacity:1}
+#eggToast .eggn{display:block;margin-top:.35rem;font-family:var(--fm);font-style:normal;
+font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--scarlet)}
 #eggToast.goblin{font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 900;font-size:1.15rem;
 letter-spacing:.02em;color:var(--scarlet);border-color:var(--scarlet);background:rgba(26,14,16,.98);
 box-shadow:0 0 40px -8px var(--scarlet),0 16px 40px -14px rgba(0,0,0,.9)}
@@ -1432,6 +1438,14 @@ function achFor(p){
     return {a:a, got:got, pr:pr};
   });
 }
+function huntTile(){
+  const f=eggsFound().size, n=EGG_IDS.length, done=f>=n;
+  return '<div class="ach hunt'+(f?' got':'')+'" title="Kept in this browser, not on anyone\'s record">'+
+    '<span class="ic">'+(done?"\uD83E\uDD5A":"\uD83D\uDD0D")+'</span>'+
+    '<span class="tx"><b class="nm2">Egg hunter</b>'+
+    '<span class="hw">Found '+f+' of '+n+' easter eggs. Yours, on this device.</span>'+
+    '<span class="pgb"><i style="width:'+Math.round(f/n*100)+'%"></i></span></span></div>';
+}
 function achBlock(p){
   const rows=achFor(p), got=rows.filter(r=>r.got).length;
   const pct=Math.round(got/rows.length*100);
@@ -1454,7 +1468,7 @@ function achBlock(p){
   };
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
     '<small>earned</small></div>'+
-    '<div class="achs" id="achWrap">'+order.slice(0,12).map(tile).join("")+'</div>'+
+    '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,11).map(tile).join("")+'</div>'+
     '<div class="achs hid" id="achRest">'+order.slice(12).map(tile).join("")+'</div>'+
     '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
 }
@@ -1584,6 +1598,15 @@ function recentGames(p){
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
 }
+function scoutLine(p){
+  const w=wr(p);
+  if(p.streak[1]>=3) return "Scouting report: on a run. Bring a clock and a plan.";
+  if(p.rec[1]>=4) return "Scouting report: hard to beat, harder to finish off.";
+  if(p.upsets>=4) return "Scouting report: has beaten better. Do not relax.";
+  if(p.cons>=15) return "Scouting report: always here. That is the whole trick.";
+  if(w>=60) return "Scouting report: wins more than they lose. Annoying.";
+  return "Scouting report: dangerous when underestimated.";
+}
 function trophyHead(p){
   const L=["First","Second","Third"];
   const top=p.topDiv||p.d, counts=p.byDiv[top]||[0,0,0];
@@ -1657,6 +1680,7 @@ function showProfile(n,rival){
   var same=CUR&&CUR.n===n; CUR=p; RIVAL=rival&&rival!==n?byN[rival]:null;
   document.title=p.n+" · KAVA Ladder";
   var tt=titleFor(p), el=$("#pnick");
+  if(Math.random()<0.12) setTimeout(function(){ egg(scoutLine(p),3600) },900);
   el.setAttribute("tabindex","0");
   el.innerHTML='<span class="ni">'+tt.ic+'</span>'+tt.name+'<span class="q" aria-hidden="true">?</span><span class="tip"><b>Why this title</b>'+esc(tt.why||"Earned from their record.")+'</span>';
   el.onclick=function(){ this.classList.toggle("open") };
@@ -1720,10 +1744,31 @@ $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; lo
 /* ---------- easter eggs ----------
    All of them hang off something people already touch. None of them block a tap
    that was meant for navigation, and none change any number on the page.      */
-function egg(msg,ms,cls){
+/* every egg somebody can go looking for, in the order they are likely to meet
+   them. Passive ones (the goblin dropping in, a quip on the way past) are not
+   in here: you cannot hunt for something that hunts you.                     */
+const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes","self-cell",
+ "rating","record","trophy","spirit","turnout","code",
+ "e4","e5","d4","sicilian","gambit","positional","theory","blunder",
+ "lenny","goblin","checkers","backgammon","pony","update","kava","leet","checkmate","records"];
+function eggsFound(){
+  try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
+  catch(e){ return new Set() }
+}
+function eggFind(id){
+  if(!id) return false;
+  const s=eggsFound();
+  if(s.has(id)) return false;
+  s.add(id);
+  try{ localStorage.setItem("kv-eggs",[...s].join(",")) }catch(e){}
+  return true;
+}
+function egg(msg,ms,cls,id){
   let el=document.getElementById("eggToast");
   if(!el){ el=document.createElement("div"); el.id="eggToast"; document.body.appendChild(el) }
-  el.textContent=msg; el.className=cls?cls:"";
+  const fresh=eggFind(id);
+  el.innerHTML=E(msg)+(fresh?'<i class="eggn">Easter egg '+eggsFound().size+' of '+EGG_IDS.length+'</i>':'');
+  el.className=cls?cls:"";
   void el.offsetWidth; el.classList.add("on");
   clearTimeout(el._t); el._t=setTimeout(function(){ el.classList.remove("on") }, ms||2400);
 }
@@ -1738,13 +1783,13 @@ const todayMD=()=>{ const d=new Date(); return String(d.getMonth()+1).padStart(2
 // 1. the badge hops like a knight
 $(".tb img").style.cursor="pointer";
 $(".tb img").onclick=function(){ this.classList.remove("hop"); void this.offsetWidth; this.classList.add("hop");
-  egg("Knight to e4.") };
+  egg("Knight to e4.",2400,null,"badge") };
 // 2. the seasons tag remembers when it all started
 $(".wm small").style.cursor="pointer";
-$(".wm small").onclick=()=>egg("Kava has been playing since September 2022. "+D.games.length+" games this era alone.");
+$(".wm small").onclick=()=>egg("Kava has been playing since September 2022. "+D.games.length+" games this era alone.",2400,null,"seasons");
 // 3. the updated line owns up to what it knows
 $("#upd").style.cursor="pointer";
-$("#upd").onclick=()=>egg("Built "+fd(D.built)+" from "+D.games.length+" games over "+DATES.length+" nights. Nothing typed in by hand.");
+$("#upd").onclick=()=>egg("Built "+fd(D.built)+" from "+D.games.length+" games over "+DATES.length+" nights. Nothing typed in by hand.",2800,null,"updated");
 // 4. tonight
 (function(){ const t=new Date().toISOString().slice(0,10);
   if(D.next===t){ const u=$("#upd"); u.innerHTML=u.innerHTML.replace(/Next night <b>[^<]*<\/b>/,'<b class="tonight">TONIGHT</b>') } })();
@@ -1754,7 +1799,7 @@ let ladIdx=0;
 $("#bt").style.cursor="pointer";
 $("#bt").onclick=function(){ ladIdx=(ladIdx+1)%LADNAMES.length;
   const sp=this.querySelector("span"); if(sp) sp.textContent=LADNAMES[ladIdx];
-  if(ladIdx===1) egg("Call it what you like.") };
+  if(ladIdx===1) egg("Call it what you like.",2400,null,"ladder-name") };
 // 6. the wiggle room wiggles
 document.addEventListener("click",function(e){
   const b=e.target.closest("p.l b"); if(!b||b.textContent.indexOf("\u00b1")<0) return;
@@ -1769,7 +1814,7 @@ function maybeVibes(){
   SORTS.push({k:"vibes", ic:"\uD83D\uDD2E", t:"By vibes", col:"Vibe", fun:true,
     val:p=>((hashName(p.n)>>>0)%1000)/10+seed, show:p=>((hashName(p.n)>>>0)%1000)/10>50?"immaculate":"questionable",
     note:"Not a real measurement. Scientifically useless. Sorts the same way every time you look."});
-  egg("You found the vibes. They are now sortable.",3200);
+  egg("You found the vibes. They are now sortable.",3200,null,"vibes");
 }
 // 8-12 live on a profile, wired when one is drawn
 function profileEggs(p){
@@ -1780,11 +1825,12 @@ function profileEggs(p){
       i++; const v=Math.round(from+(to-from)*(i/steps));
       this.firstChild.nodeValue=v; if(i>=steps){ clearInterval(tick); this.firstChild.nodeValue=to }
     },28);
-    egg("From "+from+" to "+to+", one game at a time.");
+    egg("From "+from+" to "+to+", one game at a time.",2400,null,"rating");
   } }
   const rec=$("#kpis>div:nth-child(2) dd");
   if(rec){ let mode=0; rec.style.cursor="pointer"; rec.onclick=function(){
     mode=(mode+1)%3; const g=p.games||1;
+    if(mode===1&&eggFind("record")) egg("Same record, three ways.",2200);
     const txt=mode===0?p.rec.join("\u2013")
       :mode===1?Math.round(p.rec[0]/g*100)+"% / "+Math.round(p.rec[1]/g*100)+"% / "+Math.round(p.rec[2]/g*100)+"%"
       :"won "+p.rec[0]+" of "+g;
@@ -1793,19 +1839,21 @@ function profileEggs(p){
   document.querySelectorAll("#ptro .it").forEach(function(it){
     it.style.cursor="pointer";
     it.onclick=function(){ const pic=this.querySelector(".pic");
-      pic.classList.remove("spun"); void pic.offsetWidth; pic.classList.add("spun") };
+      pic.classList.remove("spun"); void pic.offsetWidth; pic.classList.add("spun");
+      if(eggFind("trophy")) egg("That one is yours.",2000) };
   });
   const av=$("#pav");
   if(av){ av.style.cursor="pointer"; av.onclick=function(){
     const box=this.querySelector(".av"); if(!box||box._busy) return; box._busy=1;
     const keep=box.innerHTML; box.innerHTML='<span style="font-size:2.2rem;line-height:1">'+spiritOf(p.n).split(" ")[0]+'</span>';
-    egg(p.n+" plays like a "+spiritOf(p.n).split(" ")[1]+".");
+    egg(p.n+" plays like a "+spiritOf(p.n).split(" ")[1]+".",2400,null,"spirit");
     setTimeout(function(){ box.innerHTML=keep; box._busy=0 },1800);
   } }
   const att=$(".att");
   if(att){ att.style.cursor="pointer"; att.onclick=function(){
     const on=[...this.querySelectorAll("i.on")];
     on.forEach((el,i)=>setTimeout(()=>{ el.classList.add("rip"); setTimeout(()=>el.classList.remove("rip"),450) }, i*45));
+    if(eggFind("turnout")) egg("Every one of those is a Thursday you turned up.",2800);
   } }
   // 13-15: things true of this player alone
   if(p.first&&p.first.slice(5)===todayMD()) egg("Today is "+p.n+"'s club anniversary. First game "+fd(p.first)+".",4000);
@@ -1821,26 +1869,26 @@ const LENNY=[
  'Lenny thayth: "Interethting move. Wrong, but interethting."'];
 function searchEgg(v){
   const k=v.trim().toLowerCase();
-  if(k==="e4"){ egg("Best by test. Lenny disagrees, at length.",2800); return true }
-  if(k==="e5"){ egg("Straight back at it. Bold. Symmetrical. Lenny has notes.",2800); return true }
-  if(k==="d4"){ egg("The slow squeeze. Bring a flask.",2600); return true }
-  if(k==="sicilian"){ egg("The Sicilian. Half the club plays it and no two agree which one.",3000); return true }
-  if(k==="gambit"){ egg("A gambit: give away a pawn, receive an argument.",2800); return true }
-  if(k==="positional"){ egg("Positional chess: losing slowly, with dignity.",2800); return true }
-  if(k==="theory"){ egg("Theory is what you quote after you have already lost.",2800); return true }
-  if(k==="blunder"){ egg("We have all been there. Most of us last Thursday.",2800); return true }
-  if(k==="lenny"){ egg(LENNY[Math.floor(Math.random()*LENNY.length)],4200); return true }
-  if(k==="checkers"){ egg("Have you considered checkers? I hear you can win as White every time.",3200); return true }
-  if(k==="backgammon"){ egg("Backgammon has gambling in it. Maybe try that instead.",3200); return true }
-  if(k==="pony"||k==="knight"){ egg("You know the knight can also be called a pony.",3000); return true }
-  if(k==="update"||k==="patch"){ egg("Still waiting on a chess update. Last patch shipped about "+(new Date().getFullYear()-1475)+" years ago.",3600); return true }
+  if(k==="e4"){ egg("Best by test. Lenny disagrees, at length.",2800,null,"e4"); return true }
+  if(k==="e5"){ egg("Straight back at it. Bold. Symmetrical. Lenny has notes.",2800,null,"e5"); return true }
+  if(k==="d4"){ egg("The slow squeeze. Bring a flask.",2600,null,"d4"); return true }
+  if(k==="sicilian"){ egg("The Sicilian. Half the club plays it and no two agree which one.",3000,null,"sicilian"); return true }
+  if(k==="gambit"){ egg("A gambit: give away a pawn, receive an argument.",2800,null,"gambit"); return true }
+  if(k==="positional"){ egg("Positional chess: losing slowly, with dignity.",2800,null,"positional"); return true }
+  if(k==="theory"){ egg("Theory is what you quote after you have already lost.",2800,null,"theory"); return true }
+  if(k==="blunder"){ egg("We have all been there. Most of us last Thursday.",2800,null,"blunder"); return true }
+  if(k==="lenny"){ egg(LENNY[Math.floor(Math.random()*LENNY.length)],4200,null,"lenny"); return true }
+  if(k==="checkers"){ egg("Have you considered checkers? I hear you can win as White every time.",3200,null,"checkers"); return true }
+  if(k==="backgammon"){ egg("Backgammon has gambling in it. Maybe try that instead.",3200,null,"backgammon"); return true }
+  if(k==="pony"||k==="knight"){ egg("You know the knight can also be called a pony.",3000,null,"pony"); return true }
+  if(k==="update"||k==="patch"){ egg("Still waiting on a chess update. Last patch shipped about "+(new Date().getFullYear()-1475)+" years ago.",3600,null,"update"); return true }
   if(k==="goblin"||k==="goblin chess"||k==="chess goblin"){
-    egg('The chess goblin says "CHYEEEEEEECK"',4200,"goblin"); return true }
+    egg('The chess goblin says "CHYEEEEEEECK"',4200,"goblin","goblin"); return true }
   if(k==="en passant"||k==="enpassant"){ egg("En passant is forced.",2600); return true }
-  if(k==="kava"){ flash("dim-mode",2600); egg("Lights down. Bowls up.",2600); return true }
-  if(k==="records"||k==="record"){ location.hash="#/records"; return true }
-  if(k==="1337"||k==="leet"){ flash("gold-mode",2600); egg("Elite.",2000); return true }
-  if(k==="checkmate"){ egg("Not on this page. Take it to the board.",2600); return true }
+  if(k==="kava"){ flash("dim-mode",2600); egg("Lights down. Bowls up.",2600,null,"kava"); return true }
+  if(k==="records"||k==="record"){ eggFind("records"); location.hash="#/records"; return true }
+  if(k==="1337"||k==="leet"){ flash("gold-mode",2600); egg("Elite.",2000,null,"leet"); return true }
+  if(k==="checkmate"){ egg("Not on this page. Take it to the board.",2600,null,"checkmate"); return true }
   return false;
 }
 // 20: the old code still works
@@ -1850,12 +1898,30 @@ function searchEgg(v){
   document.addEventListener("keydown",function(e){
     const k=e.key.length===1?e.key.toLowerCase():e.key;
     i=(k===seq[i])?i+1:(k===seq[0]?1:0);
-    if(i===seq.length){ i=0; flash("gold-mode",5000); egg("Tournament mode. Purely decorative.",3200) }
+    if(i===seq.length){ i=0; flash("gold-mode",5000); egg("Tournament mode. Purely decorative.",3200,null,"code") }
   });
 })();
+// the code needs a keyboard, so phones get the same thing as a swipe
+(function swipeCode(){
+  const want=["up","up","down","down","left","right","left","right"];
+  let i=0, x0=0, y0=0, t0=0;
+  addEventListener("touchstart",function(e){
+    const t=e.changedTouches[0]; x0=t.clientX; y0=t.clientY; t0=Date.now();
+  },{passive:true});
+  addEventListener("touchend",function(e){
+    const t=e.changedTouches[0], dx=t.clientX-x0, dy=t.clientY-y0;
+    if(Date.now()-t0>700) { i=0; return }
+    const ax=Math.abs(dx), ay=Math.abs(dy);
+    if(Math.max(ax,ay)<45){ return }
+    const dir=ax>ay?(dx>0?"right":"left"):(dy>0?"down":"up");
+    i=(dir===want[i])?i+1:(dir===want[0]?1:0);
+    if(i===want.length){ i=0; flash("gold-mode",5000); egg("Tournament mode. Purely decorative.",3200,null,"code") }
+  },{passive:true});
+})();
+
 // and one on the crosstable's own diagonal
 document.addEventListener("click",function(e){
-  if(e.target.classList&&e.target.classList.contains("self")) egg("You cannot play yourself. Believe me, it has been tried.");
+  if(e.target.classList&&e.target.classList.contains("self")) egg("You cannot play yourself. Believe me, it has been tried.",2400,null,"self-cell");
 });
 
 /* A quip on the way in, about one visit in twelve. Nothing here is aimed at
@@ -1881,8 +1947,8 @@ function quip(){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return t
    without asking anyone's browser to phone home.                              */
 (function goblinWatch(){
   const roll=Math.random();
-  if(roll<0.01){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
-  if(roll<0.09) setTimeout(function(){ egg(quip(),4600) },1600);
+  if(roll<0.04){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
+  if(roll<0.20) setTimeout(function(){ egg(quip(),4600) },1600);
 })();
 
 /* ---------- club records, reachable from the footer or by typing it ---------- */
@@ -1944,7 +2010,8 @@ $("#sortMenu").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;
 $("#sorts").onclick=e=>{ const b=e.target.closest("[data-s]"); if(!b) return;
   sortK=b.dataset.s; closeSort(); go(stateHash()); $("#live").textContent="Sorted by "+SORT().t };
 document.addEventListener("click",e=>{ if(!e.target.closest(".sortbar")) closeSort() });
-$("#awayBtn").onclick=()=>{ showAway=!showAway; draw() };
+$("#awayBtn").onclick=()=>{ showAway=!showAway; draw();
+  if(showAway&&Math.random()<0.35) egg("Ghosts of Thursdays past.",2600,null,"away") };
 $("#pod").onclick=e=>{ const t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) };
 window.matchMedia("(max-width:640px)").addEventListener("change",()=>{ if(xtShown) cross() });
 drawArchive(); drawAllTime(); drawClub(); route();

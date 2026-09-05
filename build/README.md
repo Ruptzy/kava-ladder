@@ -60,10 +60,19 @@ Konami code works anywhere. Opening the fun-sort menu three times unlocks a
 joke sort. On the day of a club night the header reads TONIGHT; a profile shows
 a note on the player's club anniversary, at exactly 64 games, and at 1337.
 
-On the way in: a one-liner on about one visit in twelve, and the chess goblin
-shouting CHYEEEEEEECK on about one in a hundred. The page is a static file with
+On the way in: a one-liner on about one visit in six, and the chess goblin
+shouting CHYEEEEEEECK on about one in twenty-five. The page is a static file with
 no server, so there is no shared tally to increment; flat odds give the same
 club-wide rate without anyone's browser phoning home.
+
+Thirty-two of the eggs are huntable, listed in `EGG_IDS`. Finding one appends
+"Easter egg N of 32" to its toast and records it in this browser, and the
+Achievements section leads with an Egg hunter tile showing progress. It is the
+only entry there that describes the viewer rather than the player, so it says so
+and is styled apart. Passive ones (the goblin dropping in, a quip on the way
+past) are not in the count: you cannot hunt something that hunts you.
+
+The Konami code needs a keyboard, so phones get the same sequence as swipes.
 
 Club records live at `#/records`, linked from the footer.
 
