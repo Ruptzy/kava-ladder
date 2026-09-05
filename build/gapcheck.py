@@ -1,25 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Check every imported tournament night against that tournament's own standings.
+"""Check every imported night against that tournament's own standings.
 
-Score by score, player by player, byes included at half a point. This is the
-check that caught the missing byes the first time round, so it runs over all
-seven of the 2025 links, not only the five that were new.
+Score by score, player by player, byes counted at half a point. This is the
+check that caught the missing byes the first time round, so it runs over every
+link on record, not only the ones most recently added.
 """
-import re, io, html, json, os, collections, urllib.request
+import re, io, html, json, os, collections
+
+from gap2025 import LINKS, canon, cache  # one definition of each, shared
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-GAP = os.path.join(HERE, 'gap')
-from gap2025 import LINKS, DATE, canon  # one definition of each, shared
+# the site writes Dave; the club writes his full name
+SAME = {"Dave": "Dave Kecthum"}
 
 
 def standings(tid):
-    f = os.path.join(GAP, 'rating_%s.html' % tid)
-    if not os.path.exists(f):
-        u = "https://swissonlinetournament.com/Tournament/Rating/%s" % tid
-        req = urllib.request.Request(u, headers={"User-Agent": "Mozilla/5.0"})
-        io.open(f, 'w', encoding='utf-8').write(
-            urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace"))
-    doc = io.open(f, encoding='utf-8').read()
+    date = LINKS[tid]
+    doc = io.open(cache(tid, 'rating_'), encoding='utf-8').read()
     nm = html.unescape(re.search(r"Tournament name:\s*([^<\n]+)", doc).group(1)).strip()
     out = {}
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", doc, re.S):
@@ -29,22 +26,20 @@ def standings(tid):
             continue
         for c in tds[2:]:
             try:
-                out[canon(tds[1])] = float(c)
+                out[canon(tds[1], date)] = float(c)
                 break
             except ValueError:
                 continue
-    return nm, out
+    return nm, {SAME.get(k, k): v for k, v in out.items()}
 
-
-# the site writes Dave, the club writes his full name
-SAME = {"Dave": "Dave Kecthum"}
 
 H = {n['date']: n for n in json.load(io.open(os.path.join(HERE, 'history.json'), encoding='utf-8'))}
 bad = checked = 0
-for tid in LINKS:
+for tid, d in sorted(LINKS.items(), key=lambda kv: kv[1]):
     nm, site = standings(tid)
-    d = DATE[nm]
-    site = {SAME.get(k, k): v for k, v in site.items()}
+    if d not in H:
+        print('%s  %-24s not imported (seasons 1-7 has it)' % (d, nm))
+        continue
     mine = collections.Counter()
     for w, b, r in H[d]['games']:
         mine[w] += 1.0 if r == 'w' else (0.5 if r == 'd' else 0.0)

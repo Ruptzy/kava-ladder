@@ -18,10 +18,18 @@ Three importers, all writing `history.json`:
 
 `extract.py` reads the club workbook, which is where most nights come from.
 `reimport.py` re-reads the 2026 tournament pages, because the workbook import
-had dropped every game played against a one-off visitor. `gap2025.py` does the
-same for the seven links Harold sent covering early 2025: five of them were
-nights nobody had imported at all, and the other two turned out to be nights
-already on record whose byes had been lost.
+had dropped every game played against a one-off visitor. `gap2025.py` reads
+every tournament link the club has for December 2024 to October 2025 and is the
+authority for those nights: it adds the ones nobody had imported and rewrites
+the ones already on record, which only ever changes a spelling because the game
+count has to match first or it stops.
+
+Its `LINKS` table holds the date for each tournament rather than trusting the
+title, because the club names them by hand and gets it wrong: two are titled
+"1/19/24" and "2/2/24" but land on the club's fortnightly Sundays in 2025, and
+neither of those days in 2024 was a Sunday. 24 November 2024 is in `ARCHIVED`
+and deliberately left out - it is the last night of seasons 1-7 and already
+counted there.
 
 Byes are half a point on the night, so a missing bye moves a placing. The
 workbook carries none, which means the nights that came only from it still have
@@ -49,7 +57,15 @@ that met more than one of them shows a single Visitors line rather than a column
 of identical rows. Taking a name back out of `hidden.json` and rebuilding undoes
 all of it.
 
-A name is only merged when the club's own records merge it. "Bejamin" is Benji
+A name is only merged when the club's own records merge it, and `SPLIT` in
+`gap2025.py` keeps two people apart where a first name is shared: the Anthony on
+the winter 2024 nights went 2-10 and lost to Maddie, Taylor and Amanda, while
+the Anthony who joined in April 2026 is the third strongest player in the club.
+Everyone else who appears on both sides of the gap scores within a few points of
+their usual rate, which is the check worth running before merging a name at all.
+24 November 2024 is the one night held by both the old records and a link, so
+the two naming systems can be lined up by the games themselves; that is what
+settles plain "Sam" as the Sam who is still playing. "Bejamin" is Benji
 and plain "Omar" is Omar Cruz before January 2026, but "Ben (new)", "Codi" and
 "Shawn" stay as written: the club has always used a "(new)" suffix for a second
 person with the same first name, and the old workbook keeps Codi, Cody and Cody
