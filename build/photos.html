@@ -1,0 +1,101 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KAVA photo tool</title>
+<style>
+:root{--void:#0C0D0E;--panel:#161719;--panel-2:#1E2023;--rule:#343A40;--cream:#FFF6E8;--ink-2:#B3ABA0;--ink-3:#8A8276;--scarlet:#FE273A;--gain:#3BC79A;--loss:#F0883E;
+--fm:"JetBrains Mono",ui-monospace,Menlo,monospace}
+*{box-sizing:border-box}body{margin:0;background:var(--void);color:var(--cream);font-family:system-ui,sans-serif;font-size:15px}
+.w{max-width:960px;margin:0 auto;padding:1.2rem}
+h1{font-size:1.3rem;margin:0 0 .2rem}h1 span{color:var(--scarlet)}
+p.l{color:var(--ink-2);margin:0 0 1rem;font-size:.92rem}
+.grid{display:grid;grid-template-columns:1fr 300px;gap:1.2rem;align-items:start}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:1rem}
+label{display:block;font-family:var(--fm);font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:.6rem 0 .3rem}
+select,input[type=file],button{font:inherit;color:inherit}
+select{width:100%;background:var(--panel-2);border:1px solid var(--rule);border-radius:8px;padding:.5rem .7rem}
+.drop{border:2px dashed var(--rule);border-radius:8px;padding:1rem;text-align:center;color:var(--ink-3);margin-top:.6rem;cursor:pointer}
+.drop.on{border-color:var(--scarlet);color:var(--scarlet)}
+.stage{position:relative;width:100%;aspect-ratio:1;background:#000;border-radius:6px;overflow:hidden;cursor:grab;touch-action:none;user-select:none}
+.stage canvas{width:100%;height:100%;display:block}
+.stage .mask{position:absolute;inset:0;pointer-events:none;background:radial-gradient(circle at 50% 50%,transparent 49.6%,rgba(0,0,0,.62) 50%)}
+.stage .ring{position:absolute;inset:0;border-radius:50%;pointer-events:none;box-shadow:inset 0 0 0 2px var(--scarlet)}
+.ctl{display:flex;gap:.8rem;align-items:center;margin-top:.7rem}
+.ctl input[type=range]{flex:1}
+.prev{display:flex;gap:1rem;align-items:center;margin-top:.8rem}
+.av{border-radius:50%;background:var(--panel-2);overflow:hidden;flex:none;display:grid;place-items:center;font-weight:800;color:var(--ink-2)}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.btn{background:var(--scarlet);border:none;border-radius:20px;padding:.55rem 1rem;color:#fff;font-weight:700;cursor:pointer}
+.btn.q{background:var(--panel-2);border:1px solid var(--rule);color:var(--ink-2);font-weight:500}
+.btn:disabled{opacity:.4;cursor:default}
+.row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
+.msg{font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin-top:.6rem;white-space:pre-wrap;line-height:1.5}
+.msg.ok{color:var(--gain)}.msg.bad{color:var(--loss)}
+.have{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:.5rem;margin-top:.6rem}
+.have div{text-align:center;font-size:.66rem;color:var(--ink-3);cursor:pointer}
+.have img{width:56px;height:56px;border-radius:50%;object-fit:cover;display:block;margin:0 auto .2rem;border:2px solid transparent}
+.have div:hover img{border-color:var(--scarlet)}
+kbd{font-family:var(--fm);font-size:.7rem;background:var(--panel-2);padding:.1rem .35rem;border-radius:3px;border:1px solid var(--rule)}
+</style></head><body><div class="w">
+<h1>KAVA <span>photo tool</span></h1>
+<p class="l">Pick a player, drop or paste a picture, drag it around, zoom with the wheel or slider, save. Local only &mdash; nothing here is on the public site.</p>
+<div id="offline" class="card" style="display:none;border-color:var(--loss)">This page only works on Harold&rsquo;s PC with <code>python build/photoserver.py</code> running.</div>
+<div class="grid">
+<div class="card">
+  <div class="stage" id="stage"><canvas id="cv" width="800" height="800"></canvas><div class="mask"></div><div class="ring"></div></div>
+  <div class="ctl"><span style="font-family:var(--fm);font-size:.65rem;color:var(--ink-3)">ZOOM</span><input type="range" id="zoom" min="1" max="6" step="0.01" value="1"><button class="btn q" id="reset">Reset</button></div>
+  <div class="prev">
+    <div class="av" id="p1" style="width:104px;height:104px;font-size:2.2rem"></div>
+    <div class="av" id="p2" style="width:46px;height:46px;font-size:1rem"></div>
+    <div class="av" id="p3" style="width:28px;height:28px;font-size:.7rem"></div>
+    <span style="font-size:.82rem;color:var(--ink-3)">how it will look on the profile, podium and ladder</span>
+  </div>
+</div>
+<div class="card">
+  <label for="who">Player</label><select id="who"></select>
+  <label>Picture</label>
+  <div class="drop" id="drop">Drop a picture here, click to choose, or paste (<kbd>Ctrl</kbd>+<kbd>V</kbd>)<input type="file" id="file" accept="image/*" style="display:none"></div>
+  <div class="row"><button class="btn" id="save" disabled>Save photo</button><button class="btn q" id="remove">Remove photo</button></div>
+  <div class="row"><button class="btn q" id="publish">Publish all saved photos to the site</button></div>
+  <div class="msg" id="msg"></div>
+  <label>Photos on disk</label><div class="have" id="have"></div>
+</div>
+</div></div>
+<script>
+const $=s=>document.querySelector(s);
+const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
+const cv=$("#cv"), cx=cv.getContext("2d"), S=800;
+let img=null, scale=1, base=1, ox=0, oy=0, drag=null, who="";
+function fit(){ if(!img) return; base=S/Math.min(img.width,img.height); scale=1; ox=(S-img.width*base)/2; oy=(S-img.height*base)/2; $("#zoom").value=1; draw() }
+function clamp(){ const w=img.width*base*scale, h=img.height*base*scale; ox=Math.min(0,Math.max(S-w,ox)); oy=Math.min(0,Math.max(S-h,oy)) }
+function draw(){ cx.fillStyle="#000"; cx.fillRect(0,0,S,S); if(!img) return; clamp(); cx.imageSmoothingQuality="high"; cx.drawImage(img,ox,oy,img.width*base*scale,img.height*base*scale); preview() }
+function out(){ const o=document.createElement("canvas"); o.width=o.height=400; const c=o.getContext("2d"); c.imageSmoothingQuality="high"; c.drawImage(cv,0,0,400,400); return o.toDataURL("image/jpeg",0.86) }
+let pt=null; function preview(){ clearTimeout(pt); pt=setTimeout(()=>{ const u=out(); ["#p1","#p2","#p3"].forEach(s=>$(s).innerHTML='<img src="'+u+'">'); $("#save").disabled=!(img&&who) },60) }
+function load(file){ if(!file||!file.type.startsWith("image/")) return; const u=URL.createObjectURL(file); const i=new Image(); i.onload=()=>{ img=i; fit(); URL.revokeObjectURL(u) }; i.src=u }
+// pointer: drag to move
+$("#stage").addEventListener("pointerdown",e=>{ if(!img) return; const k=S/cv.getBoundingClientRect().width; drag=[e.clientX*k-ox,e.clientY*k-oy]; $("#stage").setPointerCapture(e.pointerId); $("#stage").style.cursor="grabbing" });
+$("#stage").addEventListener("pointermove",e=>{ if(!drag) return; const k=S/cv.getBoundingClientRect().width; ox=e.clientX*k-drag[0]; oy=e.clientY*k-drag[1]; draw() });
+$("#stage").addEventListener("pointerup",()=>{ drag=null; $("#stage").style.cursor="grab" });
+$("#stage").addEventListener("wheel",e=>{ if(!img) return; e.preventDefault(); zoomAt(scale*(e.deltaY<0?1.08:1/1.08),e) },{passive:false});
+function zoomAt(ns,e){ ns=Math.min(6,Math.max(1,ns)); const r=cv.getBoundingClientRect(), k=S/r.width; const px=e?(e.clientX-r.left)*k:S/2, py=e?(e.clientY-r.top)*k:S/2; ox=px-(px-ox)*ns/scale; oy=py-(py-oy)*ns/scale; scale=ns; $("#zoom").value=ns; draw() }
+$("#zoom").oninput=function(){ zoomAt(parseFloat(this.value)) };
+$("#reset").onclick=fit;
+$("#drop").onclick=()=>$("#file").click(); $("#file").onchange=e=>load(e.target.files[0]);
+$("#drop").ondragover=e=>{ e.preventDefault(); $("#drop").classList.add("on") }; $("#drop").ondragleave=()=>$("#drop").classList.remove("on");
+$("#drop").ondrop=e=>{ e.preventDefault(); $("#drop").classList.remove("on"); load(e.dataTransfer.files[0]) };
+document.addEventListener("paste",e=>{ const f=[...(e.clipboardData.items||[])].find(i=>i.type.startsWith("image/")); if(f) load(f.getAsFile()) });
+function say(t,c){ $("#msg").textContent=t; $("#msg").className="msg "+(c||"") }
+async function post(path,body){ const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return await r.json() }
+async function have(){ try{ const l=await fetch("/list").then(r=>r.json()); $("#have").innerHTML=Object.keys(l).sort().map(s=>'<div data-s="'+s+'"><img src="/photos/'+s+'.jpg?'+Date.now()+'">'+s+'</div>').join("")||'<span style="color:var(--ink-3);font-size:.8rem">none yet</span>' }catch(e){ $("#offline").style.display="" } }
+$("#have").onclick=e=>{ const d=e.target.closest("[data-s]"); if(!d) return; const o=[...$("#who").options].find(o=>slug(o.value)===d.dataset.s); if(o){ $("#who").value=o.value; who=o.value; ["#p1","#p2","#p3"].forEach(s=>$(s).innerHTML='<img src="/photos/'+d.dataset.s+'.jpg?'+Date.now()+'">') } };
+$("#save").onclick=async()=>{ if(!img||!who) return; const r=await post("/save",{name:who,data:out()}); say(r.ok?"Saved "+r.file+" ("+Math.round(r.bytes/1024)+" KB). Not on the site until you publish.":"Could not save: "+(r.error||""),r.ok?"ok":"bad"); have() };
+$("#remove").onclick=async()=>{ if(!who) return; if(!confirm("Remove "+who+"'s photo?")) return; await post("/remove",{name:who}); say("Removed "+who+"'s photo. Publish to take it off the site.","ok"); have() };
+$("#publish").onclick=async()=>{ $("#publish").disabled=true; say("Publishing…"); try{ const r=await post("/publish",{msg:new Date().toISOString().slice(0,10)}); say((r.ok?"Live in about a minute.\n":"Something went wrong.\n")+r.log,r.ok?"ok":"bad") }catch(e){ say("Server not running.","bad") } $("#publish").disabled=false };
+(async()=>{
+  if(location.hostname!=="localhost"&&location.hostname!=="127.0.0.1"){ $("#offline").style.display=""; }
+  try{ const R=await fetch("/build/roster.json").then(r=>r.json()); const names=R.roster.map(p=>p.n).sort((a,b)=>a.localeCompare(b));
+    $("#who").innerHTML='<option value="">Pick a player…</option>'+names.map(n=>'<option>'+n.replace(/</g,"&lt;")+'</option>').join("");
+    $("#who").onchange=function(){ who=this.value; ["#p1","#p2","#p3"].forEach(s=>$(s).textContent=who.charAt(0)); preview() };
+  }catch(e){ $("#offline").style.display="" }
+  have(); draw();
+})();
+</script></body></html>
