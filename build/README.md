@@ -12,6 +12,32 @@ Inputs: `history.json` (every game by club night), `seeds.json` (starting rating
 `arc_timeline.py` from `archive_raw.json`). The build also lists `../photos/`
 so the page only requests a portrait that exists.
 
+## The phone pairing tool
+
+    python buildpairings.py     # writes ../kava-pairings.html
+
+The tool runs the night: check people in, pair each round, enter results, then
+either copy the results for Discord or publish the whole site from the phone. It
+carries the same page template as `buildsite.py`, so the ladder it publishes is
+the identical page, plus the roster, seeds and history it needs to pair and to
+replay ratings offline. People in `hidden.json` are left out of both.
+
+It was built by hand until now, which is how its roster drifted a rename and a
+removal behind the site, and how it ended up with no `<meta charset>`: every em
+dash, middot and half point in the Discord post came out as mojibake. Rebuild it
+whenever the roster changes.
+
+A night in progress is saved to `localStorage` **with its own copy of the
+roster**, so that the list cannot shift under you mid-pairing. The effect is
+that a saved night keeps showing the roster as it was until that night is
+cleared. That is the right trade, but it is why a rebuild can look like it did
+nothing.
+
+The PIN gate is a speed bump, not a lock: it is client-side, and the file is
+served from the same public site as the ladder. Nothing can be published from it
+without the GitHub token, which Harold types in and which lives only in his
+phone's storage.
+
 ## Where the games come from
 
 Three importers, all writing `history.json`:
