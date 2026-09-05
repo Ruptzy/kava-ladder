@@ -93,15 +93,12 @@ box-shadow:0 0 46px -8px rgba(254,39,58,.75),0 0 0 1px rgba(255,246,232,.14)}
 .wm>b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
 font-size:clamp(1.15rem,4.2vw,2.5rem);letter-spacing:-.015em;line-height:.94;text-transform:uppercase}
 .wm>b span{color:var(--scarlet)}
-.wm small{display:inline-flex;align-items:baseline;gap:.45rem;margin-top:.65rem;white-space:nowrap;
-font-family:var(--fd);font-variation-settings:"wdth" 104,"wght" 800;font-size:.92rem;letter-spacing:.1em;
-text-transform:uppercase;color:var(--cream);padding:.22rem .8rem .26rem .65rem;
-border:1px solid var(--rule-2);border-left:3px solid var(--scarlet);border-radius:2px;
-background:linear-gradient(90deg,rgba(254,39,58,.16),rgba(12,13,14,.6) 65%);
-text-shadow:0 1px 8px rgba(0,0,0,.85)}
-.wm small b{display:inline;font-family:var(--fd);font-variation-settings:"wdth" 104,"wght" 900;
-color:var(--scarlet);letter-spacing:.04em}
-.wm small i{font-style:normal;color:var(--ink-3);font-variation-settings:"wght" 600;font-size:.8em}
+.wm small{display:flex;align-items:center;gap:.6rem;margin-top:.55rem;white-space:nowrap;
+font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.84rem;letter-spacing:.22em;
+text-transform:uppercase;color:var(--ink-2);text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.wm small b{display:inline;font:inherit;font-variation-settings:"wdth" 108,"wght" 800;color:var(--cream);letter-spacing:.14em}
+.wm small::after{content:"";flex:1;height:1px;max-width:180px;
+background:linear-gradient(90deg,var(--scarlet-dim),transparent)}
 .season{flex:none;text-align:right;border-left:2px solid var(--rule-2);padding-left:1rem}
 .season b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;
 font-size:1.15rem;line-height:1;color:var(--cream)}
@@ -512,7 +509,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 @media(max-width:640px){
   .tb{gap:.7rem;padding:.9rem 0 .7rem}
   .tb img{width:66px;height:66px}
-  .wm small{font-size:.76rem;letter-spacing:.08em;margin-top:.45rem;padding:.18rem .6rem .2rem .5rem;gap:.35rem}
+  .wm small{font-size:.7rem;letter-spacing:.16em;margin-top:.4rem;gap:.45rem}
+  .wm small::after{max-width:70px}
   .season{border-left:none;border-top:1px solid var(--rule);padding:.5rem 0 0;text-align:left;flex:1 1 100%}
   .season b{display:inline;font-size:1rem}
   .season small{display:inline;margin-left:.4rem}
@@ -570,7 +568,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <div class="top"><div class="w">
 <div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="112" height="112">
-<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8</b><i>&amp;</i><b>9</b></small></div>
+<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8&ndash;9</b></small></div>
 <div class="season"><b>Season 10</b><small>up next</small></div></div>
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1288,7 +1286,7 @@ function achCtx(p){
     if(q&&q.log&&q.log.length&&q.log[0].ni===l.ni&&q.n!==p.n&&l.ni!==p.log[0].ni) debutFaced=true;
     if(top&&l.o===top.n&&l.s===1) topBeaten=true;
   });
-  const sweeps=p.nightly.filter(n=>n.l===0&&n.dr===0&&n.w>=3).length;
+  const sweeps=p.nightly.filter(n=>n.l===0&&n.dr===0&&n.w>=4).length;
   const perfect5=p.nightly.some(n=>n.l===0&&n.dr===0&&n.w>=5);
   const wins=p.rec[0], first=p.first, last=p.last;
   const span=(first&&last)?daysBetween(first,last):0;
@@ -1297,7 +1295,25 @@ function achCtx(p){
   const startDiv=p.log.length?divAt(p.n,DATES[p.log[0].ni]):p.d;
   const nowDiv=p.log.length?divAt(p.n,DATES[p.log[p.log.length-1].ni]):p.d;
   const tro=p.trophies;
-  return {nights:nights.length, bestRun:bestRun, backAfter:backAfter,
+  const months={}; nights.forEach(i=>{ months[DATES[i].slice(0,7)]=1 });
+  const calYears={}; nights.forEach(i=>{ calYears[DATES[i].slice(0,4)]=1 });
+  const fullNights=p.nightly.filter(n=>n.w+n.dr+n.l>=5).length;
+  const tough=p.log.filter(l=>l.orat-l.mrat>=200).length;
+  let topRival=0; Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2]; if(g>topRival) topRival=g });
+  const beatDivs={}; Object.keys(p.opp).forEach(o=>{ const q=byN[o]; if(q&&q.d&&p.opp[o][0]>0) beatDivs[q.d]=1 });
+  const nemesisBeaten=Object.keys(p.opp).some(o=>p.opp[o][0]>=1&&p.opp[o][2]>=4);
+  let debuts=0; const seenDebut={};
+  p.log.forEach(l=>{ const q=byN[l.o];
+    if(q&&q.log&&q.log.length&&q.log[0].ni===l.ni&&q.n!==p.n&&l.ni!==p.log[0].ni&&!seenDebut[q.n]){ seenDebut[q.n]=1; debuts++ } });
+  let bounced=false, lossRun=0;
+  p.log.forEach(l=>{ if(l.s===0) lossRun++; else { if(l.s===1&&lossRun>=3) bounced=true; lossRun=0 } });
+  const field=P.filter(x=>x.n!==p.n&&x.d===p.d&&!away(x)&&x.rd<=RS);
+  const fieldLeft=field.filter(x=>!p.opp[x.n]).length;
+  const share=nights.length?nights.length/Math.max(1,(LASTI-nights[0]+1)):0;
+  return {months:Object.keys(months).length, calYears:Object.keys(calYears).length, fullNights:fullNights,
+    tough:tough, topRival:topRival, beatDivs:Object.keys(beatDivs).length, nemesisBeaten:nemesisBeaten,
+    debuts:debuts, bounced:bounced, fieldSize:field.length, fieldLeft:fieldLeft, share:share,
+    nights:nights.length, bestRun:bestRun, backAfter:backAfter,
     maxNight:perNight.length?Math.max.apply(null,perNight):0,
     opps:opps.length, oppDivs:Object.keys(oppDivs).length, debutFaced:debutFaced, topBeaten:topBeaten,
     topName:top?top.n:"", sweeps:sweeps, perfect5:perfect5, wins:wins, span:span, years:years, climb:climb,
@@ -1306,67 +1322,86 @@ function achCtx(p){
 }
 function A(id,ic,name,how,test,prog){ return {id:id,ic:ic,name:name,how:how,test:test,prog:prog} }
 var ACH=[
- // turning up
- A("first-night","\u265F","Took a Seat","Play your first club night.",(p,c)=>p.games>0),
- A("regular-5","\u2615","Regular","Turn up to 5 club nights.",(p,c)=>c.nights>=5,(p,c)=>[c.nights,5]),
- A("regular-10","\uD83E\uDE91","Fixture","Turn up to 10 club nights.",(p,c)=>c.nights>=10,(p,c)=>[c.nights,10]),
- A("regular-20","\uD83C\uDFDB\uFE0F","Part of the Furniture","Turn up to 20 club nights.",(p,c)=>c.nights>=20,(p,c)=>[c.nights,20]),
- A("run-3","\uD83D\uDCC5","Three on the Bounce","Make three club nights in a row.",(p,c)=>c.bestRun>=3,(p,c)=>[c.bestRun,3]),
- A("run-6","\uD83D\uDDD3\uFE0F","Never Misses","Make six club nights in a row.",(p,c)=>c.bestRun>=6,(p,c)=>[c.bestRun,6]),
- A("returner","\uD83D\uDD01","Back in the Room","Come back after two months away.",(p,c)=>c.backAfter>=60),
- A("year-one","\uD83C\uDF82","One Year In","Still playing a year after your first game.",(p,c)=>c.span>=365,(p,c)=>[Math.min(c.span,365),365]),
- A("two-years","\uD83C\uDFF0","Old Guard","Two years between your first game and your last.",(p,c)=>c.span>=730,(p,c)=>[Math.min(c.span,730),730]),
- A("new-year","\uD83C\uDF87","Across the Years","Play in two different calendar years.",(p,c)=>c.years),
- // volume
- A("games-10","\u2694\uFE0F","Ten Games","Play 10 games.",(p,c)=>p.games>=10,(p,c)=>[p.games,10]),
- A("games-25","\uD83D\uDCAA","Twenty-Five","Play 25 games.",(p,c)=>p.games>=25,(p,c)=>[p.games,25]),
- A("games-50","\uD83D\uDD25","Half a Hundred","Play 50 games.",(p,c)=>p.games>=50,(p,c)=>[p.games,50]),
- A("games-100","\uD83D\uDCAF","Century","Play 100 games.",(p,c)=>p.games>=100,(p,c)=>[p.games,100]),
- A("games-200","\u26CF\uFE0F","Double Century","Play 200 games.",(p,c)=>p.games>=200,(p,c)=>[p.games,200]),
- A("night-4","\uD83C\uDFAF","Full Card","Play four games in one night.",(p,c)=>c.maxNight>=4,(p,c)=>[c.maxNight,4]),
- A("night-5","\uD83C\uDFC3","Iron Board","Play five games in one night.",(p,c)=>c.maxNight>=5,(p,c)=>[c.maxNight,5]),
- A("night-6","\uD83E\uDD75","Marathon","Play six games in one night.",(p,c)=>c.maxNight>=6,(p,c)=>[c.maxNight,6]),
- A("white-20","\u2654","Twenty as White","Play 20 games with White.",(p,c)=>c.white>=20,(p,c)=>[c.white,20]),
- A("black-20","\u265A","Twenty as Black","Play 20 games with Black.",(p,c)=>c.black>=20,(p,c)=>[c.black,20]),
- // the people you play
- A("opps-5","\uD83D\uDC65","Five Faces","Play five different people.",(p,c)=>c.opps>=5,(p,c)=>[c.opps,5]),
- A("opps-10","\uD83E\uDD1D","Ten Faces","Play ten different people.",(p,c)=>c.opps>=10,(p,c)=>[c.opps,10]),
- A("opps-20","\uD83C\uDF0D","Twenty Faces","Play twenty different people.",(p,c)=>c.opps>=20,(p,c)=>[c.opps,20]),
- A("opps-30","\uD83C\uDFAA","Knows Everyone","Play thirty different people.",(p,c)=>c.opps>=30,(p,c)=>[c.opps,30]),
- A("all-brackets","\uD83E\uDDED","Crossed the Divide","Play someone from every bracket.",(p,c)=>c.oppDivs>=D.divisions.length,(p,c)=>[c.oppDivs,D.divisions.length]),
- A("welcomer","\uD83C\uDF31","Welcoming","Play someone on their very first night.",(p,c)=>c.debutFaced),
- A("punch-up","\uD83E\uDD4A","Punching Up","Face an average opponent rated above you.",(p,c)=>!!p.avgOpp&&p.avgOpp>p.r),
- A("punch-up-100","\uD83C\uDFCB\uFE0F","No Easy Nights","Average opponent 100 or more above you.",(p,c)=>!!p.avgOpp&&p.avgOpp-p.r>=100),
- A("rivalry","\uD83D\uDD25","A Proper Rivalry","Play the same person ten times.",(p,c)=>Object.keys(p.opp).some(o=>{const a=p.opp[o];return a[0]+a[1]+a[2]>=10})),
- A("nemesis-beaten","\u26D3\uFE0F","Monkey Off Your Back","Beat someone who had beaten you three times.",(p,c)=>Object.keys(p.opp).some(o=>p.opp[o][0]>=1&&p.opp[o][2]>=3)),
- // results
- A("first-win","\uD83E\uDD47","First Win","Win a game.",(p,c)=>c.wins>=1),
- A("wins-10","\u2B50","Ten Wins","Win 10 games.",(p,c)=>c.wins>=10,(p,c)=>[c.wins,10]),
- A("wins-25","\uD83C\uDF1F","Twenty-Five Wins","Win 25 games.",(p,c)=>c.wins>=25,(p,c)=>[c.wins,25]),
- A("wins-50","\uD83D\uDCA5","Fifty Wins","Win 50 games.",(p,c)=>c.wins>=50,(p,c)=>[c.wins,50]),
- A("wins-100","\uD83D\uDC51","Hundred Wins","Win 100 games.",(p,c)=>c.wins>=100,(p,c)=>[c.wins,100]),
- A("streak-3","\uD83C\uDFB3","Hat-trick","Win three in a row.",(p,c)=>p.streak[0]>=3,(p,c)=>[p.streak[0],3]),
- A("streak-5","\uD83D\uDE80","Five Straight","Win five in a row.",(p,c)=>p.streak[0]>=5,(p,c)=>[p.streak[0],5]),
- A("streak-10","\u26A1","Ten Straight","Win ten in a row.",(p,c)=>p.streak[0]>=10,(p,c)=>[p.streak[0],10]),
- A("sweep","\uD83E\uDDF9","Clean Sweep","Win every game on a night, at least three.",(p,c)=>c.sweeps>=1,(p,c)=>[c.sweeps,1]),
- A("perfect-5","\uD83D\uDC8E","Perfect Night","Win all five games on a night.",(p,c)=>c.perfect5),
- A("upset-1","\uD83D\uDDE1\uFE0F","Giant Killer","Beat someone rated 150 or more above you.",(p,c)=>p.upsets>=1,(p,c)=>[p.upsets,1]),
- A("upset-5","\uD83D\uDCA3","Serial Upsetter","Five wins over players 150 or more above you.",(p,c)=>p.upsets>=5,(p,c)=>[p.upsets,5]),
- A("beat-top","\uD83D\uDC51","Regicide","Beat the player at the top of the ladder.",(p,c)=>c.topBeaten),
- A("draws-5","\uD83E\uDD1D","Peacemaker","Draw five games.",(p,c)=>p.rec[1]>=5,(p,c)=>[p.rec[1],5]),
- A("decisive","\u2694\uFE0F","No Middle Ground","Play 20 games without a single draw.",(p,c)=>p.games>=20&&p.rec[1]===0),
- // the board
- A("podium","\uD83C\uDFC5","On the Podium","Finish top three on a night in your bracket.",(p,c)=>c.podium>=1),
- A("gold","\uD83C\uDFC6","Night Winner","Win a club night in your bracket.",(p,c)=>c.gold>=1),
- A("gold-5","\uD83D\uDC51","Five-Time Winner","Win five club nights in your bracket.",(p,c)=>c.gold>=5,(p,c)=>[c.gold,5]),
- A("full-set","\uD83E\uDD47","The Full Set","Take a first, a second and a third.",(p,c)=>c.fullSet),
- A("promoted","\uD83D\uDCC8","Moved Up","Climb into a higher bracket.",(p,c)=>c.promoted),
- // the number
- A("settled","\uD83E\uDDCA","Settled In","Play enough for a ranked rating.",(p,c)=>p.rd<=RS),
- A("climb-100","\uD83C\uDFD4\uFE0F","Climbing","Rise 100 points from your lowest.",(p,c)=>c.climb>=100,(p,c)=>[c.climb,100]),
- A("climb-250","\uD83D\uDE80","Long Climb","Rise 250 points from your lowest.",(p,c)=>c.climb>=250,(p,c)=>[c.climb,250]),
- A("at-peak","\uD83C\uDF1E","Career Best","Sit at your highest rating yet.",(p,c)=>!!(p.peak&&Math.abs(p.r-p.peak[0])<=2)),
- A("improve-100","\uD83D\uDCC8","On the Up","Gain 100 points over three months.",(p,c)=>p.imp!=null&&p.imp>=100,(p,c)=>[Math.max(0,p.imp||0),100])
+ // showing up, which is the whole point of a club
+ A("nights-5","☕","Regular","Turn up to 5 club nights.",(p,c)=>c.nights>=5,(p,c)=>[c.nights,5]),
+ A("nights-10","🪑","Fixture","Turn up to 10 club nights.",(p,c)=>c.nights>=10,(p,c)=>[c.nights,10]),
+ A("nights-15","🏛️","Ever-Present","Turn up to 15 club nights.",(p,c)=>c.nights>=15,(p,c)=>[c.nights,15]),
+ A("nights-20","🗿","Part of the Furniture","Turn up to 20 club nights.",(p,c)=>c.nights>=20,(p,c)=>[c.nights,20]),
+ A("run-3","📅","Three on the Bounce","Make three club nights in a row.",(p,c)=>c.bestRun>=3,(p,c)=>[c.bestRun,3]),
+ A("run-5","🗓️","Five on the Bounce","Make five club nights in a row.",(p,c)=>c.bestRun>=5,(p,c)=>[c.bestRun,5]),
+ A("run-8","⏰","Never Misses","Make eight club nights in a row.",(p,c)=>c.bestRun>=8,(p,c)=>[c.bestRun,8]),
+ A("reliable","🧭","Reliable","Make three quarters of the nights since you started, over at least 8.",(p,c)=>c.nights>=8&&c.share>=0.75,(p,c)=>[Math.round(c.share*100),75]),
+ A("returner","🔁","Back in the Room","Come back after two months away.",(p,c)=>c.backAfter>=60),
+ A("long-return","👤","Long Time No See","Come back after six months away.",(p,c)=>c.backAfter>=180),
+ // sticking around
+ A("months-6","🌙","Six Months a Member","Play in six different months.",(p,c)=>c.months>=6,(p,c)=>[c.months,6]),
+ A("months-12","🌀","A Year of Nights","Play in twelve different months.",(p,c)=>c.months>=12,(p,c)=>[c.months,12]),
+ A("across-years","🎇","Across the Years","Play in two different calendar years.",(p,c)=>c.calYears>=2,(p,c)=>[c.calYears,2]),
+ A("year-one","🎂","One Year In","A year between your first game and your last.",(p,c)=>c.span>=365,(p,c)=>[Math.min(c.span,365),365]),
+ A("two-years","🏰","Old Guard","Two years between your first game and your last.",(p,c)=>c.span>=730,(p,c)=>[Math.min(c.span,730),730]),
+ // games on the board
+ A("games-25","💪","Twenty-Five","Play 25 games.",(p,c)=>p.games>=25,(p,c)=>[p.games,25]),
+ A("games-50","🔥","Half a Hundred","Play 50 games.",(p,c)=>p.games>=50,(p,c)=>[p.games,50]),
+ A("games-75","⚔️","Seventy-Five","Play 75 games.",(p,c)=>p.games>=75,(p,c)=>[p.games,75]),
+ A("games-100","💯","Century","Play 100 games.",(p,c)=>p.games>=100,(p,c)=>[p.games,100]),
+ A("games-150","⛏️","The Grind","Play 150 games.",(p,c)=>p.games>=150,(p,c)=>[p.games,150]),
+ A("games-200","🗿","Double Century","Play 200 games.",(p,c)=>p.games>=200,(p,c)=>[p.games,200]),
+ A("night-5","🏃","Full Card","Play five games in a single night.",(p,c)=>c.maxNight>=5,(p,c)=>[c.maxNight,5]),
+ A("night-6","🥵","Marathon","Play six games in a single night.",(p,c)=>c.maxNight>=6,(p,c)=>[c.maxNight,6]),
+ A("full-card-5","📈","Five Full Nights","Play a five-game night, five times over.",(p,c)=>c.fullNights>=5,(p,c)=>[c.fullNights,5]),
+ A("full-card-10","🎯","Ten Full Nights","Play a five-game night, ten times over.",(p,c)=>c.fullNights>=10,(p,c)=>[c.fullNights,10]),
+ // both sides of the board
+ A("white-25","♔","Twenty-Five as White","Play 25 games with White.",(p,c)=>c.white>=25,(p,c)=>[c.white,25]),
+ A("white-50","♕","Fifty as White","Play 50 games with White.",(p,c)=>c.white>=50,(p,c)=>[c.white,50]),
+ A("black-25","♚","Twenty-Five as Black","Play 25 games with Black.",(p,c)=>c.black>=25,(p,c)=>[c.black,25]),
+ A("black-50","♛","Fifty as Black","Play 50 games with Black.",(p,c)=>c.black>=50,(p,c)=>[c.black,50]),
+ // who you sit down with
+ A("opps-10","🤝","Ten Faces","Play ten different people.",(p,c)=>c.opps>=10,(p,c)=>[c.opps,10]),
+ A("opps-20","🌍","Twenty Faces","Play twenty different people.",(p,c)=>c.opps>=20,(p,c)=>[c.opps,20]),
+ A("opps-30","🎪","Thirty Faces","Play thirty different people.",(p,c)=>c.opps>=30,(p,c)=>[c.opps,30]),
+ A("opps-40","🌐","Knows Everyone","Play forty different people.",(p,c)=>c.opps>=40,(p,c)=>[c.opps,40]),
+ A("all-brackets","🧳","Crossed the Divide","Play someone from every bracket.",(p,c)=>c.oppDivs>=D.divisions.length,(p,c)=>[c.oppDivs,D.divisions.length]),
+ A("beat-brackets","🏳️","Beaten All Comers","Beat someone from every bracket.",(p,c)=>c.beatDivs>=D.divisions.length,(p,c)=>[c.beatDivs,D.divisions.length]),
+ A("own-bracket","📋","Faced the Field","Play every ranked player in your own bracket.",(p,c)=>c.fieldLeft===0&&c.fieldSize>2,(p,c)=>[c.fieldSize-c.fieldLeft,c.fieldSize]),
+ A("welcomer-3","🌱","Welcoming","Sit down with three people on their first night.",(p,c)=>c.debuts>=3,(p,c)=>[c.debuts,3]),
+ A("rivalry-10","🔁","A Proper Rivalry","Play the same person ten times.",(p,c)=>c.topRival>=10,(p,c)=>[c.topRival,10]),
+ A("rivalry-20","♾️","The Long Feud","Play the same person twenty times.",(p,c)=>c.topRival>=20,(p,c)=>[c.topRival,20]),
+ // taking on the hard games
+ A("punch-up-50","🥊","Punching Up","Average opponent 50 above you, over 20 games.",(p,c)=>p.games>=20&&!!p.avgOpp&&p.avgOpp-p.r>=50),
+ A("punch-up-150","🏋️","No Easy Nights","Average opponent 150 above you, over 25 games.",(p,c)=>p.games>=25&&!!p.avgOpp&&p.avgOpp-p.r>=150),
+ A("tough-10","⛰️","Uphill Battles","Play 10 games against people 200 or more above you.",(p,c)=>c.tough>=10,(p,c)=>[c.tough,10]),
+ A("tough-25","🗻","Fearless","Play 25 games against people 200 or more above you.",(p,c)=>c.tough>=25,(p,c)=>[c.tough,25]),
+ A("tough-50","🤖","Glutton for Punishment","Play 50 games against people 200 or more above you.",(p,c)=>c.tough>=50,(p,c)=>[c.tough,50]),
+ // results, still earned the hard way
+ A("wins-25","⭐","Twenty-Five Wins","Win 25 games.",(p,c)=>c.wins>=25,(p,c)=>[c.wins,25]),
+ A("wins-50","💥","Fifty Wins","Win 50 games.",(p,c)=>c.wins>=50,(p,c)=>[c.wins,50]),
+ A("wins-100","👑","Hundred Wins","Win 100 games.",(p,c)=>c.wins>=100,(p,c)=>[c.wins,100]),
+ A("streak-5","🚀","Five Straight","Win five games in a row.",(p,c)=>p.streak[0]>=5,(p,c)=>[p.streak[0],5]),
+ A("streak-10","⚡","Ten Straight","Win ten games in a row.",(p,c)=>p.streak[0]>=10,(p,c)=>[p.streak[0],10]),
+ A("sweep","🧹","Clean Sweep","Win every game on a night, at least four of them.",(p,c)=>c.sweeps>=1,(p,c)=>[c.sweeps,1]),
+ A("sweep-3","🌀","Three Clean Sweeps","Sweep a night three times over.",(p,c)=>c.sweeps>=3,(p,c)=>[c.sweeps,3]),
+ A("perfect-5","💎","Perfect Night","Win all five games on a night.",(p,c)=>c.perfect5),
+ A("upset-3","🗡️","Giant Killer","Three wins over players 150 or more above you.",(p,c)=>p.upsets>=3,(p,c)=>[p.upsets,3]),
+ A("upset-10","💣","Serial Upsetter","Ten wins over players 150 or more above you.",(p,c)=>p.upsets>=10,(p,c)=>[p.upsets,10]),
+ A("beat-top","👑","Regicide","Beat the player at the top of the ladder.",(p,c)=>c.topBeaten),
+ A("comeback","🧱","Bounced Back","Win straight after losing three in a row.",(p,c)=>c.bounced),
+ A("nemesis-beaten","⛓️","Monkey Off Your Back","Beat someone who had already beaten you four times.",(p,c)=>c.nemesisBeaten),
+ A("draws-10","🤝","Peacemaker","Draw ten games.",(p,c)=>p.rec[1]>=10,(p,c)=>[p.rec[1],10]),
+ A("decisive-40","⚔️","No Middle Ground","Play 40 games without a single draw.",(p,c)=>p.games>=40&&p.rec[1]===0,(p,c)=>[Math.min(p.games,40),40]),
+ // the night itself
+ A("podium-3","🏅","On the Podium","Finish top three on a night, three times.",(p,c)=>c.podium>=3,(p,c)=>[c.podium,3]),
+ A("podium-10","🎖️","Podium Regular","Finish top three on a night, ten times.",(p,c)=>c.podium>=10,(p,c)=>[c.podium,10]),
+ A("gold-3","🏆","Night Winner","Win three club nights in your bracket.",(p,c)=>c.gold>=3,(p,c)=>[c.gold,3]),
+ A("gold-10","👑","Ten-Time Winner","Win ten club nights in your bracket.",(p,c)=>c.gold>=10,(p,c)=>[c.gold,10]),
+ A("full-set","🥇","The Full Set","Take a first, a second and a third.",(p,c)=>c.fullSet),
+ A("two-bracket-podium","🪜","Up and Still Winning","Finish top three in two different brackets.",(p,c)=>Object.keys(p.byDiv).length>=2),
+ A("promoted","📈","Moved Up","Climb into a higher bracket.",(p,c)=>c.promoted),
+ // the number beside your name
+ A("settled","🧊","Settled In","Play enough games for a ranked rating.",(p,c)=>p.rd<=RS),
+ A("climb-150","🏔️","Climbing","Rise 150 points from your lowest, over 25 games.",(p,c)=>p.games>=25&&c.climb>=150,(p,c)=>[c.climb,150]),
+ A("climb-300","🚀","Long Climb","Rise 300 points from your lowest, over 25 games.",(p,c)=>p.games>=25&&c.climb>=300,(p,c)=>[c.climb,300]),
+ A("at-peak","🌞","Career Best","Sit at your highest rating yet, after 25 games.",(p,c)=>p.games>=25&&!!(p.peak&&Math.abs(p.r-p.peak[0])<=2)),
+ A("improve-150","📈","On the Up","Gain 150 points over three months.",(p,c)=>p.imp!=null&&p.imp>=150,(p,c)=>[Math.max(0,p.imp||0),150])
 ];
 var ACHART=(D.achart&&D.achart.length)?D.achart:[];
 function achFor(p){
