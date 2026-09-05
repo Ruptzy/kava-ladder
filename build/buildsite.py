@@ -4,7 +4,15 @@ The page carries only the raw games and the nightly ratings; every stat, chart,
 title and fact is worked out in the browser from those (see ladderbuild.js).
 That keeps this build and the phone build identical.
 """
-import json, math, datetime, statistics, sys
+import json, math, datetime, statistics, sys, os, re
+HERE=os.path.dirname(os.path.abspath(__file__))
+ROOT=os.path.dirname(HERE) if os.path.isdir(os.path.join(os.path.dirname(HERE),'photos')) else HERE
+def here(n): return os.path.join(HERE,n)
+def slugify(n): return re.sub(r'^-+|-+$','',re.sub(r'[^a-z0-9]+','-',n.lower()))
+def photo_slugs():
+    d=os.path.join(ROOT,'photos')
+    if not os.path.isdir(d): return []
+    return sorted(f[:-4] for f in os.listdir(d) if f.endswith('.jpg'))
 TAU=0.5; SC=173.7178; RDMIN=30.0; RDMAX=350.0; FLOOR=100.0
 SITE="https://ruptzy.github.io/kava-ladder/"
 
@@ -102,17 +110,20 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built):
             "dates":dates,"names":names,"games":games,"byes":byes,"players":players,"archive":archive}
 
 if __name__=="__main__":
-    HISTORY=json.load(open('history.json')); SEEDS=json.load(open('seeds.json'))
-    ARCHIVE=json.load(open('archive.json')); roster=json.load(open('roster.json'))
+    HISTORY=json.load(open(here('history.json'))); SEEDS=json.load(open(here('seeds.json')))
+    ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
     built=datetime.date.today().isoformat()
     P=run(HISTORY,SEEDS)
     D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
-    src=open('ladderbuild.js',encoding='utf-8').read()
+    D["pics"]=photo_slugs()
+    src=open(here('ladderbuild.js'),encoding='utf-8').read()
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
     html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
              .replace('${SITE}',SITE).replace('${DESC}',DESC).replace('<\\/script>','</script>'))
-    open('index.html','w',encoding='utf-8').write(html)
-    print('players',len(D["players"]),'| games',len(D["games"]),'| nights',len(D["dates"]),'| next',D["next"])
+    out=os.path.join(ROOT,'index.html')
+    open(out,'w',encoding='utf-8').write(html)
+    print('players',len(D["players"]),'| games',len(D["games"]),'| nights',len(D["dates"]),
+          '| photos',len(D["pics"]),'| ->',out)
     print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
     print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in D["players"][:5]))

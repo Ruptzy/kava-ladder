@@ -3,10 +3,14 @@
 `index.html` at the repo root is generated. Rebuild it from here:
 
     cd build
-    python buildsite.py      # writes ../build/index.html -> copy to the repo root
+    python buildsite.py      # writes ../index.html directly
 
 Inputs: `history.json` (every game by club night), `seeds.json` (starting ratings),
-`roster.json` (bracket tags), `archive.json` (seasons 1-7). The page template is the
+`roster.json` (bracket tags, plus `"away": true` to retire someone by hand and
+`"active": true` to keep them on the board past the 90-day rule), and
+`archive.json` (seasons 1-7, including a per-night timeline built by
+`arc_timeline.py` from `archive_raw.json`). The build also lists `../photos/`
+so the page only requests a portrait that exists. The page template is the
 `ladderTemplate()` function in `ladderbuild.js`; the same file is spliced into the
 phone pairing tool so both builds produce the identical site.
 

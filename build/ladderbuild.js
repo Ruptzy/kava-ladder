@@ -34,7 +34,7 @@ function ladderData(P,HISTORY,R,divisions,ARCHIVE,seeds,built){
     const d=new Date(lastDate+"T12:00"); d.setDate(d.getDate()+med); next=d.toISOString().slice(0,10);
     let guard=0; while(built&&next<built&&guard++<12){ d.setDate(d.getDate()+med); next=d.toISOString().slice(0,10) }
   }
-  return {club:"KAVA Social Chess Club", built:built||lastDate, date:lastDate, next, divisions, dates, names, games, byes, players, archive:ARCHIVE||null};
+  return {club:"KAVA Social Chess Club", pics:[], built:built||lastDate, date:lastDate, next, divisions, dates, names, games, byes, players, archive:ARCHIVE||null};
 }
 
 function buildLadder(){
@@ -499,6 +499,10 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 </main>
 <main id="hv" class="hid">
 <button class="back" id="hbk">&larr; Back to the ladder</button>
+<div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
+<p class="l">Every game the club has a record of, from the first night in September 2022 to the latest.</p>
+<dl class="kpis" id="clubKpis"></dl>
+<div class="gwrap" id="clubCharts"></div>
 <div class="sh"><h2>KAVA Social <span>History</span></h2><p id="arcMeta"></p></div>
 <p class="l">Seasons 1&ndash;7, the club before this ladder. Old-system ratings, not comparable with today&rsquo;s numbers &mdash; this is the record of what happened. Players still with us link through to their page.</p>
 <div class="box"><div class="sc"><table><thead><tr>
@@ -548,7 +552,10 @@ const res=l=>l.s===1?"W":l.s===.5?"D":"L";
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
 const awayWhy=p=>p.aw?"taking a break":"no games in "+p.idle+" days";
 const slug=n=>n.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"");
-const av=(n,size)=>'<span class="av '+size+'" aria-hidden="true"><span>'+E(n.charAt(0).toUpperCase())+'</span><img src="photos/'+slug(n)+'.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add(&quot;has&quot;)"></span>';
+const PICS=(D.pics&&D.pics.length)?new Set(D.pics):null;
+const hasPic=n=>PICS?PICS.has(slug(n)):true;
+const av=(n,size)=>'<span class="av '+size+(hasPic(n)?'':' noimg')+'" aria-hidden="true"><span>'+E(n.charAt(0).toUpperCase())+'</span>'+
+  (hasPic(n)?'<img src="photos/'+slug(n)+'.jpg" alt="" loading="lazy" onload="this.parentNode.classList.add(&quot;has&quot;)">':'')+'</span>';
 let NIGHT=[];
 
 /* ---------- everything derived from the games ---------- */
@@ -881,6 +888,96 @@ function drawArchive(){
      '<td style="white-space:nowrap">'+(now?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--gain)"><span class="hm">still playing — </span>'+E(now)+'</span>'
              :p.st==="dormant"?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--loss)">away</span>'
                 :'<span style="font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">—</span>')+'</td></tr>'}).join("");
+}
+function nightsAll(){
+  // one row per club night, oldest first: [date, games, players, white, drawn, black, era]
+  const out=(ARC&&ARC.tl?ARC.tl:[]).map(x=>x.concat([0]));
+  DATES.forEach((d,i)=>{
+    let g=0,w=0,dr=0,b=0; const pl={};
+    D.games.forEach(x=>{ if(x[0]!==i) return; g++; pl[x[1]]=1; pl[x[2]]=1;
+      if(x[3]==="w") w++; else if(x[3]==="b") b++; else dr++ });
+    out.push([d,g,Object.keys(pl).length,w,dr,b,1]);
+  });
+  return out;
+}
+function clubStats(){
+  const rows=nightsAll();
+  const s={nights:rows.length, games:0, w:0, d:0, b:0, best:null, busiest:null};
+  rows.forEach(r=>{ s.games+=r[1]; s.w+=r[3]; s.d+=r[4]; s.b+=r[5];
+    if(!s.busiest||r[1]>s.busiest[1]) s.busiest=r;
+    if(!s.best||r[2]>s.best[2]) s.best=r; });
+  s.rows=rows;
+  s.old=rows.filter(r=>!r[6]); s.now=rows.filter(r=>r[6]);
+  return s;
+}
+function timelineChart(s){
+  const rows=s.rows, W=880,H=210,L=40,R=14,T=16,B=34;
+  const mx=Math.max.apply(null,rows.map(r=>r[1]))||1, bw=(W-L-R)/rows.length;
+  const Y=v=>T+(H-T-B)*(1-v/mx);
+  const bars=rows.map((r,i)=>{
+    const h=Math.max(1.5,(H-T-B)*r[1]/mx), x=L+i*bw;
+    return '<rect x="'+(x+bw*0.12)+'" y="'+(H-B-h)+'" width="'+(bw*0.76)+'" height="'+h+'" rx="1" '+
+      'fill="'+(r[6]?"#FE273A":"#5B6067")+'"><title>'+fshort(r[0])+" \u00b7 "+r[1]+' games, '+r[2]+' players</title></rect>';
+  }).join("");
+  const ticks=[0,Math.round(mx/2),mx].map(v=>'<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+
+    '" stroke="#24282C"/><text x="'+(L-7)+'" y="'+(Y(v)+3.5)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8A8276">'+v+'</text>').join("");
+  const marks=[0,Math.floor(rows.length/3),Math.floor(2*rows.length/3),rows.length-1]
+    .filter((v,i,a)=>a.indexOf(v)===i)
+    .map(i=>'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fshort(rows[i][0])+'</text>').join("");
+  return svgWrap(ticks+bars+marks,W,H,"Games played on each club night since 2022")+
+    '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">'+
+    '<span><i style="display:inline-block;width:12px;height:9px;background:#5B6067;margin-right:.3rem"></i>Seasons 1&ndash;7</span>'+
+    '<span><i style="display:inline-block;width:12px;height:9px;background:#FE273A;margin-right:.3rem"></i>Seasons 8 &amp; 9</span></div>'+
+    '<p class="cap">Games played on each of the '+rows.length+' club nights on record. Busiest was '+
+    fdate(s.busiest[0])+' with '+s.busiest[1]+' games.</p>';
+}
+function turnoutChart(s){
+  const rows=s.rows, W=880,H=170,L=40,R=14,T=14,B=32;
+  const mx=Math.max.apply(null,rows.map(r=>r[2]))||1;
+  const X=i=>L+i*(W-L-R)/(rows.length-1), Y=v=>T+(H-T-B)*(1-v/mx);
+  const path=rows.map((r,i)=>(i?"L":"M")+X(i)+","+Y(r[2])).join(" ");
+  const split=s.old.length?X(s.old.length-0.5):null;
+  return svgWrap(
+    [0,Math.round(mx/2),mx].map(v=>'<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="#24282C"/>'+
+      '<text x="'+(L-7)+'" y="'+(Y(v)+3.5)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8A8276">'+v+'</text>').join("")+
+    (split!=null?'<line x1="'+split+'" y1="'+T+'" x2="'+split+'" y2="'+(H-B)+'" stroke="#343A40" stroke-dasharray="4 4"/>':'')+
+    '<path d="'+path+'" fill="none" stroke="#3BC79A" stroke-width="2.2" stroke-linejoin="round"/>'+
+    rows.map((r,i)=>'<circle cx="'+X(i)+'" cy="'+Y(r[2])+'" r="2.4" fill="#3BC79A"><title>'+fshort(r[0])+" \u00b7 "+r[2]+' players</title></circle>').join(""),
+    W,H,"Players at each club night")+
+    '<p class="cap">How many people played each night. The dashed line is where the new ladder starts.</p>';
+}
+function colourChart2(s){
+  function bar(label,w,d,b){
+    const g=w+d+b||1;
+    return '<div style="margin-bottom:.85rem"><div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.62rem;color:var(--ink-3);margin-bottom:.3rem">'+
+      '<span>'+label+'</span><span>'+g+' games</span></div>'+
+      '<div class="bar"><i class="bw" style="width:'+(w/g*100)+'%"></i><i class="bd" style="width:'+(d/g*100)+'%"></i><i class="bl" style="width:'+(b/g*100)+'%"></i></div>'+
+      '<div style="font-family:var(--fm);font-size:.66rem;color:var(--ink-2);margin-top:.25rem">'+
+      Math.round(w/g*100)+'% White &middot; '+Math.round(d/g*100)+'% drawn &middot; '+Math.round(b/g*100)+'% Black</div></div>';
+  }
+  const o=s.old.reduce((a,r)=>[a[0]+r[3],a[1]+r[4],a[2]+r[5]],[0,0,0]);
+  const n=s.now.reduce((a,r)=>[a[0]+r[3],a[1]+r[4],a[2]+r[5]],[0,0,0]);
+  return (s.old.length?bar("Seasons 1&ndash;7",o[0],o[1],o[2]):'')+
+    (s.now.length?bar("Seasons 8 &amp; 9",n[0],n[1],n[2]):'')+
+    bar("All time",s.w,s.d,s.b)+
+    '<p class="cap">Who wins with which colour, across every recorded game.</p>';
+}
+function drawClub(){
+  if(!document.getElementById("clubKpis")) return;
+  const s=clubStats();
+  const yrs=Math.max(1,Math.round((new Date(D.date)-new Date(s.rows[0][0]))/31557600000*10)/10);
+  const everOld=(ARC&&ARC.everPlayed)||0, everNow=P.length;
+  $("#allMeta").textContent=fdate(s.rows[0][0])+" \u2013 "+fdate(D.date);
+  $("#clubKpis").innerHTML=
+    '<div><dt>Games</dt><dd>'+s.games.toLocaleString()+'<small>on record</small></dd></div>'+
+    '<div><dt>Club nights</dt><dd>'+s.nights+'<small>since 2022</small></dd></div>'+
+    '<div><dt>Players</dt><dd>'+everOld+'+<small>have played a game</small></dd></div>'+
+    '<div><dt>Running</dt><dd>'+yrs+'<small>years</small></dd></div>'+
+    '<div class="hm"><dt>Busiest night</dt><dd>'+s.busiest[1]+'<small>games on '+fshort(s.busiest[0])+'</small></dd></div>';
+  $("#clubCharts").innerHTML=
+    card("Games on every club night", timelineChart(s), "gwide")+
+    card("Turnout", turnoutChart(s), "gwide")+
+    card("White and Black, all time", colourChart2(s), "gwide");
 }
 function drawAllTime(){
   if(!ARC||!ARC.link) return;
@@ -1220,6 +1317,6 @@ document.addEventListener("click",e=>{ if(!e.target.closest(".sortbar")) closeSo
 $("#awayBtn").onclick=()=>{ showAway=!showAway; draw() };
 $("#pod").onclick=e=>{ const t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) };
 window.matchMedia("(max-width:640px)").addEventListener("change",()=>{ if(xtShown) cross() });
-drawArchive(); drawAllTime(); route();
+drawArchive(); drawAllTime(); drawClub(); route();
 <\/script></body></html>`;
 }
