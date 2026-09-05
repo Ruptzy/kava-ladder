@@ -159,6 +159,7 @@ td.k::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;backgr
 tr.one td.k{color:var(--scarlet)}tr.one td.k::before{background:var(--scarlet)}
 tr.one td{background:linear-gradient(90deg,var(--scarlet-wash),transparent 55%)}
 .nmc{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:14rem;display:inline-block;vertical-align:middle}
+.sml{display:none;font-family:var(--fm);font-size:.58rem;letter-spacing:.06em}
 tr[data-n]:hover .nmc{color:var(--scarlet)}
 td .chev{display:none;color:var(--ink-3);margin-left:.3rem}
 .rat{font-family:var(--fm);font-size:1.05rem;font-weight:700}
@@ -454,13 +455,16 @@ text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
 footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);font-family:var(--fm);font-size:.6rem;color:var(--ink-3);line-height:1.9}
 /* phones */
 @media(max-width:640px){
-  .tb{gap:.7rem;padding:.9rem 0 .7rem}
-  .tb img{width:66px;height:66px}
-  .wm small{font-size:.7rem;letter-spacing:.16em;margin-top:.4rem;gap:.45rem}
-  .wm small::after{max-width:70px}
-  .season{border-left:none;border-top:1px solid var(--rule);padding:.5rem 0 0;text-align:left;flex:1 1 100%}
-  .season b{display:inline;font-size:1rem}
-  .season small{display:inline;margin-left:.4rem}
+  .tb{gap:.7rem;padding:.9rem 0 .7rem;flex-wrap:wrap}
+  .tb img{width:56px;height:56px}
+  .wm{flex:1 1 0;min-width:0}
+  .wm>b{font-size:1.2rem;font-variation-settings:"wdth" 98,"wght" 900;letter-spacing:-.005em}
+  .wm small{font-size:.62rem;letter-spacing:.16em;margin-top:.35rem;gap:.45rem}
+  .wm small::after{max-width:60px}
+  .season{order:3;flex:1 1 100%;border-left:none;border-top:1px solid var(--rule);
+  padding:.45rem 0 0;text-align:left;display:flex;align-items:baseline;gap:.5rem}
+  .season b{font-size:.95rem}
+  .season small{margin:0}
   .tools{gap:.5rem;padding-bottom:.7rem}
   .upd{margin-left:0;text-align:left;flex:1 1 100%;order:5;line-height:1.5}
   .srch{flex:1 1 100%;max-width:none;order:4}
@@ -489,11 +493,18 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .sortmenu{width:calc(100vw - 1.6rem);right:auto;left:.8rem}
   .hm{display:none!important}
   td .chev{display:inline}
+  .sml{display:block;margin-top:.15rem}
+  #alltime .nmc{max-width:8rem}
   .nmc{max-width:9.5rem}
   td,th{padding:.5rem .45rem}
   td.k{padding-left:.7rem}
-  .lg{display:flex;overflow-x:auto;scrollbar-width:none;gap:1px}.lg::-webkit-scrollbar{display:none}
-  .lg>div{flex:0 0 46%;min-width:150px}
+  .ln{position:relative}
+  .ln::after{content:"";position:absolute;right:0;top:2.9rem;bottom:0;width:34px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(12,13,14,.9))}
+  .ln.open::after{display:none}
+  .lg{display:flex;overflow-x:auto;scrollbar-width:none;gap:1px;scroll-snap-type:x proximity}
+  .lg::-webkit-scrollbar{display:none}
+  .lg>div{flex:0 0 62%;min-width:158px;scroll-snap-align:start}
   .ln .lh{padding:.55rem .8rem}.ln .lh b{font-size:.95rem}
   .sh p{display:none}
   .ln.open .recap{grid-template-columns:1fr}
@@ -568,12 +579,12 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="sh"><h2>KAVA Social <span>History</span></h2><p id="arcMeta"></p></div>
 <p class="l">Seasons 1&ndash;7, the club before this ladder. Old-system ratings, not comparable with today&rsquo;s numbers &mdash; this is the record of what happened. Players still with us link through to their page.</p>
 <div class="box"><div class="sc"><table><thead><tr>
-<th style="padding-left:1rem">#</th><th>Player</th><th class="r">Old-system rating</th><th class="r hm">Games</th><th class="hm">W&ndash;D&ndash;L</th><th>Since then</th>
+<th style="padding-left:1rem">#</th><th>Player</th><th class="r">Old-system rating</th><th class="r hm">Games</th><th class="hm">W&ndash;D&ndash;L</th><th class="hm">Since then</th>
 </tr></thead><tbody id="arc"></tbody></table></div></div>
 <div class="sh"><h2>All <span>time</span></h2><p>Seasons 1&ndash;7 and 8&ndash;9 added together</p></div>
 <p class="l">Everyone who played in both eras, with their whole record at the club.</p>
 <div class="box"><div class="sc"><table><thead><tr>
-<th style="padding-left:1rem">Player</th><th class="r">Games</th><th>Seasons 1&ndash;7</th><th>Seasons 8 &amp; 9</th><th>All time</th>
+<th style="padding-left:1rem">Player</th><th class="r">Games</th><th class="hm">Seasons 1&ndash;7</th><th class="hm">Seasons 8 &amp; 9</th><th>All time</th>
 </tr></thead><tbody id="alltime"></tbody></table></div></div>
 </main>
 <main id="pv" class="hid">
@@ -1010,11 +1021,13 @@ function drawArchive(){
     const now=stillPlaying[p.n];
     return '<tr data-arc="'+E(p.n)+'"'+(now?' data-n="'+E(now)+'" tabindex="0" role="button"':' tabindex="-1"')+' class="'+(i<3?"one":"")+'">'+
      '<td class="k">'+(i+1)+'</td>'+
-     '<td class="nmc2"><span class="nmc">'+E(p.n)+'</span></td>'+
+     '<td class="nmc2"><span class="nmc">'+E(p.n)+'</span>'+
+       (now?'<span class="sml" style="color:var(--gain)">still playing — '+E(now)+'</span>'
+          :p.st==="dormant"?'<span class="sml" style="color:var(--loss)">away</span>':'')+'</td>'+
      '<td class="r"><span class="rat">'+p.r+'</span></td>'+
      '<td class="r wdl hm">'+p.g+'</td>'+
      '<td class="wdl hm">'+p.rec[0]+'<i>–</i>'+p.rec[1]+'<i>–</i>'+p.rec[2]+'</td>'+
-     '<td style="white-space:nowrap">'+(now?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--gain)"><span class="hm">still playing — </span>'+E(now)+'</span>'
+     '<td class="hm" style="white-space:nowrap">'+(now?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--gain)"><span class="hm">still playing — </span>'+E(now)+'</span>'
              :p.st==="dormant"?'<span style="font-family:var(--fm);font-size:.62rem;color:var(--loss)">away</span>'
                 :'<span style="font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">—</span>')+'</td></tr>'}).join("");
 }
@@ -1120,8 +1133,8 @@ function drawAllTime(){
   $("#alltime").innerHTML=rows.map(r=>'<tr data-n="'+E(r.n)+'" tabindex="0" role="button">'+
     '<td class="nmc2" style="padding-left:1rem">'+av(r.n,"s")+'<span class="nmc">'+E(r.n)+'</span><span class="chev">\u203a</span></td>'+
     '<td class="r wdl">'+r.g+'</td>'+
-    '<td class="wdl">'+r.old.rec.join("\u2013")+'<i style="margin-left:.4rem">as '+E(r.old.n)+'</i></td>'+
-    '<td class="wdl">'+r.now.join("\u2013")+'</td>'+
+    '<td class="wdl hm">'+r.old.rec.join("\u2013")+'<i style="margin-left:.4rem">as '+E(r.old.n)+'</i></td>'+
+    '<td class="wdl hm">'+r.now.join("\u2013")+'</td>'+
     '<td class="wdl" style="color:var(--gain);font-weight:700">'+r.tot.join("\u2013")+'</td></tr>').join("");
 }
 function legacyFor(p){
