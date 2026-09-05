@@ -7,7 +7,12 @@ Two ways. Harold crops by hand with the tool; Opus uses the script.
     python build/photoserver.py
     open http://localhost:8765/build/photos.html
 
-Pick the player, paste or drop the picture, drag it, zoom with the wheel, Save.
+Pick the player, paste (Ctrl+V) or drop the picture, drag it, zoom with the wheel, Save.
+**Pasting straight from the clipboard works** — this is the way in for a picture that
+only exists in a chat or a browser tab, with no file on disk.
+
+Save writes both files: the round avatar you framed, and the whole picture as the wide
+shot that keeps the board in. Remove deletes both.
 "Publish all saved photos" commits `photos/` and pushes. The tool only works on this
 PC with that server running; the public site has no cropping anywhere.
 
@@ -25,6 +30,12 @@ Harold posts one picture at a time and says whose it is. For each one:
    Face not centred? Add `--focus 0.55,0.25` (x,y as fractions; y small = face near top).
    Face small in a wide shot? Add `--zoom 0.5` (crop side as a fraction of the shorter side).
    Look at the result (`photos/<slug>.jpg`) before pushing; redo with different numbers if needed.
+   It also writes `photos/scene/<slug>.jpg`, the whole picture, shown at the top of the
+   profile so the board is visible. Only a file path works here — an image pasted into
+   the chat never reaches the disk, so hand those to the crop tool instead.
+
+**Two people share a first name** on the roster (Brian / Brian O). Ask which one rather
+than guessing; a wrong face on a real person's profile is public and obvious.
 3. Commit and push just the photo:
 
        git add photos && git commit -m "Photo: Player Name" && git push

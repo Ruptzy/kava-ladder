@@ -71,6 +71,10 @@ function draw(){ cx.fillStyle="#000"; cx.fillRect(0,0,S,S); if(!img) return; cla
 function out(){ const o=document.createElement("canvas"); o.width=o.height=400; const c=o.getContext("2d"); c.imageSmoothingQuality="high"; c.drawImage(cv,0,0,400,400); return o.toDataURL("image/jpeg",0.86) }
 let pt=null; function preview(){ clearTimeout(pt); pt=setTimeout(()=>{ const u=out(); ["#p1","#p2","#p3"].forEach(s=>$(s).innerHTML='<img src="'+u+'">'); $("#save").disabled=!(img&&who) },60) }
 function load(file){ if(!file||!file.type.startsWith("image/")) return; const u=URL.createObjectURL(file); const i=new Image(); i.onload=()=>{ img=i; fit(); URL.revokeObjectURL(u) }; i.src=u }
+// the wide shot: the whole picture, so whatever board is in it stays in it
+function sceneOut(){ if(!img) return null; const m=1000, k=Math.min(1,m/Math.max(img.width,img.height));
+  const o=document.createElement("canvas"); o.width=Math.round(img.width*k); o.height=Math.round(img.height*k);
+  const c=o.getContext("2d"); c.imageSmoothingQuality="high"; c.drawImage(img,0,0,o.width,o.height); return o.toDataURL("image/jpeg",0.8) }
 // pointer: drag to move
 $("#stage").addEventListener("pointerdown",e=>{ if(!img) return; const k=S/cv.getBoundingClientRect().width; drag=[e.clientX*k-ox,e.clientY*k-oy]; $("#stage").setPointerCapture(e.pointerId); $("#stage").style.cursor="grabbing" });
 $("#stage").addEventListener("pointermove",e=>{ if(!drag) return; const k=S/cv.getBoundingClientRect().width; ox=e.clientX*k-drag[0]; oy=e.clientY*k-drag[1]; draw() });
@@ -87,7 +91,7 @@ function say(t,c){ $("#msg").textContent=t; $("#msg").className="msg "+(c||"") }
 async function post(path,body){ const r=await fetch(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body||{})}); return await r.json() }
 async function have(){ try{ const l=await fetch("/list").then(r=>r.json()); $("#have").innerHTML=Object.keys(l).sort().map(s=>'<div data-s="'+s+'"><img src="/photos/'+s+'.jpg?'+Date.now()+'">'+s+'</div>').join("")||'<span style="color:var(--ink-3);font-size:.8rem">none yet</span>' }catch(e){ $("#offline").style.display="" } }
 $("#have").onclick=e=>{ const d=e.target.closest("[data-s]"); if(!d) return; const o=[...$("#who").options].find(o=>slug(o.value)===d.dataset.s); if(o){ $("#who").value=o.value; who=o.value; ["#p1","#p2","#p3"].forEach(s=>$(s).innerHTML='<img src="/photos/'+d.dataset.s+'.jpg?'+Date.now()+'">') } };
-$("#save").onclick=async()=>{ if(!img||!who) return; const r=await post("/save",{name:who,data:out()}); say(r.ok?"Saved "+r.file+" ("+Math.round(r.bytes/1024)+" KB). Not on the site until you publish.":"Could not save: "+(r.error||""),r.ok?"ok":"bad"); have() };
+$("#save").onclick=async()=>{ if(!img||!who) return; const r=await post("/save",{name:who,data:out(),scene:sceneOut()}); say(r.ok?"Saved "+r.file+" + the wide shot with the board ("+Math.round((r.bytes+(r.sceneBytes||0))/1024)+" KB). Not on the site until you publish.":"Could not save: "+(r.error||""),r.ok?"ok":"bad"); have() };
 $("#remove").onclick=async()=>{ if(!who) return; if(!confirm("Remove "+who+"'s photo?")) return; await post("/remove",{name:who}); say("Removed "+who+"'s photo. Publish to take it off the site.","ok"); have() };
 $("#publish").onclick=async()=>{ $("#publish").disabled=true; say("Publishing…"); try{ const r=await post("/publish",{msg:new Date().toISOString().slice(0,10)}); say((r.ok?"Live in about a minute.\n":"Something went wrong.\n")+r.log,r.ok?"ok":"bad") }catch(e){ say("Server not running.","bad") } $("#publish").disabled=false };
 (async()=>{
