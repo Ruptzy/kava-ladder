@@ -112,7 +112,8 @@
    "n": "Patrick",
    "r": 1316,
    "d": "U1400",
-   "idle": 0
+   "idle": 0,
+   "active": true
   },
   {
    "n": "Brione",
