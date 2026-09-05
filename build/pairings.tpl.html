@@ -3365,11 +3365,63 @@ function dscChunks(text){
   return out;
 }
 
-async function dscSend(hook,content){
+/* One panel per bracket. Discord allows ten embeds a message and the club has
+   three brackets, so this is always one message however busy the night.     */
+const DSC_RED=0xFE273A;
+const MEDAL=["🥇","🥈","🥉"];   // gold, silver, bronze
+const DIV_LABEL={"over 1400":"Over 1400 ELO","U1400":"Under 1400 ELO","U1000":"Under 1000 ELO"};
+function divLabel(d){ return DIV_LABEL[d]||d }
+
+/* W-D-L for the night, which derive() does not keep */
+function nightRecord(id){
+  let w=0,d=0,l=0;
+  rounds.forEach(rd=>rd.boards.forEach(b=>{
+    if(b.w!==id&&b.b!==id) return;
+    if(!b.res) return;
+    if(b.res==="d"){ d++; return }
+    const won=(b.res==="w")===(b.w===id);
+    won?w++:l++;
+  }));
+  return w+"–"+d+"–"+l;
+}
+
+function nightEmbeds(){
+  const st=derive(rounds.length+1);
+  const byDiv={};
+  [...playing].forEach(id=>{
+    const p=byId[id]; if(!p) return;
+    const d=p.d||DATA.divisions[DATA.divisions.length-1];
+    (byDiv[d]=byDiv[d]||[]).push(id);
+  });
+  const order=DATA.divisions.filter(d=>byDiv[d]&&byDiv[d].length);
+  Object.keys(byDiv).forEach(d=>{ if(order.indexOf(d)<0) order.push(d) });
+
+  return order.map(d=>{
+    const ids=byDiv[d].sort((a,b)=>(st.score[b]-st.score[a])||(byId[b].r-byId[a].r));
+    let place=0, prev=null;
+    const lines=ids.map((id,i)=>{
+      const sc=st.score[id]||0;
+      if(prev===null||sc!==prev){ place=i+1; prev=sc }
+      const medal=place<=3?MEDAL[place-1]+" ":"`"+String(place).padStart(2)+".` ";
+      const left=gone.has(id)?"  *(left early)*":"";
+      return medal+"**"+byId[id].n+"** — "+scoreTxt(sc)+
+             "  ·  "+nightRecord(id)+left;
+    });
+    return {title:divLabel(d), color:DSC_RED, description:lines.join(NL)};
+  });
+}
+
+async function dscSend(hook,content,embeds){
+  const payload={allowed_mentions:{parse:[]}};
+  if(content) payload.content=content;
+  if(embeds&&embeds.length) payload.embeds=embeds;
+  return dscPost(hook,payload);
+}
+async function dscPost(hook,payload){
   const url=hook+(hook.indexOf("?")<0?"?wait=true":"&wait=true");
   for(let tries=0;tries<4;tries++){
     const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({content, allowed_mentions:{parse:[]}})});
+      body:JSON.stringify(payload)});
     if(r.status===429){                       // Discord asks us to slow down
       let wait=1; try{ wait=(await r.json()).retry_after||1 }catch(e){}
       await new Promise(s=>setTimeout(s,Math.ceil(wait*1000)+250));
@@ -3386,20 +3438,43 @@ async function dscSend(hook,content){
 
 /* One message per chunk, in order, each fenced so the columns line up. The
    link goes last so the channel ends on somewhere to click. */
+/* just the pairings, without the standings resultsText puts on top */
+function roundsText(){
+  const out=[];
+  rounds.forEach((rd,i)=>{
+    out.push("Round "+(i+1));
+    rd.boards.forEach((b,j)=>out.push("  "+(j+1)+". "+byId[b.w].n+" (W) "+
+      (b.res==="w"?"1-0":b.res==="b"?"0-1":b.res==="d"?"½-½":"–")+" "+byId[b.b].n));
+    if(rd.bye!=null) out.push("  bye: "+byId[rd.bye].n);
+    out.push("");
+  });
+  return out.join(NL);
+}
+
 async function postNight(status){
   const c=dscCfg();
   if(!c.hook) throw new Error("Add the webhook in settings first.");
-  const parts=dscChunks(resultsText());
-  for(let i=0;i<parts.length;i++){
-    status&&status("posting "+(i+1)+" of "+parts.length+"…");
-    await dscSend(c.hook,"```"+NL+parts[i]+NL+"```");
-  }
   const pc=pubCfg();
+  const d=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const head="## KAVA Social Chess Club"+NL+d+"  ·  "+rounds.length+
+    " round"+(rounds.length===1?"":"s")+"  ·  "+playing.size+" played";
+
+  status&&status("posting the leaderboard…");
+  await dscSend(c.hook,head,nightEmbeds());
+
+  let sent=1;
+  const parts=dscChunks(roundsText());
+  for(let i=0;i<parts.length;i++){
+    status&&status("posting the boards, "+(i+1)+" of "+parts.length+"…");
+    await dscSend(c.hook,"```"+NL+parts[i]+NL+"```");
+    sent++;
+  }
   if(pc.owner&&pc.repo){
     status&&status("posting the link…");
-    await dscSend(c.hook,"Full ladder, every player's page and the club history: "+siteUrl(pc));
+    await dscSend(c.hook,"Every player's page, the crosstable and the club history: "+siteUrl(pc));
+    sent++;
   }
-  return parts.length;
+  return sent;
 }
 
 function renderDsc(){
