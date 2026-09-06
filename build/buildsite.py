@@ -60,7 +60,8 @@ def run(history,seeds):
             res.setdefault(w,[]).append((pb["r"],pb["rd"],sw))
             res.setdefault(b,[]).append((pw["r"],pw["rd"],1-sw))
             pw["n"]+=1; pb["n"]+=1
-        for n in night.get("byes",[]): of(n)
+        # a bye registers the player without touching their rating
+        for n in night.get("byes",[]): of(n[0] if isinstance(n,list) else n)
         snap={n:(p["r"],p["rd"],p["vol"]) for n,p in P.items()}
         for n,p in P.items():
             if n in res:
@@ -104,7 +105,9 @@ def anonymise(history, seeds, hidden):
         return history, seeds
     h = [{"date": n["date"],
           "games": [[a.get(w, w), a.get(b, b), r] for w, b, r in n["games"]],
-          "byes": [a.get(x, x) for x in n.get("byes", [])]} for n in history]
+          # a bye is [name, points]; older files carry a bare name
+          "byes": [[a.get(x[0], x[0]), x[1]] if isinstance(x, list) else a.get(x, x)
+                   for x in n.get("byes", [])]} for n in history]
     return h, {a.get(k, k): v for k, v in seeds.items()}
 
 
@@ -322,7 +325,10 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
     games=[]; byes=[]
     for i,h in enumerate(history):
         for w,b,r in h["games"]: games.append([i,id_(show(w)),id_(show(b)),r])
-        if h.get("byes"): byes.append([i]+[id_(show(x)) for x in h["byes"]])
+        # one row per bye, carrying what it was worth
+        for x in h.get("byes") or []:
+            who, pts = (x, 0.5) if isinstance(x, str) else (x[0], x[1])
+            byes.append([i, id_(show(who)), pts])
     di={d:i for i,d in enumerate(dates)}
     divOf={p["n"]:p["d"] for p in roster}
     awayOf={p["n"]:bool(p.get("away")) for p in roster}

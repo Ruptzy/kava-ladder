@@ -1,0 +1,553 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="google-site-verification" content="5fDMc0S7ZteaNFC1tMDS31UOzi3LI_hD2WI8esuH-Xo" />
+    <meta name="msvalidate.01" content="754D72B2F30EBFE82FE4D61DDDAEEFE5" />
+    <meta name="description" content="Swiss online tournament management, run a free chess tournament, round robin online tournament">
+    <meta name="keywords" content="chess, swiss tournament, round robin, elimination, run a chess tournament online, free chess tournament system">
+
+    <title>Bracket 6/27/26. Rounds</title>
+
+    
+    
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-151421743-1"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag() { dataLayer.push(arguments); }
+            gtag('js', new Date());
+
+            gtag('config', 'UA-151421743-1');
+        </script>
+        <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+        <link rel="stylesheet" href="/css/site.min.css?v=goHHRyntIcDirEmbQ96-tRGV5JTfP89dgALa5C2mp7E" />
+    
+    <link href="https://fonts.googleapis.com/css?family=Rubik" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+    <nav class="navbar navbar-fixed-top navbar-inverse">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/">SwissOnlineTournament.com</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="/Home/Contact">Support</a>
+                    </li>
+                    
+
+
+
+                </ul>
+                
+
+    <ul class="nav navbar-nav navbar-right">
+        <li><a href="/Identity/Account/Login">Sign In</a></li>
+    </ul>
+
+            </div>
+        </div>
+    </nav>
+
+    <div class="container body-content">
+        
+
+
+<h2>Rounds</h2>
+<h5>Tournament name: Bracket 6/27/26</h5>
+<div class="commands hidden-print">
+        <a class="btn btn-sm btn-default" href="/Tournament/Info/5628305c74d542a28e6ffd1426fa3a65">Info</a>
+    <a class="btn btn-sm btn-default active" href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65">Rounds</a>
+    <a class="btn btn-sm btn-default " href="/Tournament/Rating/5628305c74d542a28e6ffd1426fa3a65">Standings</a>
+
+     
+
+<script>
+    function askJoin(tournamentId) {
+        askOkCancel('Join This Tournament', '', 'Join', function() {
+            window.location.href = '/Tournament/Join?id=' + tournamentId;
+        });
+    }
+    function askGoOut(tournamentId) {
+        askOkCancel('Leave This Tournament', '', 'Leave', function() {
+            window.location.href = '/Tournament/GoOut?id=' + tournamentId;
+        });
+    }
+    function askFillName() {
+        askOkCancel('Fill your player name to join touraments', '', 'Go Profile', function() {
+            window.location.href = '/Identity/Account/Manage';
+        });
+    }
+</script>
+</div>
+<div>
+Round        :
+            <a class="btn btn-sm btn-default hidden-print " href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65?round=1">1</a>
+            <a class="btn btn-sm btn-default hidden-print " href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65?round=2">2</a>
+            <a class="btn btn-sm btn-default hidden-print " href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65?round=3">3</a>
+            <a class="btn btn-sm btn-default hidden-print " href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65?round=4">4</a>
+            <a class="btn btn-sm btn-default hidden-print " href="/Tournament/Details/5628305c74d542a28e6ffd1426fa3a65?round=5">5</a>
+</div>
+
+    <div id="game-result-menu" class="jq-dropdown jq-dropdown-tip">
+        <ul class="jq-dropdown-menu">
+                    <li>
+                        <a href="#" data-value="Win">1-0</a>
+                    </li>
+                    <li>
+                        <a href="#" data-value="Loss">0-1</a>
+                    </li>
+                    <li>
+                        <a href="#" data-value="Draw">0.5-0.5</a>
+                    </li>
+                    <li>
+                        <a href="#" data-value="BothLoss">0-0</a>
+                    </li>
+                <li>
+                    <a href="#" data-value="NoResult">Clear</a>
+                </li>
+        </ul>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded',
+            function() {
+                $('#game-result-menu a').click(function() {
+                    var $this = $(this);
+                    var value = $this.data('value');
+                    var index = $('#game-result-menu').data('index');
+                    var round = $('#game-result-menu').data('round');
+                    //$('.pair-result[data-index=' + index + ']').focus();
+                    //var valueText = $this.text();
+                    updateResult(round, index, value);
+                    $('#game-result-menu').hide();
+                    $(document).find('.jq-dropdown-open').removeClass('jq-dropdown-open');
+                    return false;
+                });
+                $('#game-result-menu').on('show',
+                    function(event, dropdownData) {
+                        dropdownData.jqDropdown.data('index', dropdownData.trigger.data('index'));
+                        dropdownData.jqDropdown.data('round', dropdownData.trigger.data('round'));
+                    });
+            });
+
+        function updateResult(round, index, value) {
+            $.ajax({
+                type: 'POST',
+                url: '/Tournament/UpdateResult',
+                data:
+                {
+                    index: index,
+                    id: '5628305c74d542a28e6ffd1426fa3a65',
+                    gameResult: value,
+                    round: round
+                },
+                success: function(data) {
+                    $('.pair-result[data-index=' + index + '][data-round='+round+']').text(data.result);
+                    if (data.canGenerate) {
+                        $('#generate-round').show();
+                    } else {
+                        $('#generate-round').hide();
+                    }
+                },
+                error: function(err) {
+                    alert(err.responseText);
+                }
+            });
+
+        }
+    </script>
+
+
+        <h3>Round 1</h3>
+         <table class="table pairs-table">
+             <thead>
+
+             <tr>
+                 <th>Pair</th>
+                 <th>White Player</th>
+                     <th>Pts</th>
+                 <th>Result</th>
+                     <th>Pts</th>
+                 <th>Black Player</th>
+                 <th></th>
+             </tr>
+             </thead>
+
+                     <tr class="result-row">
+                         <td>1</td>
+                         <td class="">Scott</td>
+                             <td>0.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>0.0</td>
+                         <td class="">Josh </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>2</td>
+                         <td class="">Brian </td>
+                             <td>0.0</td>
+                         <td>
+                             0-1                         </td>
+                             <td>0.0</td>
+                         <td class="">Matthew </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>3</td>
+                         <td class="">Omar</td>
+                             <td>0.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>0.0</td>
+                         <td class="">Sonny </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>4</td>
+                         <td class="">Vincent </td>
+                             <td>0.0</td>
+                         <td>
+                             Bye                         </td>
+                             <td></td>
+                         <td class=""></td>
+                         <td></td>
+                     </tr>
+         </table>
+        <h3>Round 2</h3>
+         <table class="table pairs-table">
+             <thead>
+
+             <tr>
+                 <th>Pair</th>
+                 <th>White Player</th>
+                     <th>Pts</th>
+                 <th>Result</th>
+                     <th>Pts</th>
+                 <th>Black Player</th>
+                 <th></th>
+             </tr>
+             </thead>
+
+                     <tr class="result-row">
+                         <td>1</td>
+                         <td class="">Matthew </td>
+                             <td>1.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>1.0</td>
+                         <td class="">Scott</td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>2</td>
+                         <td class="">Vincent </td>
+                             <td>0.5</td>
+                         <td>
+                             0-1                         </td>
+                             <td>1.0</td>
+                         <td class="">Omar</td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>3</td>
+                         <td class="">Josh </td>
+                             <td>0.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>0.0</td>
+                         <td class="">Brian </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>4</td>
+                         <td class="">Sonny </td>
+                             <td>0.0</td>
+                         <td>
+                             Bye                         </td>
+                             <td></td>
+                         <td class=""></td>
+                         <td></td>
+                     </tr>
+         </table>
+        <h3>Round 3</h3>
+         <table class="table pairs-table">
+             <thead>
+
+             <tr>
+                 <th>Pair</th>
+                 <th>White Player</th>
+                     <th>Pts</th>
+                 <th>Result</th>
+                     <th>Pts</th>
+                 <th>Black Player</th>
+                 <th></th>
+             </tr>
+             </thead>
+
+                     <tr class="result-row">
+                         <td>1</td>
+                         <td class="">Omar</td>
+                             <td>2.0</td>
+                         <td>
+                             0-1                         </td>
+                             <td>2.0</td>
+                         <td class="">Matthew </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>2</td>
+                         <td class="">Sonny </td>
+                             <td>0.5</td>
+                         <td>
+                             0-1                         </td>
+                             <td>1.0</td>
+                         <td class="">Josh </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>3</td>
+                         <td class="">Scott</td>
+                             <td>1.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>0.5</td>
+                         <td class="">Vincent </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>4</td>
+                         <td class="">Brian </td>
+                             <td>0.0</td>
+                         <td>
+                             Bye                         </td>
+                             <td></td>
+                         <td class=""></td>
+                         <td></td>
+                     </tr>
+         </table>
+        <h3>Round 4</h3>
+         <table class="table pairs-table">
+             <thead>
+
+             <tr>
+                 <th>Pair</th>
+                 <th>White Player</th>
+                     <th>Pts</th>
+                 <th>Result</th>
+                     <th>Pts</th>
+                 <th>Black Player</th>
+                 <th></th>
+             </tr>
+             </thead>
+
+                     <tr class="result-row">
+                         <td>1</td>
+                         <td class="">Matthew </td>
+                             <td>3.0</td>
+                         <td>
+                             0.5-0.5                         </td>
+                             <td>2.0</td>
+                         <td class="">Josh </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>2</td>
+                         <td class="">Omar</td>
+                             <td>2.0</td>
+                         <td>
+                             0-1                         </td>
+                             <td>2.0</td>
+                         <td class="">Scott</td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>3</td>
+                         <td class="">Brian </td>
+                             <td>0.5</td>
+                         <td>
+                             1-0                         </td>
+                             <td>0.5</td>
+                         <td class="">Sonny </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>4</td>
+                         <td class="">Vincent </td>
+                             <td>0.5</td>
+                         <td>
+                             Bye                         </td>
+                             <td></td>
+                         <td class=""></td>
+                         <td></td>
+                     </tr>
+         </table>
+        <h3>Round 5</h3>
+         <table class="table pairs-table">
+             <thead>
+
+             <tr>
+                 <th>Pair</th>
+                 <th>White Player</th>
+                     <th>Pts</th>
+                 <th>Result</th>
+                     <th>Pts</th>
+                 <th>Black Player</th>
+                 <th></th>
+             </tr>
+             </thead>
+
+                     <tr class="result-row">
+                         <td>1</td>
+                         <td class="">Vincent </td>
+                             <td>1.0</td>
+                         <td>
+                             0-1                         </td>
+                             <td>3.5</td>
+                         <td class="">Matthew </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>2</td>
+                         <td class="">Scott</td>
+                             <td>3.0</td>
+                         <td>
+                             1-0                         </td>
+                             <td>1.5</td>
+                         <td class="">Brian </td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>3</td>
+                         <td class="">Josh </td>
+                             <td>2.5</td>
+                         <td>
+                             1-0                         </td>
+                             <td>2.0</td>
+                         <td class="">Omar</td>
+                         <td></td>
+                     </tr>
+                     <tr class="result-row">
+                         <td>4</td>
+                         <td class="">Sonny </td>
+                             <td>0.5</td>
+                         <td>
+                             Bye                         </td>
+                             <td></td>
+                         <td class=""></td>
+                         <td></td>
+                     </tr>
+         </table>
+<div>
+</div>
+
+<div class="commands hidden-print">
+    <a href="#" onclick="print();">Print</a>
+</div>
+        
+
+    <nav id="cookieConsent" class="navbar navbar-default navbar-fixed-bottom" role="alert">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#cookieConsent .navbar-collapse">
+                    <span class="sr-only">Toggle cookie consent banner</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <span class="navbar-brand"><span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span></span>
+            </div>
+            <div class="collapse navbar-collapse">
+                <p class="navbar-text">
+                    This website uses cookies in order to offer you the most relevant information.
+                </p>
+                <div class="navbar-right">
+                    <a class="btn btn-info navbar-btn" href="/Home/Privacy">Learn More</a>
+                    <button type="button" class="btn btn-default navbar-btn" data-cookie-string="AspNetConsent=yes; expires=Mon, 06 Sep 2027 05:15:43 GMT; path=/; secure; samesite=lax">Accept</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <script>
+        (function () {
+            document.querySelector("#cookieConsent button[data-cookie-string]").addEventListener("click", function (el) {
+                document.cookie = el.target.dataset.cookieString;
+                document.querySelector("#cookieConsent").classList.add("hidden");
+            }, false);
+        })();
+    </script>
+
+        <footer class="hidden-print">
+            <hr />
+            <div class="commands">
+                <form action="https://www.paypal.com/cgi-bin/webscr" method="post" target="_top">
+                    <input type="hidden" name="cmd" value="_s-xclick" />
+                    <input type="hidden" name="hosted_button_id" value="6BEDRDQPYB6NJ" />
+                    <input type="image" src="https://www.paypalobjects.com/en_AU/i/btn/btn_donate_LG.gif" border="0" name="submit" title="PayPal - The safer, easier way to pay online!" alt="Donate with PayPal button" />
+                    <img alt="" border="0" src="https://www.paypal.com/en_AU/i/scr/pixel.gif" width="1" height="1" />
+                </form>
+                <a href="/Home/Privacy">Privacy Policy</a>
+                <a href="/Home/Terms">Terms Of Service</a>
+                <a href="https://chessschool.com.au/about-swiss/">About Swiss</a>
+                <br />
+            </div>
+            &copy; 2019-2026 - SwissOnlineTournament.com &nbsp;&nbsp;&nbsp;&nbsp;
+        </footer>
+    </div>
+
+    
+    
+        <script src="https://ajax.aspnetcdn.com/ajax/jquery/jquery-3.3.1.min.js" crossorigin="anonymous" integrity="sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV+rXbYlF2cqB8txI/8aZajjp4Bqd+V6D5IgvKT">
+        </script>
+<script>(window.jQuery||document.write("\u003Cscript src=\u0022\/lib\/jquery\/dist\/jquery.min.js\u0022 crossorigin=\u0022anonymous\u0022 integrity=\u0022sha384-tsQFqpEReu7ZLhBV2VZlAu7zcOV\u002BrXbYlF2cqB8txI\/8aZajjp4Bqd\u002BV6D5IgvKT\u0022\u003E\u003C\/script\u003E"));</script>
+        <script src="https://ajax.aspnetcdn.com/ajax/bootstrap/3.3.7/bootstrap.min.js" crossorigin="anonymous" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa">
+        </script>
+<script>(window.jQuery && window.jQuery.fn && window.jQuery.fn.modal||document.write("\u003Cscript src=\u0022\/lib\/bootstrap\/dist\/js\/bootstrap.min.js\u0022 crossorigin=\u0022anonymous\u0022 integrity=\u0022sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\u0022\u003E\u003C\/script\u003E"));</script>
+        <script src="/js/site.min.js?v=i6RlubYlsDTyGEdfjCWf5eg--QV8BRqNJ0VC3H2UK-A"></script>
+    
+
+    <div class="modal" id="ok-cancel-modal" tabindex="-1" role="dialog" aria-labelledby="ok-cancel-modal-title" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                    <h4 class="modal-title" id="ok-cancel-modal-title"></h4>
+                </div>
+                <div class="modal-body">
+                    <span id="ok-cancel-text"></span>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-default btn-danger" id="ok-cancel-modal-ok"></button>
+                    <button class="btn btn-default" data-dismiss="modal">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <script>
+    function askRemove(title, text, removeCallback) {
+        askOkCancel(title, text, 'Remove', removeCallback);
+    }
+    </script>
+
+</body>
+</html>

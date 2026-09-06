@@ -197,6 +197,21 @@ club's busiest member 53. Five are still unearned by anyone: they are the
 long-haul ones (150 and 200 games, 100 wins, forty different opponents, two
 years between first game and last).
 
+## Byes
+
+They come from the **standings** page, not the pairings page, and each is stored
+with what it was worth: `[name, points]`. The club's software writes two things
+the same way. `=BYE` is a requested half-point bye and appears as a row on the
+pairings page. `BYE` means simply "not paired", and does not appear there at all
+- so it looks like a missing bye when it is usually somebody who had not arrived
+yet or had gone home. A `BYE` only scores a point when there is real play on
+both sides of it.
+
+That rule reproduces the club's own standings for 282 of 283 player-scores. The
+one exception is Gabe on 16 August, credited 4.0 where his four games account
+for 3.0 and his only bye is a leading one; every other leading bye in the club's
+history scored nothing. Worth asking Harold about rather than coding around.
+
 ## A bye is a whole point
 
 From September 2026, a bye scores 1. That is Harold's ruling and what the

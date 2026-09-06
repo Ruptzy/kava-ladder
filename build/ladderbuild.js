@@ -828,18 +828,19 @@ function derive(){
     w.rec[k]++; b.rec[2-k]++; w.wh[k]++; b.bl[2-k]++;
     (w.opp[b.n]=w.opp[b.n]||[0,0,0])[k]++; (b.opp[w.n]=b.opp[w.n]||[0,0,0])[2-k]++;
   });
+  /* Each bye carries what it was worth: the club's software awards a whole
+     point for a real one and a half for a requested one, and only the standings
+     page ever showed the whole ones. */
   const byeOf={};
-  D.byes.forEach(a=>{ for(let i=1;i<a.length;i++){ const p=byI[a[i]]; if(!p) continue;
-    p.att[a[0]]=1; (byeOf[a[0]]=byeOf[a[0]]||{})[p.n]=((byeOf[a[0]]||{})[p.n]||0)+1 } });
+  D.byes.forEach(a=>{ const p=byI[a[1]]; if(!p) return;
+    p.att[a[0]]=1;
+    const at=byeOf[a[0]]=byeOf[a[0]]||{};
+    at[p.n]=(at[p.n]||0)+(a[2]!=null?a[2]:0.5); });
   NIGHT=DATES.map((d,i)=>({pts:{},g:{},ni:i}));
   ALL.forEach(p=>p.log.forEach(l=>{ const N=NIGHT[l.ni]; N.pts[p.n]=(N.pts[p.n]||0)+l.s; N.g[p.n]=(N.g[p.n]||0)+1 }));
-  /* A bye is a full point from September 2026 on - Harold's ruling, and what
-     the pairing tool has always done. Before that the club's tournament pages
-     scored it at a half, and those nights were checked against them score by
-     score, so they keep the half they were played with. */
+  /* No date rule any more: what a bye was worth is recorded with it. */
   Object.keys(byeOf).forEach(ni=>{ const N=NIGHT[ni];
-    const worth=DATES[ni]>=BYE_FULL_FROM?1:0.5;
-    Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+worth*byeOf[ni][n]; N.byes=(N.byes||0)+byeOf[ni][n] }) });
+    Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+byeOf[ni][n]; N.byes=(N.byes||0)+1 }) });
   NIGHT.forEach(N=>{
     N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
     N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });

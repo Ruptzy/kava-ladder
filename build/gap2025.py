@@ -44,12 +44,39 @@ LINKS = {
     "78ed8b30c8f743c092f3cf38abaadf22": "2025-03-30",
     "36753ce96104430eb84d8e6816af8c06": "2025-10-05",
     "5155fee756d54125b9b8740a282aed5a": "2025-10-19",
+    # the 2026 run, previously imported by reimport.py from scrape files that
+    # are long gone. Titles are unreliable here too: the last one is called
+    # 9/30/26 and is the 30th of August.
+    "3ca0c80134a04a8283ce5d1c0ba29e06": "2026-04-19",
+    "fa6d602e9d0e46ef804402fcb372062e": "2026-05-03",
+    "05a85e44bca944c18a11d83d315ae2e6": "2026-05-17",
+    "4f411905ea4d45cba7dc56d0c551995d": "2026-05-31",
+    "9345919bb81f4e19bb99f113e2220bd0": "2026-06-14",
+    "5628305c74d542a28e6ffd1426fa3a65": "2026-06-27",
+    "b860f2bcb4904af88ec6717c539b5090": "2026-07-12",
+    "50a2c38c48dc4616a2d6e0a7f79262ff": "2026-08-02",
+    "1bace22971eb4e478dbd812080864525": "2026-08-16",
+    "6df3764bf2fa4a589f547664821374d7": "2026-08-30",
+}
+
+# A night where the page writes a name the general rule reads wrongly. The club
+# has two Omars and writes both as "Omar" when only one turns up; the rule sends
+# a bare "Omar" to Cruz, which is right most nights and wrong on this one.
+PINNED = {
+    ("2026-08-16", "omar"): "Omar Azab",
 }
 # the last night of seasons 1-7, counted there already
 ARCHIVED = {"2024-11-24"}
 
 CANON = {"bejamin": "Benji", "benji": "Benji", "ben": "Benji",
          "omar": "Omar Cruz", "omar cruz": "Omar Cruz",
+         "omar og": "Omar Cruz", "og omar": "Omar Cruz",
+         "omar azab": "Omar Azab", "omar a": "Omar Azab",
+         "vinnie": "Vinny", "vinyy": "Vinny", "vincent": "Vinny",
+         "matthew": "Mathew", "mathew uf": "Mathew",
+         "brian bellamy": "Brian", "brian o": "Brian O",
+         "schmerick": "Derek", "anothny": "Anthony",
+         "diegi": "Diego", "sam (mable)": "Sam (Mable)",
          "jona": "Johnathon", "jonathan": "Johnathon",
          "kande": "Kandee", "soma": "Somarie",
          "sam j": "Sam", "sam": "Sam",
@@ -64,8 +91,18 @@ CANON = {"bejamin": "Benji", "benji": "Benji", "ben": "Benji",
 SPLIT = [("anthony", "2026-01-01", "Anthony (2024)")]
 
 
-def canon(n, date=None):
+def canon(n, date=None, night=None):
+    """night is every name written on that night, lower-cased.
+
+    Plain "Omar" is Omar Cruz, except on a night where Cruz is written out in
+    full - then the bare one is the other Omar. The club only bothers to
+    disambiguate when both of them turn up."""
     k = n.strip().lower()
+    pin = PINNED.get((date, k))
+    if pin:
+        return pin
+    if k == "omar" and night and any(x in night for x in ("omar og", "og omar", "omar cruz")):
+        return "Omar Azab"
     for who, before, instead in SPLIT:
         if k == who and date and date < before:
             return instead
@@ -88,23 +125,60 @@ def cache(tid, kind=''):
     return f
 
 
+def byes_from_standings(tid, date, night):
+    """Both kinds, with what each is worth.
+
+    The standings give every player's round-by-round result, and only there does
+    a full-point bye appear at all: "BYE" is a whole point, "=BYE" a half. The
+    pairings page lists the halves and silently drops the wholes."""
+    doc = io.open(cache(tid, 'rating_'), encoding='utf-8').read()
+    out = []
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", doc, re.S):
+        tds = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip()
+               for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+        if len(tds) < 4 or not tds[1]:
+            continue
+        who = canon(tds[1], date, night)
+        # the last two cells are tiebreak totals, not rounds; a round cell is a
+        # result like +W4 or -B11, or one of the two kinds of bye
+        rounds = [c for c in tds[3:]
+                  if c in ("BYE", "=BYE") or re.match(r"^[-+=][WB]\d+$", c)]
+        # A full bye only scores when it is a real one: play either side of it.
+        # A BYE at the front is somebody who had not arrived and one at the back
+        # is somebody who has gone home, and the software writes both the same
+        # way. A requested half bye always scores its half.
+        real = lambda r: r not in ("BYE", "=BYE", "")
+        for i, cell in enumerate(rounds):
+            if cell == "=BYE":
+                out.append([who, 0.5])
+            elif cell == "BYE" and any(map(real, rounds[:i])) and any(map(real, rounds[i + 1:])):
+                out.append([who, 1])
+    return out
+
+
 def parse(tid):
     date = LINKS[tid]
     doc = io.open(cache(tid), encoding='utf-8').read()
     nm = html.unescape(re.search(r"Tournament name:\s*([^<\n]+)", doc).group(1)).strip()
     games, byes = [], []
+    night = set()
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", doc, re.S):
+        tds = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip()
+               for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+        if len(tds) >= 4 and tds[1]:
+            night.add(tds[1].strip().lower())
+        if len(tds) >= 6 and tds[5]:
+            night.add(tds[5].strip().lower())
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", doc, re.S):
         tds = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip()
                for c in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
         if len(tds) >= 4 and re.search(r"\bbye\b", " ".join(tds), re.I):
-            if tds[1]:
-                byes.append(canon(tds[1], date))
-            continue
+            continue          # the standings page is the authority on byes
         # a pairing with no result is a round that was set up but never played
         if len(tds) >= 6 and tds[1] and tds[5] and tds[3]:
-            games.append([canon(tds[1], date), canon(tds[5], date),
+            games.append([canon(tds[1], date, night), canon(tds[5], date, night),
                           "w" if tds[3] == "1-0" else ("b" if tds[3] == "0-1" else "d")])
-    return nm, games, byes
+    return nm, games, byes_from_standings(tid, date, night)
 
 
 def scrape():

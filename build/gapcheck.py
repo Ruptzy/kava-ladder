@@ -7,7 +7,7 @@ link on record, not only the ones most recently added.
 """
 import re, io, html, json, os, collections
 
-from gap2025 import LINKS, canon, cache  # one definition of each, shared
+from gap2025 import LINKS, canon, cache, parse  # one definition of each, shared
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 # the site writes Dave; the club writes his full name
@@ -17,6 +17,14 @@ SAME = {"Dave": "Dave Kecthum"}
 def standings(tid):
     date = LINKS[tid]
     doc = io.open(cache(tid, 'rating_'), encoding='utf-8').read()
+    # the same night context the importer uses, so the two Omars agree
+    pdoc = io.open(cache(tid), encoding='utf-8').read()
+    night = set()
+    for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", pdoc, re.S):
+        c = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip()
+             for x in re.findall(r"<td[^>]*>(.*?)</td>", tr, re.S)]
+        if len(c) >= 4 and c[1]: night.add(c[1].strip().lower())
+        if len(c) >= 6 and c[5]: night.add(c[5].strip().lower())
     nm = html.unescape(re.search(r"Tournament name:\s*([^<\n]+)", doc).group(1)).strip()
     out = {}
     for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", doc, re.S):
@@ -26,7 +34,7 @@ def standings(tid):
             continue
         for c in tds[2:]:
             try:
-                out[canon(tds[1], date)] = float(c)
+                out[canon(tds[1], date, night)] = float(c)
                 break
             except ValueError:
                 continue
@@ -44,9 +52,10 @@ for tid, d in sorted(LINKS.items(), key=lambda kv: kv[1]):
     for w, b, r in H[d]['games']:
         mine[w] += 1.0 if r == 'w' else (0.5 if r == 'd' else 0.0)
         mine[b] += 1.0 if r == 'b' else (0.5 if r == 'd' else 0.0)
-    # these nights all predate the full-point ruling; see BYE_FULL_FROM
+    # each bye carries what it was worth, straight off the standings
     for x in H[d].get('byes', []):
-        mine[x] += 1.0 if d >= '2026-09-01' else 0.5
+        who, pts = (x, 0.5) if isinstance(x, str) else (x[0], x[1])
+        mine[who] += pts
     names = set(site) | set(mine)
     off = [n for n in names if abs(site.get(n, -1) - mine.get(n, 0.0)) > 1e-6]
     checked += len(names)
