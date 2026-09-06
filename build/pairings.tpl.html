@@ -276,17 +276,24 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <div id="finish"></div>
     <button class="close" id="submitBtn" style="margin-top:1rem;background:var(--scarlet);color:#fff;border:none;font-weight:700;font-size:.72rem">Submit the night</button>
     <p class="hintline" id="submitState" style="margin:.4rem 0 .8rem"></p>
-    <button class="close" id="copyBtn">Copy results for Discord</button>
-    <button class="close" id="dscBtn">Post to Discord</button>
-    <p class="hintline" id="dscState"></p>
-    <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
-    <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
-    <button class="close" id="ladderBtn">Save the page as a file instead</button>
-    <button class="close" id="saveClub">Save club file</button>
-    <button class="close" id="loadClub">Load club file</button>
-    <input type="file" id="clubFile" accept=".json,application/json" style="display:none">
-    <button class="close" id="fileBtn">Save tonight&rsquo;s results only</button>
-    <button class="close" id="finishBtn" style="color:var(--loss);border-color:#4A2E16">Finish night &amp; clear the board</button>
+    <!-- Submit does both jobs, so everything else is a fallback and folds away.
+         Nine buttons of equal weight made it impossible to see which one to press. -->
+    <button class="close" id="moreBtn" style="color:var(--ink-3)">Other options &#9662;</button>
+    <div id="more" class="hidden">
+      <p class="hintline" style="margin:.6rem 0 .3rem">If Submit is not what you want, or half of it failed:</p>
+      <button class="close" id="pubBtn">Publish the website only</button>
+      <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
+      <button class="close" id="dscBtn">Post to Discord</button>
+      <p class="hintline" id="dscState"></p>
+      <button class="close" id="copyBtn">Copy results as text</button>
+      <p class="hintline" style="margin:.9rem 0 .3rem">Backups and exports:</p>
+      <button class="close" id="ladderBtn">Save the page as a file</button>
+      <button class="close" id="saveClub">Save club file</button>
+      <button class="close" id="loadClub">Load club file</button>
+      <input type="file" id="clubFile" accept=".json,application/json" style="display:none">
+      <button class="close" id="fileBtn">Save tonight&rsquo;s results only</button>
+    </div>
+    <button class="close" id="finishBtn" style="margin-top:1.2rem;color:var(--loss);border-color:#4A2E16">Finish night &amp; clear the board</button>
   </section>
 </div>
 
@@ -306,6 +313,13 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   <p class="hintline" id="nHint"></p>
   <button class="save" id="nSave">Add and check in</button>
   <button class="close" id="nCancel">Cancel</button>
+</div></div>
+
+<div class="sheet hidden" id="ask"><div class="card">
+  <h3 id="askTitle"></h3>
+  <p class="hintline" id="askBody" style="font-size:.9rem;line-height:1.5;color:var(--ink-2)"></p>
+  <button class="save" id="askYes"></button>
+  <button class="close" id="askNo">Cancel</button>
 </div></div>
 
 <div class="sheet hidden" id="confirm"><div class="card">
@@ -520,8 +534,8 @@ function go(v){view=v;
   render();scrollTo({top:0,behavior:"instant"})}
 $("#steps").onclick=e=>{const b=e.target.closest("button[data-s]");if(b&&!b.disabled)go(b.dataset.s)};
 $("#q").oninput=e=>{filter=e.target.value.toLowerCase();renderRoster()};
-$(".quick").onclick=e=>{const b=e.target.closest("button[data-q]");if(!b)return;
-  if(b.dataset.q==="none"){ if(rounds.length&&!confirm("Clear everyone? Rounds already played stay."))return;
+$(".quick").onclick=async e=>{const b=e.target.closest("button[data-q]");if(!b)return;
+  if(b.dataset.q==="none"){ if(rounds.length&&!await ask("Check everyone out?","Rounds already played stay exactly as they are.","Check everyone out"))return;
     playing.forEach(id=>{if(hasPlayed(id))gone.add(id);else playing.delete(id)}); }
   else if(b.dataset.q==="all") R.forEach(p=>{playing.add(p.id);gone.delete(p.id)});
   else R.forEach(p=>{if(p.idle<=30){playing.add(p.id);gone.delete(p.id)}});
@@ -601,19 +615,34 @@ function renderRound(){
 $("#rchips").onclick=e=>{const b=e.target.closest("[data-r]");if(b){cur=+b.dataset.r;render()}};
 $("#repair").onclick=e=>{const b=e.target.closest("[data-t]");if(b)roundTool(b.dataset.t)};
 $("#rtools").onclick=e=>{const b=e.target.closest("[data-t]");if(b)roundTool(b.dataset.t)};
-function roundTool(t){
+async function roundTool(t){
   const rd=rounds[cur];
-  if(t==="clear"){ if(!confirm(`Clear every result in round ${cur+1}?`))return;
-    rd.boards.forEach(x=>x.res=null); }
-  else if(t==="del"){ if(!confirm(`Delete round ${cur+1}? Later rounds are deleted too.`))return;
+  if(t==="clear"){
+    if(!await ask("Clear round "+(cur+1)+"?",
+      "Every result in this round goes back to not finished. The pairings stay as they are.",
+      "Clear the results")) return;
+    rd.boards.forEach(x=>x.res=null);
+  }
+  else if(t==="del"){
+    const later=rounds.length-cur-1;
+    if(!await ask("Delete round "+(cur+1)+"?",
+      later ? ("Round"+(later===1?" "+(cur+2):"s "+(cur+2)+" to "+rounds.length)+
+               " will go too, because they were paired from this one.")
+            : "The pairings and any results in it are removed.",
+      "Delete it")) return;
     rounds.splice(cur); cur=Math.max(0,rounds.length-1);
-    if(!rounds.length) go("in"); }
+    if(!rounds.length) go("in");
+  }
   else if(t==="redraw"){
     // only ask when there is actually something to lose
-    if(rd.boards.some(x=>x.res)&&!confirm(`Re-pair round ${cur+1}? Results entered in it will be cleared.`))return;
+    if(rd.boards.some(x=>x.res) && !await ask("Re-pair round "+(cur+1)+"?",
+      "Results already entered in this round will be cleared.","Re-pair it")) return;
     const keep=rounds.splice(cur);
     const nr=makeRound(cur);
-    if(!nr){alert("No legal pairing for these players. Try turning off ‘avoid rematches’ in settings.");rounds.push(...keep);return}
+    if(!nr){ rounds.push(...keep);
+      await say("No pairing possible",
+        "There is no legal way to pair these players. Turn off ‘avoid rematches’ in settings and try again.");
+      return }
     rounds.push(nr);                                   // later rounds are dropped: they were based on this one
   }
   refresh();render();
@@ -663,9 +692,9 @@ function renderBar(){
   }
 }
 function newRound(){
-  if(activeIds().length<2){alert("Check at least two players in first.");return}
+  if(activeIds().length<2){ say("Not enough players","Check at least two people in before drawing a round."); return }
   const nr=makeRound(rounds.length);
-  if(!nr){alert("No legal pairing left — everyone here has already played everyone else. Turn off ‘avoid rematches’ in settings, or finish here.");return}
+  if(!nr){ say("Nobody left to pair","Everyone here has already played everyone else. Turn off avoid-rematches in settings, or finish the night here."); return }
   rounds.push(nr);cur=rounds.length-1;refresh();go("round");
 }
 function render(){
@@ -3200,22 +3229,22 @@ async function save(){
   }
 }
 $("#finishBtn").onclick=async()=>{
-  if(!rounds.length){alert("No rounds played yet.");return}
-  if(!confirm("Finish the night? Copy or save the results first — this clears the board."))return;
+  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
+  if(!await ask("Finish the night?","This clears the board. Submit the night first if you have not - the results are not saved anywhere else.","Finish and clear")) return;
   if(db){
     try{
       const key="nights/"+new Date().toISOString().slice(0,10);
       await db.doc(key).set({...snapshot(), finished:true});
       await db.doc(NIGHT).set({at:Date.now(),playing:[],gone:[],added:[],rounds:[],cfg:{...CFG}});
       setSync("ok","night filed");
-    }catch(e){ alert("Could not file the night — you may be on a view-only link."); return }
+    }catch(e){ await say("Could not file the night","You may be on a view-only link."); return }
   }
   const rec=nightRecord();
   if(rec.games.length) HISTORY.push(rec);
   const P=runRatings(HISTORY,{...SEEDS});
   R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });   // ratings move on the roster
   playing=new Set(); gone=new Set(); rounds=[]; cur=0; clearLocal(); saveLocal(); go("in");
-  alert("Night filed. "+HISTORY.length+" nights on record — export the leaderboard when you are ready.");
+  say("Night filed",HISTORY.length+" nights on record. Export the leaderboard when you are ready.");
 };
 
 /* ---------- getting the results out, with no service in the middle ---------- */
@@ -3237,12 +3266,31 @@ function resultsText(){
   return lines.join(NL);
 }
 $("#copyBtn").onclick=async()=>{
-  if(!rounds.length){alert("No rounds played yet.");return}
+  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
   const txt=resultsText();
   try{ await navigator.clipboard.writeText(txt); $("#copyBtn").textContent="Copied — paste it into Discord"; 
        setTimeout(()=>$("#copyBtn").textContent="Copy results for Discord",2500); }
   catch(e){ prompt("Copy this:",txt) }
 };
+/* The tool draws its own dialogs. window.confirm returns false with no dialog
+   in the browser this runs in, which is what made Delete round, Re-pair and
+   Clear scores look broken: nothing could ever get past the guard. */
+let askResolve=null;
+function ask(title, body, yes){
+  return new Promise(res=>{
+    askResolve=res;
+    $("#askTitle").textContent=title;
+    $("#askBody").textContent=body||"";
+    $("#askYes").textContent=yes||"Yes";
+    $("#ask").classList.remove("hidden");
+  });
+}
+function askClose(v){ $("#ask").classList.add("hidden"); const r=askResolve; askResolve=null; if(r) r(v) }
+$("#askYes").onclick=()=>askClose(true);
+$("#askNo").onclick=()=>askClose(false);
+/* A message with nothing to decide. */
+function say(title, body){ return ask(title, body, "OK") }
+
 /* Everything about to happen, laid out to be checked against the board. */
 function confirmBody(){
   const st=derive(rounds.length+1);
@@ -3265,6 +3313,10 @@ function confirmBody(){
     ', then post <b>'+kind+'</b> to Discord'+(h.hook?'':' <span class="warn">\u2014 no webhook set</span>')+'.</p>';
 }
 
+$("#moreBtn").onclick=()=>{
+  const m=$("#more"), open=m.classList.toggle("hidden")===false;
+  $("#moreBtn").innerHTML="Other options "+(open?"▴":"▾");
+};
 $("#submitBtn").onclick=()=>{
   if(!rounds.length){ $("#submitState").textContent="No rounds to submit yet."; return }
   $("#confirmBody").innerHTML=confirmBody();
@@ -3312,12 +3364,12 @@ $("#pubBtn").onclick=async()=>{
     b.textContent="Live — tap to open";
     b.onclick=()=>window.open(url,"_blank");
     $("#pubLink").innerHTML='Club link: <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">GitHub takes a minute to refresh the page.</small>';
-  }catch(e){ b.textContent=was; alert(e.message||"Could not publish."); }
+  }catch(e){ b.textContent=was; say("Could not publish",e.message||""); }
   finally{ b.disabled=false }
 };
 $("#ladderBtn").onclick=async()=>{
   try{ await offerFile("index.html",buildLadder(),"text/html") }
-  catch(e){ alert(e.message||"Could not build the page.") }
+  catch(e){ say("Could not build the page",e.message||"") }
 };
 $("#saveClub").onclick=async()=>{
   await offerFile("kava-club.json",JSON.stringify(clubFile(),null,2));
@@ -3327,12 +3379,12 @@ $("#clubFile").onchange=e=>{
   const f=e.target.files&&e.target.files[0]; if(!f) return;
   const rd=new FileReader();
   rd.onload=()=>{ try{ loadClubFile(JSON.parse(rd.result)); saveLocal(); render();
-      alert("Club file loaded — "+R.length+" players, "+HISTORY.length+" nights.") }
-    catch(err){ alert(err.message||"Could not read that file.") } };
+      say("Club file loaded",R.length+" players, "+HISTORY.length+" nights.") }
+    catch(err){ say("Could not read that file",err.message||"") } };
   rd.readAsText(f); e.target.value="";
 };
 $("#fileBtn").onclick=async()=>{
-  if(!rounds.length){alert("No rounds played yet.");return}
+  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
   const name="kava-"+new Date().toISOString().slice(0,10)+".json";
   const data=JSON.stringify({night:snapshot(),
     players:[...playing].map(id=>({name:byId[id].n,rating:byId[id].r,bracket:byId[id].d})),
@@ -4281,7 +4333,7 @@ $("#nCancel").onclick=()=>$("#newSheet").classList.add("hidden");
 $("#newSheet").onclick=e=>{if(e.target.id==="newSheet")$("#newSheet").classList.add("hidden")};
 $("#nSave").onclick=()=>{
   const n=$("#nName").value.trim(); if(!n) return;
-  if(R.some(p=>p.n.toLowerCase()===n.toLowerCase())){alert("There is already somebody with that name.");return}
+  if(R.some(p=>p.n.toLowerCase()===n.toLowerCase())){ say("Name already taken","There is already somebody on the roster with that name."); return }
   const p={n,r:Math.max(100,Math.min(2600,+$("#nRate").value||suggest(nDiv))),d:nDiv,idle:0,id:R.length,fresh:true};
   R.push(p);byId[p.id]=p;playing.add(p.id);
   $("#newSheet").classList.add("hidden");filter="";$("#q").value="";

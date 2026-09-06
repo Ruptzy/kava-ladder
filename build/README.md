@@ -48,6 +48,14 @@ marked with their night count. Not winning a card is no reason to be left off
 the season. The rule is stated in the Discord post rather than left for somebody
 to discover when they do not get one.
 
+### Dialogs
+
+The tool draws its own (`ask()` / `say()`), and must. `window.confirm()` returns
+false instantly without drawing anything in the browser this runs in, so every
+action behind it was a silent no-op - Delete round, Re-pair and Clear scores all
+looked broken when in fact nothing could get past the guard. `alert()` failed the
+same way in reverse: warnings nobody ever saw. There are none of either left.
+
 ### Submitting a night
 
 **Submit the night** is the one button the evening ends on. It shows a
