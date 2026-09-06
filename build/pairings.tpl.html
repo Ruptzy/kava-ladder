@@ -3412,6 +3412,11 @@ async function rehearse(log){
       const r=await fetch(h.hook);
       if(r.ok){ const j=await r.json();
         add(true,"The Discord webhook is live","posts as \u201c"+(j.name||"webhook")+"\u201d");
+        // the one thing a read cannot prove: whether the channel lets it ping
+        add(true,"Posts will tag @everyone",
+          "One ping per post, on the first message. If it lands as grey text instead of a "+
+          "notification, the channel needs \u201cMention @everyone, @here, and All Roles\u201d "+
+          "turned on for the webhook.");
       }else add(false,"Discord will not accept that webhook","it answered "+r.status+" \u2014 make a new one");
     }catch(e){ add(false,"Could not reach Discord",e.message) }
   }
@@ -3796,10 +3801,10 @@ function canvasBlob(cv){
 }
 
 /* an attachment is multipart, not JSON */
-async function dscSendFile(hook,blob,filename,content){
+async function dscSendFile(hook,blob,filename,content,ping){
   const fd=new FormData();
   fd.append("payload_json",JSON.stringify({content:content||"",
-    allowed_mentions:{parse:[]}, avatar_url:clubAvatar()}));
+    allowed_mentions:mentions(ping), avatar_url:clubAvatar()}));
   fd.append("files[0]",blob,filename);
   const url=hook+(hook.indexOf("?")<0?"?wait=true":"&wait=true");
   for(let tries=0;tries<4;tries++){
@@ -4137,8 +4142,6 @@ function signOff(S,no,pc){
                      .reduce((a,n)=>a+n.games.length,0);
   const champs=champions(S);
   const L=[];
-  L.push("@everyone");
-  L.push("");
   L.push("\uD83C\uDFC6  **SEASON "+no+" IS IN THE BOOKS**  \uD83C\uDFC6");
   L.push("");
   L.push(S.bounds.nights+" nights. "+games+" games. Three brackets, three champions, and a "+
@@ -4208,16 +4211,16 @@ async function postHalfway(status){
   const S=seasonStats(), sh=seasonShape(), pc=pubCfg(), no=sh.no;
   const games=HISTORY.filter(n=>n.date>=S.bounds.from&&n.date<=S.bounds.to)
                      .reduce((a,n)=>a+n.games.length,0);
-  const head="# Season "+no+", halfway\n"+sh.nights+" of about "+sh.expected+
+  const head="@everyone\n# Season "+no+", halfway\n"+sh.nights+" of about "+sh.expected+
     " nights  \u00b7  "+games+" games so far";
   let sent=0;
   try{
     status&&status("drawing the standings\u2026");
     const blob=await canvasBlob(await seasonCanvas("STANDINGS SO FAR"));
     status&&status("posting the standings\u2026");
-    await dscSendFile(c.hook,blob,"kava-halfway.png",head);
+    await dscSendFile(c.hook,blob,"kava-halfway.png",head,true);
   }catch(e){
-    await dscSend(c.hook,head,null);
+    await dscSend(c.hook,head,null,true);
   }
   sent++;
   status&&status("posting where everyone stands\u2026");
@@ -4226,8 +4229,7 @@ async function postHalfway(status){
     .map(g=>({title:divLabel(g.d),color:DSC_RED,
               description:halfwayNotes(S,sh,g.d,g.rows).join(NL+NL)})));
   sent++;
-  const L=["@everyone","",
-    "\u26A1 **SEASON "+no+" IS HALF DONE** \u26A1","",
+  const L=["\u26A1 **SEASON "+no+" IS HALF DONE** \u26A1","",
     "The gift cards are still anybody's. You need **"+seasonMinNights(S)+" of the "+
     sh.expected+" nights** to be in the running, so if you have missed a couple, "+
     "now is the time to turn up.",""];
@@ -4272,7 +4274,7 @@ async function postSeason(status){
   const S=seasonStats(), pc=pubCfg(), no=seasonNumber();
   // the season crosses a year, so both ends carry theirs
   const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"long",year:"numeric"});
-  const head="# Season "+no+" is done\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
+  const head="@everyone\n# Season "+no+" is done\n"+fd(S.bounds.from)+" to "+fd(S.bounds.to)+
     "  \u00b7  "+S.bounds.nights+" nights  \u00b7  "+
     HISTORY.filter(n=>n.date>=S.bounds.from).reduce((a,n)=>a+n.games.length,0)+" games";
   let sent=0;
@@ -4280,10 +4282,10 @@ async function postSeason(status){
     status&&status("drawing the season\u2026");
     const blob=await canvasBlob(await seasonCanvas());
     status&&status("posting the season\u2026");
-    await dscSendFile(c.hook,blob,"kava-season.png",head);
+    await dscSendFile(c.hook,blob,"kava-season.png",head,true);
   }catch(e){
     status&&status("posting the season\u2026");
-    await dscSend(c.hook,head,null);
+    await dscSend(c.hook,head,null,true);
   }
   sent++;
   status&&status("posting what happened\u2026");
@@ -4310,8 +4312,15 @@ function clubAvatar(){
   return "https://ruptzy.github.io/kava-ladder/logo.png";
 }
 
-async function dscSend(hook,content,embeds){
-  const payload={allowed_mentions:{parse:[]}, avatar_url:clubAvatar()};
+/* Only the opening message of a posting run pings, and it pings the channel and
+   nothing else: "everyone" covers @everyone and @here, while users and roles stay
+   off the list so a player whose name happens to read like a handle can never
+   set off somebody's phone. One notification per club night, landing on the top
+   of the batch. */
+function mentions(ping){ return {parse: ping?["everyone"]:[]} }
+
+async function dscSend(hook,content,embeds,ping){
+  const payload={allowed_mentions:mentions(ping), avatar_url:clubAvatar()};
   if(content) payload.content=content;
   if(embeds&&embeds.length) payload.embeds=embeds;
   return dscPost(hook,payload);
@@ -4355,7 +4364,7 @@ async function postNight(status){
   if(!c.hook) throw new Error("Add the webhook in settings first.");
   const pc=pubCfg();
   const d=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
-  const head="## KAVA Social Chess Club"+NL+d+"  ·  "+rounds.length+
+  const head="@everyone"+NL+"## KAVA Social Chess Club"+NL+d+"  ·  "+rounds.length+
     " round"+(rounds.length===1?"":"s")+"  ·  "+playing.size+" played";
 
   let sent=1;
@@ -4363,11 +4372,11 @@ async function postNight(status){
     status&&status("drawing the leaderboard…");
     const blob=await canvasBlob(await nightCanvas());
     status&&status("posting the picture…");
-    await dscSendFile(c.hook,blob,"kava-"+new Date().toISOString().slice(0,10)+".png",head);
+    await dscSendFile(c.hook,blob,"kava-"+new Date().toISOString().slice(0,10)+".png",head,true);
   }catch(e){
     // a picture is nicer, a missing result is not acceptable
     status&&status("posting the leaderboard…");
-    await dscSend(c.hook,head,nightEmbeds());
+    await dscSend(c.hook,head,nightEmbeds(),true);
   }
   const parts=dscChunks(roundsText());
   for(let i=0;i<parts.length;i++){
