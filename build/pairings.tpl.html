@@ -3545,19 +3545,33 @@ async function dscSendFile(hook,blob,filename,content){
 }
 
 /* ---------- the season ----------
-   A season is everything since the club's last long break, worked out from the
-   dates so nobody has to remember to change a number next year.            */
-const SEASON_BREAK=60;              // days off that count as a new season
+   A season is three months. One anchor rather than a rule guessed from the
+   dates: season 9 is June to August 2026, Harold's own. Everything else counts
+   off that in three-month steps, so the club rolls into season 10 on its own
+   the first night anybody plays in September.                              */
+const SEASON_ANCHOR={no:9, from:"2026-06-01"};   // first day of that season
+const SEASON_MONTHS=3;
 const BYE_WHOLE_FROM="2026-09-01";  // before this a bye was scored at a half
 
+/* which season a date falls in, and when that season runs */
+function seasonOf(date){
+  const d=new Date(date+"T12:00"), a=new Date(SEASON_ANCHOR.from+"T12:00");
+  const months=(d.getFullYear()-a.getFullYear())*12+(d.getMonth()-a.getMonth());
+  const step=Math.floor(months/SEASON_MONTHS);
+  const from=new Date(a.getFullYear(), a.getMonth()+step*SEASON_MONTHS, 1);
+  const to=new Date(a.getFullYear(), a.getMonth()+(step+1)*SEASON_MONTHS, 0);
+  const iso=x=>x.getFullYear()+"-"+String(x.getMonth()+1).padStart(2,"0")+
+                "-"+String(x.getDate()).padStart(2,"0");
+  return {no:SEASON_ANCHOR.no+step, from:iso(from), to:iso(to)};
+}
+
+/* the season the last night played belongs to */
 function seasonBounds(){
   const ds=HISTORY.map(n=>n.date);
-  let start=0, longest=0;
-  for(let i=1;i<ds.length;i++){
-    const gap=(new Date(ds[i])-new Date(ds[i-1]))/86400000;
-    if(gap>=SEASON_BREAK&&gap>longest){ longest=gap; start=i }
-  }
-  return {from:ds[start], to:ds[ds.length-1], nights:ds.length-start, restedFor:Math.round(longest)};
+  const s=seasonOf(ds[ds.length-1]);
+  const inSeason=ds.filter(d=>d>=s.from&&d<=s.to);
+  return {no:s.no, from:inSeason[0], to:inSeason[inSeason.length-1],
+          runsFrom:s.from, runsTo:s.to, nights:inSeason.length};
 }
 
 /* Everything the season did, per player, in one pass. */
@@ -3612,12 +3626,16 @@ function seasonStats(){
 function byN2(n){ return R.find(p=>p.n===n)||null }
 
 /* One bracket's season table, strongest first. Same bar as the site: a rating
-   still finding its level does not get ranked, and three nights is a season. */
-const SEASON_RD=110, SEASON_MIN_NIGHTS=3;
+   still finding its level does not get ranked. Turning up is measured against
+   the length of the season rather than a flat number, because a three-month
+   season is six nights and a fixed three would ask for half of it. */
+const SEASON_RD=110;
+function seasonMinNights(S){ return Math.max(2,Math.ceil(S.bounds.nights/4)) }
 function seasonTable(S,div){
+  const need=seasonMinNights(S);
   return Object.keys(S.players)
     .map(n=>({...S.players[n], p:byN2(n)}))
-    .filter(x=>x.p&&x.p.d===div&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=SEASON_MIN_NIGHTS)
+    .filter(x=>x.p&&x.p.d===div&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=need)
     .sort((a,b)=>b.now-a.now);
 }
 
@@ -3628,7 +3646,14 @@ function seasonNotes(S,div,rows){
   const top=rows[0], second=rows[1];
   if(second){
     const gap=top.now-second.now;
-    out.push(gap>=80 ? "**"+top.n+"** finishes on top and it was not close \u2014 "+gap+" points clear of "+second.n+"."
+    // Finishing top on rating after two nights is not the same as winning the
+    // bracket, and saying it was "not close" to somebody who played every night
+    // would be the wrong note entirely.
+    out.push(top.nights<second.nights
+             ? "**"+top.n+"** finishes highest on rating, "+gap+" points clear, from "+
+               top.nights+" night"+(top.nights===1?"":"s")+". **"+second.n+"** was here for "+
+               second.nights+"."
+           : gap>=80 ? "**"+top.n+"** finishes on top and it was not close \u2014 "+gap+" points clear of "+second.n+"."
            : gap>=25 ? "**"+top.n+"** takes it, "+gap+" points ahead of "+second.n+"."
            : "**"+top.n+"** takes it by "+gap+" point"+(gap===1?"":"s")+". "+second.n+" will fancy their chances next time.");
   }else{
@@ -3650,16 +3675,11 @@ function seasonNotes(S,div,rows){
   return out.slice(0,4);
 }
 
-const SEASON_BASE=8;   // the run of nights in history.json opens with season 8
 const MILESTONES=[1000,1200,1400,1600,1800,2000];
 const CEILING={"U1000":1000,"U1400":1400};
 
-/* Counted from the club's breaks rather than typed in, so it stays right. */
 function seasonNumber(){
-  const ds=HISTORY.map(n=>n.date); let breaks=0;
-  for(let i=1;i<ds.length;i++)
-    if((new Date(ds[i])-new Date(ds[i-1]))/86400000>=SEASON_BREAK) breaks++;
-  return SEASON_BASE+breaks;
+  return seasonBounds().no;
 }
 
 /* Three kinds of level up, all earned on the board rather than awarded: through
@@ -3669,7 +3689,7 @@ function seasonNumber(){
 function levelUps(S){
   const out=[];
   const ranked=Object.keys(S.players).map(n=>({...S.players[n], p:byN2(n)}))
-    .filter(x=>x.p&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=SEASON_MIN_NIGHTS);
+    .filter(x=>x.p&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=seasonMinNights(S));
 
   ranked.filter(x=>x.was!=null).forEach(x=>{
     const hit=MILESTONES.filter(m=>x.was<m&&x.now>=m);
