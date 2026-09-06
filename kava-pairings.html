@@ -362,6 +362,7 @@ vertical-align:-.1em;margin-right:.15rem}
   <button class="close" id="rehearse">Rehearse a full submit</button>
   <div id="rehearseOut"></div>
   <div class="lbl">This device</div>
+  <p class="hintline" id="offlineState">Checking the offline copy&hellip;</p>
   <button class="close" id="lockBtn" style="color:var(--loss);border-color:#4A2E16">Lock — hand the phone over safely</button>
   <button class="close" id="closeSheet">Done</button>
 </div></div>
@@ -3420,6 +3421,19 @@ function resultsText(){
   });
   return lines.join(NL);
 }
+/* Keep a copy of this tool on the phone, so a bar with no wifi is not the end
+   of the night. The worker caches only this file; the public ladder is left
+   alone so members never see a stale board. */
+if("serviceWorker" in navigator&&location.protocol!=="file:"){
+  navigator.serviceWorker.register("sw.js").then(()=>{
+    const el=document.getElementById("offlineState");
+    if(el) el.textContent="Saved on this phone. It will open without signal.";
+  }).catch(()=>{
+    const el=document.getElementById("offlineState");
+    if(el) el.textContent="Could not save an offline copy - this needs signal to open.";
+  });
+}
+
 /* Buttons that were removed still have handlers below; on() lets those bind to
    nothing rather than throwing on a null. */
 function on(id, ev, fn){ const el=document.getElementById(id); if(el) el[ev]=fn }
