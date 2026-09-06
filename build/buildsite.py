@@ -192,7 +192,80 @@ def vault_totals(vault):
     return out
 
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None):
+def career_stats(history, arc_matches, link, names):
+    """Everything an achievement counts, over every night on record.
+
+    The old era is in here too: `link` maps a current name to whatever the old
+    workbook called them, which is the same mapping the All time table trusts.
+    Only the accumulating fields are computed - the ones a season can no longer
+    reach. Form is left to the season, where it belongs."""
+    back = {old: cur for cur, old in (link or {}).items()}
+    nights = {}
+    for night in history:
+        nights.setdefault(night["date"], []).extend(night["games"])
+    for d, w, b, r in arc_matches or []:
+        nights.setdefault(d, []).append([back.get(w, w), back.get(b, b), r])
+
+    every = sorted(nights)
+    idx = {d: i for i, d in enumerate(every)}
+    out = {}
+    for d in every:
+        per = {}
+        for w, b, r in nights[d]:
+            for me, k in ((w, 0 if r == "w" else 1 if r == "d" else 2),
+                          (b, 0 if r == "b" else 1 if r == "d" else 2)):
+                e = out.setdefault(me, {"rec": [0, 0, 0], "wh": [0, 0, 0], "bl": [0, 0, 0],
+                                        "nights": [], "opp": {}, "full": 0, "sweeps": 0,
+                                        "perfect5": False, "maxNight": 0})
+                e["rec"][k] += 1
+                per.setdefault(me, [0, 0, 0])[k] += 1
+            out[w]["wh"][0 if r == "w" else 1 if r == "d" else 2] += 1
+            out[b]["bl"][0 if r == "b" else 1 if r == "d" else 2] += 1
+            out[w]["opp"][b] = out[w]["opp"].get(b, 0) + 1
+            out[b]["opp"][w] = out[b]["opp"].get(w, 0) + 1
+        for me, wdl in per.items():
+            e = out[me]
+            e["nights"].append(idx[d])
+            g = sum(wdl)
+            if g > e["maxNight"]: e["maxNight"] = g
+            if g >= 5: e["full"] += 1
+            if wdl[1] == 0 and wdl[2] == 0 and wdl[0] >= 4: e["sweeps"] += 1
+            if wdl[1] == 0 and wdl[2] == 0 and wdl[0] >= 5: e["perfect5"] = True
+
+    def days(a, b):
+        import datetime
+        return (datetime.date.fromisoformat(b) - datetime.date.fromisoformat(a)).days
+
+    final = {}
+    for n in names:
+        e = out.get(n)
+        if not e: continue
+        ns = e["nights"]
+        run = best = 1 if ns else 0
+        for i in range(1, len(ns)):
+            if ns[i] == ns[i - 1] + 1:
+                run += 1; best = max(best, run)
+            else:
+                run = 1
+        gap = 0
+        for i in range(1, len(ns)):
+            gap = max(gap, days(every[ns[i - 1]], every[ns[i]]))
+        first, last = every[ns[0]], every[ns[-1]]
+        final[n] = {
+            "games": sum(e["rec"]), "rec": e["rec"], "wh": e["wh"], "bl": e["bl"],
+            "nights": len(ns), "bestRun": best, "backAfter": gap,
+            "months": len({every[i][:7] for i in ns}), "calYears": len({every[i][:4] for i in ns}),
+            "first": first, "last": last, "span": days(first, last),
+            "opps": len(e["opp"]), "topRival": max(e["opp"].values()) if e["opp"] else 0,
+            "full": e["full"], "sweeps": e["sweeps"], "perfect5": e["perfect5"],
+            "maxNight": e["maxNight"],
+            # what share of the club nights since they started they have turned up to
+            "share": len(ns) / max(1, len(every) - ns[0]),
+        }
+    return final
+
+
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None):
     PEAKS=peaks or {}
     VAULT=vault_totals(vault)
     VAULT_SUM={"nights":len(vault),"games":sum(len(n["games"]) for n in vault),
@@ -226,6 +299,8 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
              "seed":round(before[-1][1] if before else seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"] if d in di]}
         if not before: rec["nw"]=1     # no rating before this season: seed is a guess
+        cr=(career or {}).get(n)
+        if cr: rec["c"]=cr             # what they have done, over every night on record
         pk=PEAKS.get(n)
         if pk is not None: rec["pk"]=pk   # best band held over the lookback window
         v=VAULT.get(n)
@@ -260,8 +335,11 @@ if __name__=="__main__":
     P=run(HISTORY,SEEDS)
     SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
     PEAKS=window_peaks(P, lookback_start(SEASON["from"]), SEASON["from"])
+    try: ARCM=json.load(open(here('archive_raw.json')))['matches']
+    except Exception: ARCM=[]
+    CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
-                  HIDDEN,VAULTED,SEASON,PEAKS)
+                  HIDDEN,VAULTED,SEASON,PEAKS,CAREER)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people

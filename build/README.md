@@ -164,7 +164,17 @@ If any panel is missing the tabs fall back to plain text buttons.
 Podium cards live in `podium/1.png`, `2.png`, `3.png`; the circle position for
 each is set per card in the CSS, measured off the art.
 
-Achievements: 71 of them, defined in `ladderbuild.js` (search `var ACH=`). Each
+Achievements: 71 of them, defined in `ladderbuild.js` (search `var ACH=`).
+
+**They count a career, not a season.** Scoping the ladder to one season killed 44
+of them outright - six nights caps everybody at six nights and about thirty
+games, so "turn up to ten nights" and "play fifty games" were unreachable by
+arithmetic. `career_stats()` in `buildsite.py` counts every night the club has a
+record of, seasons 1-7 included, mapped through the same link the All time table
+uses; `achCtx()` reads those for anything that accumulates. Form stays seasonal -
+trophies, promotion, the climb, how much of the current field is left - because
+form is seasonal, and those thresholds are sized for six nights rather than
+thirty-three. Each
 has a stable id which doubles as its icon file name, `achievements/<id>.png`;
 see `achievements/README.md` for the full list. Missing icons fall back to an
 emoji, so art can be added a few at a time. Most are about turning up, variety and effort rather than strength, and unearned
