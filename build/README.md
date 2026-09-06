@@ -48,6 +48,20 @@ marked with their night count. Not winning a card is no reason to be left off
 the season. The rule is stated in the Discord post rather than left for somebody
 to discover when they do not get one.
 
+### Submitting a night
+
+**Submit the night** is the one button the evening ends on. It shows a
+confirmation first: the date, the rounds, the number who played, a warning if
+any board has no result, the full standings to check against the actual board,
+where the site will publish to, and which of the three Discord posts it will
+send. Then Cancel or "Yes - publish and post".
+
+The site publishes first, because the post links to it and a link to yesterday's
+numbers is worse than a post a minute late. If publishing fails, nothing is
+posted. If posting fails after publishing worked it says exactly that, so nobody
+has to guess which half went out, and the Discord button below is still there to
+retry.
+
 ### One button, three posts
 
 `postAuto()` works out which post the night calls for and the button says which

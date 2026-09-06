@@ -274,7 +274,9 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <table><thead><tr><th></th><th>Player</th><th style="text-align:right">Pts</th><th style="text-align:right">Colours</th></tr></thead>
       <tbody id="stand"></tbody></table>
     <div id="finish"></div>
-    <button class="close" id="copyBtn" style="margin-top:1rem">Copy results for Discord</button>
+    <button class="close" id="submitBtn" style="margin-top:1rem;background:var(--scarlet);color:#fff;border:none;font-weight:700;font-size:.72rem">Submit the night</button>
+    <p class="hintline" id="submitState" style="margin:.4rem 0 .8rem"></p>
+    <button class="close" id="copyBtn">Copy results for Discord</button>
     <button class="close" id="dscBtn">Post to Discord</button>
     <p class="hintline" id="dscState"></p>
     <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
@@ -304,6 +306,13 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   <p class="hintline" id="nHint"></p>
   <button class="save" id="nSave">Add and check in</button>
   <button class="close" id="nCancel">Cancel</button>
+</div></div>
+
+<div class="sheet hidden" id="confirm"><div class="card">
+  <h3>Check this <span style="color:var(--scarlet)">before it goes out</span></h3>
+  <div id="confirmBody"></div>
+  <button class="save" id="doSubmit">Yes &mdash; publish and post</button>
+  <button class="close" id="noSubmit">Cancel</button>
 </div></div>
 
 <div class="sheet hidden" id="sheet"><div class="card">
@@ -3372,6 +3381,66 @@ $("#copyBtn").onclick=async()=>{
        setTimeout(()=>$("#copyBtn").textContent="Copy results for Discord",2500); }
   catch(e){ prompt("Copy this:",txt) }
 };
+/* Everything about to happen, laid out to be checked against the board. */
+function confirmBody(){
+  const st=derive(rounds.length+1);
+  const ids=[...playing].sort((a,b)=>(st.score[b]-st.score[a])||(byId[b].r-byId[a].r));
+  const d=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  const c=pubCfg(), h=dscCfg();
+  let kind="tonight's results";
+  try{ const sh=seasonShape();
+       kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results") }catch(e){}
+  const miss=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
+  return '<p class="cf"><b>'+esc(d)+'</b><br>'+rounds.length+' round'+(rounds.length===1?"":"s")+
+      ' \u00b7 '+playing.size+' played'+(miss?' \u00b7 <span class="warn">'+miss+
+      ' board'+(miss===1?"":"s")+' with no result</span>':'')+'</p>'+
+    '<p class="cf">Check the standings against the board:</p>'+
+    '<table><tbody>'+ids.map((id,i)=>'<tr><td>'+(i+1)+'. '+esc(byId[id].n)+
+      (gone.has(id)?' <span style="color:var(--ink-3)">(left early)</span>':'')+
+      '</td><td class="r">'+scoreTxt(st.score[id]||0)+'</td></tr>').join("")+'</tbody></table>'+
+    '<p class="cf">This will publish the website'+(c.owner&&c.repo?' at <b>'+esc(siteUrl(c))+'</b>':
+      ' <span class="warn">\u2014 not set up yet</span>')+
+    ', then post <b>'+kind+'</b> to Discord'+(h.hook?'':' <span class="warn">\u2014 no webhook set</span>')+'.</p>';
+}
+
+$("#submitBtn").onclick=()=>{
+  if(!rounds.length){ $("#submitState").textContent="No rounds to submit yet."; return }
+  $("#confirmBody").innerHTML=confirmBody();
+  $("#confirm").classList.remove("hidden");
+};
+$("#noSubmit").onclick=()=>$("#confirm").classList.add("hidden");
+
+$("#doSubmit").onclick=async()=>{
+  const b=$("#doSubmit"), st=$("#submitState");
+  b.disabled=true;
+  const say=m=>{ b.textContent=m; if(st) st.textContent=m };
+  try{
+    // the site first: the post links to it, and a link to yesterday is worse
+    // than a post a minute late
+    say("publishing the website\u2026");
+    const url=await publishSite(buildLadder(), say);
+    say("posting to Discord\u2026");
+    let posted=null;
+    try{ posted=await postAuto(say) }
+    catch(e){
+      $("#confirm").classList.add("hidden");
+      st.innerHTML='<span style="color:var(--loss)">Website published, but Discord refused: '+
+        esc(e.message)+'</span><br>The site is live \u2014 you can post again from the button below.';
+      b.disabled=false; b.textContent="Yes \u2014 publish and post";
+      return;
+    }
+    $("#confirm").classList.add("hidden");
+    st.innerHTML='Published and posted. <a href="'+url+'" target="_blank" rel="noopener" '+
+      'style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">'+
+      posted.kind.charAt(0).toUpperCase()+posted.kind.slice(1)+' went out as '+posted.n+
+      ' message'+(posted.n===1?"":"s")+'. GitHub takes a minute to refresh.</small>';
+  }catch(e){
+    st.innerHTML='<span style="color:var(--loss)">Nothing was sent. '+esc(e.message||"Could not publish.")+'</span>';
+    $("#confirm").classList.add("hidden");
+  }
+  b.disabled=false; b.textContent="Yes \u2014 publish and post";
+};
+
 $("#pubBtn").onclick=async()=>{
   const b=$("#pubBtn"), was=b.textContent;
   try{
