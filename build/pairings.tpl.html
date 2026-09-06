@@ -361,6 +361,9 @@ vertical-align:-.1em;margin-right:.15rem}
     published, nothing is posted.</p>
   <button class="close" id="rehearse">Rehearse a full submit</button>
   <div id="rehearseOut"></div>
+  <button class="close" id="scrapBtn" style="color:var(--loss);border-color:#4A2E16">Throw this board away</button>
+  <p class="hintline">Clears the pairings and results without saving or posting anything. For
+    practice nights.</p>
   <div class="lbl">This device</div>
   <p class="hintline" id="offlineState">Checking the offline copy&hellip;</p>
   <button class="close" id="lockBtn" style="color:var(--loss);border-color:#4A2E16">Lock — hand the phone over safely</button>
@@ -3429,6 +3432,19 @@ function rehearseHTML(rows,done){
            "All clear. Submit will go through.")+'</p>':'');
 }
 
+{
+  const b=document.getElementById("scrapBtn");
+  if(b) b.onclick=async()=>{
+    if(!rounds.length&&!playing.size){ say("Nothing to throw away","The board is already empty."); return }
+    if(!await ask("Throw this board away?",
+      "The pairings and results are deleted. Nothing is saved to the club record, published or posted.",
+      "Throw it away")) return;
+    submitStage=null;
+    clearBoard();
+    $("#sheet").classList.add("hidden");
+    say("Board cleared","Ready for a fresh night.");
+  };
+}
 {
   const b=document.getElementById("rehearse");
   if(b) b.onclick=async()=>{
