@@ -726,7 +726,7 @@ function render(){
   $("#hsub").textContent=(CFG.style==="swiss"?"Swiss":CFG.style==="close"?"Closest rating":"Widest gap")+" · club night";
   /* Standings stays reachable with an empty board when a season is still owed
      its sign-off, because that is where Submit lives. */
-  const owed=finaleOwed();
+  const owed=finaleSendable();
   [...$("#steps").children].forEach(b=>{if(b.dataset.s!=="in")
     b.disabled=!rounds.length&&!(owed&&b.dataset.s==="stand")});
   if(view==="in")renderRoster(); if(view==="round")renderRound(); if(view==="stand")renderStand();
@@ -739,9 +739,12 @@ function syncSubmit(owed){
   if(!b) return;
   if(!rounds.length&&owed){
     let no=""; try{ no=seasonBounds().no }catch(e){}
+    const again=finaleDone(no);
     b.disabled=false;
-    b.textContent="Send off season "+no;
-    if(st) st.textContent="Nothing on the board. This posts the season finale to Discord.";
+    b.textContent=(again?"Send season ":"Send off season ")+no+(again?" again":"");
+    if(st) st.textContent=again
+      ? "Already sent. Delete the old messages first, or the channel gets both."
+      : "Nothing on the board. This posts the season finale to Discord.";
   }else{
     b.disabled=false;
     b.textContent="Submit the night";
@@ -3358,7 +3361,11 @@ function confirmBody(){
   if(!rounds.length){
     let no="", nights="";
     try{ const S=seasonBounds(); no=S.no; nights=S.nights }catch(e){}
-    return '<p class="cf"><b>Season '+no+' is over.</b><br>'+nights+
+    const again=finaleDone(no);
+    return (again?'<p class="cf"><span class="warn"><b>Season '+no+
+        ' has already been signed off.</b></span><br>Sending again posts all four '+
+        'messages a second time. Delete the old ones in Discord first.</p>':'')+
+      '<p class="cf"><b>Season '+no+' is over.</b><br>'+nights+
       ' nights, already in the club record.</p>'+
       '<p class="cf">Nothing is on the board, so there is no night to save and nothing new to '+
       'publish. This will only:</p>'+
@@ -3366,7 +3373,7 @@ function confirmBody(){
       (h.hook?'':' <span class="warn">— no webhook set</span>')+
       ' — the standings picture, each bracket, the level ups and the sign-off.<br>'+
       'It tags <b>@everyone</b>.</p>'+
-      '<p class="cf">A season can only be signed off once.</p>';
+      (again?'':'<p class="cf">A season can only be signed off once.</p>');
   }
   return '<p class="cf"><b>'+esc(d)+'</b><br>'+rounds.length+' round'+(rounds.length===1?"":"s")+
       ' \u00b7 '+playing.size+' played'+(miss?' \u00b7 <span class="warn">'+miss+
@@ -3384,7 +3391,7 @@ function confirmBody(){
 }
 
 $("#submitBtn").onclick=()=>{
-  if(!rounds.length&&!finaleOwed()){ $("#submitState").textContent="No rounds to submit yet."; return }
+  if(!rounds.length&&!finaleSendable()){ $("#submitState").textContent="No rounds to submit yet."; return }
   $("#confirmBody").innerHTML=confirmBody();
   $("#confirm").classList.remove("hidden");
 };
@@ -3727,7 +3734,7 @@ function nightEmbeds(){
       return medal+"**"+byId[id].n+"** — "+scoreTxt(sc)+
              "  ·  "+playerNightRecord(id)+left;
     });
-    return {title:divLabel(d), color:DSC_RED, description:lines.join(NL)};
+    return {title:divBadge(d), color:DSC_RED, description:lines.join(NL)};
   });
 }
 
@@ -3966,12 +3973,16 @@ function seasonTable(S,div){
 const eligible=rows=>rows.filter(x=>x.elig);
 
 /* Two or three lines a bracket, all of them from the season's own numbers. */
+/* One line per note, no blank line between them. Written out as sentences with
+   a paragraph break each, three brackets came to a screenful of text nobody
+   scrolls to the end of. The emoji carry the job the paragraph breaks were
+   doing: telling you at a glance which line is which. */
 function seasonNotes(S,div,rows){
   if(!rows.length) return [];
   const out=[], nights=S.bounds.nights, need=seasonMinNights(S);
   const able=eligible(rows);
   if(!able.length){
-    out.push("Nobody played "+need+" of the "+nights+" nights in this bracket, so the season prize goes unclaimed.");
+    out.push("\ud83d\udeab Nobody made "+need+" of the "+nights+" nights here \u2014 prize unclaimed.");
     return out;
   }
   const top=able[0], second=able[1];
@@ -3980,34 +3991,33 @@ function seasonNotes(S,div,rows){
     // Finishing top on rating after two nights is not the same as winning the
     // bracket, and saying it was "not close" to somebody who played every night
     // would be the wrong note entirely.
-    out.push(top.nights<second.nights
-             ? "**"+top.n+"** takes it, "+gap+" points clear, from "+
-               top.nights+" nights against **"+second.n+"**'s "+second.nights+"."
-           : gap>=80 ? "**"+top.n+"** finishes on top and it was not close \u2014 "+gap+" points clear of "+second.n+"."
-           : gap>=25 ? "**"+top.n+"** takes it, "+gap+" points ahead of "+second.n+"."
-           : "**"+top.n+"** takes it by "+gap+" point"+(gap===1?"":"s")+". "+second.n+" will fancy their chances next time.");
+    out.push("\ud83e\udd47 **"+top.n+"** \u2014 "+top.now+", "+(
+             top.nights<second.nights
+             ? gap+" clear of "+second.n+" on "+top.nights+" nights to "+second.nights
+           : gap>=80 ? gap+" clear of "+second.n
+           : gap>=25 ? gap+" ahead of "+second.n
+           : "by "+gap+". "+second.n+" is right there."));
   }else{
-    out.push("**"+top.n+"** held this bracket on their own this season.");
+    out.push("\ud83e\udd47 **"+top.n+"** \u2014 "+top.now+", held the bracket alone.");
   }
-  const missed=rows.filter(x=>!x.elig);
-  if(missed.length)
-    out.push("Played but short of the "+need+" nights the prize asks for: "+
-             missed.map(x=>"**"+x.n+"** ("+x.nights+")").join(", ")+".");
   // a climb off one night is noise, not a season, so this asks the same
   const climber=able.filter(x=>x.climb!=null).sort((a,b)=>b.climb-a.climb)[0];
   if(climber&&climber.climb>=25)
-    out.push("Biggest climb: **"+climber.n+"**, up "+climber.climb+" points across the season.");
+    out.push("\ud83d\udcc8 Biggest climb **"+climber.n+"** +"+climber.climb);
   const keenest=rows.slice().sort((a,b)=>b.nights-a.nights||b.games-a.games)[0];
   if(keenest&&keenest.nights>=Math.ceil(nights*0.5))
-    out.push("Turned up most: **"+keenest.n+"**, "+keenest.nights+" of the "+nights+" nights.");
+    out.push("\ud83d\udd25 Most nights **"+keenest.n+"** "+keenest.nights+" of "+nights);
   const winner=rows.slice().sort((a,b)=>b.wins-a.wins)[0];
   if(winner&&winner.wins>=2&&winner.n!==top.n)
-    out.push("Won the most nights: **"+winner.n+"**, top of the bracket "+winner.wins+" times.");
+    out.push("\ud83c\udfc5 Won the night "+winner.wins+" times: **"+winner.n+"**");
+  const missed=rows.filter(x=>!x.elig);
+  if(missed.length)
+    out.push("\u23f3 Short of "+need+" nights: "+
+             missed.map(x=>x.n+" "+x.nights).join(" \u00b7 "));
   const newcomers=rows.filter(x=>x.fresh);
   if(newcomers.length)
-    out.push("New to this board: "+newcomers.slice(0,5).map(x=>"**"+x.n+"**").join(", ")+
-             ". Everybody on it started exactly there.");
-  return out.slice(0,4);
+    out.push("\ud83c\udf31 New here: "+newcomers.slice(0,5).map(x=>x.n).join(" \u00b7 "));
+  return out.slice(0,5);
 }
 
 const MILESTONES=[1000,1200,1400,1600,1800,2000];
@@ -4027,22 +4037,29 @@ function levelUps(S){
     .filter(x=>x.p&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=seasonMinNights(S));
   // level ups are about the season, so they ask for the same attendance
 
+  /* Breaking your bracket ceiling and crossing the milestone at that number are
+     the same event, and they were being reported as two lines apiece: Josh got
+     a promotion line and a "went through 1400" line saying the same thing. One
+     line per player, promotion wording winning where both apply. */
+  const seen={};
+  const note=(n,sort,line)=>{ if(!seen[n]||seen[n].sort<sort) seen[n]={sort,line} };
+
   ranked.filter(x=>x.was!=null).forEach(x=>{
     const hit=MILESTONES.filter(m=>x.was<m&&x.now>=m);
-    if(hit.length){ const top=hit[hit.length-1];
-      out.push({sort:top, line:"**"+x.n+"** went through **"+top+"** — "+
-        x.was+" to "+x.now+" across the season."}) }
+    if(hit.length) note(x.n, hit[hit.length-1],
+      "📈 **"+x.n+"** "+x.was+" → **"+x.now+"**, through "+hit[hit.length-1]+".");
   });
 
   ranked.filter(x=>CEILING[x.p.d]&&x.now>=CEILING[x.p.d]).forEach(x=>{
-    out.push({sort:x.now+10000, line:"**"+x.n+"** finished on **"+x.now+"**, above the "+
-      divLabel(x.p.d)+" mark. That is a promotion earned on the board."});
+    note(x.n, x.now+10000, "⬆️ **"+x.n+"** "+(x.was!=null?x.was+" → ":"")+"**"+x.now+
+      "** — over the "+divLabel(x.p.d)+" mark. Promoted, and the prize is still theirs.");
   });
 
   const fresh=ranked.filter(x=>x.fresh&&x.nights>=4).sort((a,b)=>b.now-a.now)[0];
-  if(fresh) out.push({sort:-1, line:"**"+fresh.n+"** arrived this season and finished on "+
-    fresh.now+" after "+fresh.nights+" nights. Not a bad way in."});
+  if(fresh) note(fresh.n, -1, "🌱 **"+fresh.n+"** arrived and finished on "+
+    fresh.now+" after "+fresh.nights+" nights.");
 
+  Object.keys(seen).forEach(n=>out.push(seen[n]));
   return out.sort((a,b)=>b.sort-a.sort).map(x=>x.line).slice(0,6);
 }
 
@@ -4137,12 +4154,19 @@ async function seasonCanvas(title){
   return cv;
 }
 
+/* Strongest bracket first, so the pieces climb as the brackets do. */
+const DIV_PIECE=["♚","♜","♟"];
+function divBadge(d){
+  const i=DATA.divisions.indexOf(d);
+  return (i>=0&&i<DIV_PIECE.length?DIV_PIECE[i]+"  ":"")+divLabel(d);
+}
+
 function seasonEmbeds(){
   const S=seasonStats();
   return DATA.divisions.map(d=>({d, rows:seasonTable(S,d)}))
     .filter(g=>g.rows.length)
-    .map(g=>({title:divLabel(g.d), color:DSC_RED,
-              description:seasonNotes(S,g.d,g.rows).join(NL+NL)}));
+    .map(g=>({title:divBadge(g.d), color:DSC_RED,
+              description:seasonNotes(S,g.d,g.rows).join(NL)}));
 }
 
 /* Where the season stands, and therefore which post tonight calls for.
@@ -4234,17 +4258,17 @@ function halfwayNotes(S,sh,div,rows){
   if(able.length){
     const top=able[0], second=able[1];
     out.push(second
-      ? "**"+top.n+"** leads on "+top.now+", "+(top.now-second.now)+" clear of "+second.n+"."
-      : "**"+top.n+"** leads this bracket on "+top.now+".");
+      ? "🥇 **"+top.n+"** leads on "+top.now+", "+(top.now-second.now)+" clear of "+second.n
+      : "🥇 **"+top.n+"** leads on "+top.now+", alone up there");
   }
   const short=rows.filter(x=>!x.elig).sort((a,b)=>b.now-a.now);
   if(short.length){
-    out.push("Needs more nights to be in the running: "+
-      short.map(x=>"**"+x.n+"** ("+x.nights+" of "+need+")").join(", ")+".");
+    out.push("⏳ Needs "+need+" nights to be in the running: "+
+      short.map(x=>x.n+" "+x.nights).join(" · "));
   }
   const left=sh.expected-sh.nights;
   if(left>0&&short.length)
-    out.push("There "+(left===1?"is 1 night":"are "+left+" nights")+" left. Still plenty of time.");
+    out.push("📅 "+(left===1?"1 night":left+" nights")+" left. Still time.");
   return out.slice(0,3);
 }
 
@@ -4269,8 +4293,8 @@ async function postHalfway(status){
   status&&status("posting where everyone stands\u2026");
   await dscSend(c.hook,"",DATA.divisions.map(d=>({d,rows:seasonTable(S,d)}))
     .filter(g=>g.rows.length)
-    .map(g=>({title:divLabel(g.d),color:DSC_RED,
-              description:halfwayNotes(S,sh,g.d,g.rows).join(NL+NL)})));
+    .map(g=>({title:divBadge(g.d),color:DSC_RED,
+              description:halfwayNotes(S,sh,g.d,g.rows).join(NL)})));
   sent++;
   const L=["\u26A1 **SEASON "+no+" IS HALF DONE** \u26A1","",
     "The gift cards are still anybody's. You need **"+seasonMinNights(S)+" of the "+
@@ -4312,6 +4336,11 @@ function markFinale(no){ try{ localStorage.setItem(finaleKey(no),"1") }catch(e){
    publish. */
 function finaleOwed(){
   try{ const sh=seasonShape(); return !!(sh.finale&&!finaleDone(sh.no)) }catch(e){ return false }
+}
+/* Sent once already is not the same as not offered: a post that went out looking
+   wrong wants deleting and doing again. The button stays, the sheet warns. */
+function finaleSendable(){
+  try{ return !!seasonShape().finale }catch(e){ return false }
 }
 
 async function postAuto(status){
@@ -4356,7 +4385,7 @@ async function postSeason(status){
   const ups=levelUps(S);
   if(ups.length){
     status&&status("posting the level ups\u2026");
-    await dscSend(c.hook,"",[{title:"Level ups",color:DSC_RED,description:ups.join(NL+NL)}]);
+    await dscSend(c.hook,"",[{title:"⭐  Level ups",color:DSC_RED,description:ups.join(NL)}]);
     sent++;
   }
 
