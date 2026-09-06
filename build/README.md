@@ -199,11 +199,16 @@ renaming a bracket keeps working. `divhistory.json` is no longer read for
 trophies: the hand-kept sheets drifted five months behind the ratings and were
 putting U1400 cups on a rating of 927.
 
-**Brackets ratchet up and never down inside a season.** Your bracket is the
+**A bracket sticks for two seasons.** `SEASON_LOOKBACK` in `buildsite.py`. Your bracket is the
 highest band your rating has reached this season, so losing games on purpose at
 the end of one cannot drop anybody into an easier bracket to collect its
-rewards. It resets when the next season starts, so a genuinely worse run is
-recognised - just not mid-season and not on demand. A newcomer's seed sets no
+rewards. It does not reset at the season boundary either, which is the whole point: the
+ratchet alone only stopped the fast sandbag, losing on purpose in the last week
+to take that season's rewards. The patient one - tank the end of a season so the
+next opens in an easier bracket - needed the floor to look back a season too.
+Falling out of a band now takes two full seasons of playing below it, six months
+at three months a season, by which point nobody is sandbagging; they are just
+that player now. A newcomer's seed sets no
 floor: it is a number somebody typed, not a rating anybody has tested, so their
 floor starts at their first real one. Vinny is why that clause exists - seeded
 1000, plays like 695, and was being held in U1400 by the guess.

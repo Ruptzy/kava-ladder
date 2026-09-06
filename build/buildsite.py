@@ -123,6 +123,37 @@ def season_of(date):
     return no+step, "%04d-%02d-01"%(sy,sm), "%04d-%02d-01"%(ey,em)
 
 
+SEASON_LOOKBACK=2   # seasons a bracket sticks for, counting the current one
+
+
+def lookback_start(season_start):
+    """The first day of the window a bracket is held over: this season and the
+    SEASON_LOOKBACK-1 before it."""
+    d=season_start
+    for _ in range(SEASON_LOOKBACK-1):
+        y,m=int(d[:4]),int(d[5:7])
+        m-=SEASON_MONTHS
+        while m<1: m+=12; y-=1
+        d="%04d-%02d-01"%(y,m)
+    return d
+
+
+def window_peaks(P, frm, to):
+    """Each player's best rating entering a night inside the window. Ratings the
+    club has actually tested, so a seed nobody has played against sets nothing."""
+    out={}
+    for n,p in P.items():
+        best=None
+        prev=None
+        for date,r,rd in p["hist"]:
+            if prev is not None and frm<=date<to:
+                best=prev if best is None else max(best,prev)
+            prev=r
+        if best is not None:
+            out[n]=round(best)
+    return out
+
+
 def split_season(history):
     """The nights of the season the last night belongs to, and everything
     before them. Ratings are built from both; the page only shows the season."""
@@ -161,7 +192,8 @@ def vault_totals(vault):
     return out
 
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None):
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None):
+    PEAKS=peaks or {}
     VAULT=vault_totals(vault)
     VAULT_SUM={"nights":len(vault),"games":sum(len(n["games"]) for n in vault),
                "from":vault[0]["date"] if vault else None,
@@ -194,6 +226,8 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
              "seed":round(before[-1][1] if before else seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"] if d in di]}
         if not before: rec["nw"]=1     # no rating before this season: seed is a guess
+        pk=PEAKS.get(n)
+        if pk is not None: rec["pk"]=pk   # best band held over the lookback window
         v=VAULT.get(n)
         if v: rec["v"]=v
         if n not in divOf: rec["gh"]=1        # a visitor: games count, but off the ladder
@@ -225,8 +259,9 @@ if __name__=="__main__":
     # the replay reads everything; only the page narrows to the season
     P=run(HISTORY,SEEDS)
     SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
+    PEAKS=window_peaks(P, lookback_start(SEASON["from"]), SEASON["from"])
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
-                  HIDDEN,VAULTED,SEASON)
+                  HIDDEN,VAULTED,SEASON,PEAKS)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people
