@@ -35,6 +35,19 @@ whatever the roster file carried, so the ladder came out a few points different
 depending on which one built it. They are now seeded at 1000 explicitly, which
 is the number the site had been using all along, so nothing published moved.
 
+### Season prizes
+
+The prizes are gift cards Harold hands out, so eligibility is money rather than
+a scoreboard argument. It is **half the season's nights, rounded up** -
+`seasonMinNights()` in the pairing template. Cade finished top of U1400 on two
+nights of six while Omar Cruz played all six; without the rule the card went to
+Cade.
+
+Everybody who played still appears on the season card and in the write-up,
+marked with their night count. Not winning a card is no reason to be left off
+the season. The rule is stated in the Discord post rather than left for somebody
+to discover when they do not get one.
+
 ### Posting to Discord
 
 No bot. A Discord incoming webhook is a URL for one channel: POST to it and the

@@ -3625,41 +3625,54 @@ function seasonStats(){
 
 function byN2(n){ return R.find(p=>p.n===n)||null }
 
-/* One bracket's season table, strongest first. Same bar as the site: a rating
-   still finding its level does not get ranked. Turning up is measured against
-   the length of the season rather than a flat number, because a three-month
-   season is six nights and a fixed three would ask for half of it. */
+/* One bracket's season table, strongest first. Same bar as the site for being
+   ranked at all: a rating still finding its level does not count.
+
+   The prize is a gift card, so eligibility for it is half the nights, rounded
+   up. Everybody who played is still listed - not winning the card is no reason
+   to be left off the season - but only the eligible can take the bracket. */
 const SEASON_RD=110;
-function seasonMinNights(S){ return Math.max(2,Math.ceil(S.bounds.nights/4)) }
+function seasonMinNights(S){ return Math.ceil(S.bounds.nights/2) }
 function seasonTable(S,div){
   const need=seasonMinNights(S);
   return Object.keys(S.players)
     .map(n=>({...S.players[n], p:byN2(n)}))
-    .filter(x=>x.p&&x.p.d===div&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=need)
+    .filter(x=>x.p&&x.p.d===div&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=1)
+    .map(x=>({...x, elig:x.nights>=need}))
     .sort((a,b)=>b.now-a.now);
 }
+const eligible=rows=>rows.filter(x=>x.elig);
 
 /* Two or three lines a bracket, all of them from the season's own numbers. */
 function seasonNotes(S,div,rows){
   if(!rows.length) return [];
-  const out=[], nights=S.bounds.nights;
-  const top=rows[0], second=rows[1];
+  const out=[], nights=S.bounds.nights, need=seasonMinNights(S);
+  const able=eligible(rows);
+  if(!able.length){
+    out.push("Nobody played "+need+" of the "+nights+" nights in this bracket, so the season prize goes unclaimed.");
+    return out;
+  }
+  const top=able[0], second=able[1];
   if(second){
     const gap=top.now-second.now;
     // Finishing top on rating after two nights is not the same as winning the
     // bracket, and saying it was "not close" to somebody who played every night
     // would be the wrong note entirely.
     out.push(top.nights<second.nights
-             ? "**"+top.n+"** finishes highest on rating, "+gap+" points clear, from "+
-               top.nights+" night"+(top.nights===1?"":"s")+". **"+second.n+"** was here for "+
-               second.nights+"."
+             ? "**"+top.n+"** takes it, "+gap+" points clear, from "+
+               top.nights+" nights against **"+second.n+"**'s "+second.nights+"."
            : gap>=80 ? "**"+top.n+"** finishes on top and it was not close \u2014 "+gap+" points clear of "+second.n+"."
            : gap>=25 ? "**"+top.n+"** takes it, "+gap+" points ahead of "+second.n+"."
            : "**"+top.n+"** takes it by "+gap+" point"+(gap===1?"":"s")+". "+second.n+" will fancy their chances next time.");
   }else{
     out.push("**"+top.n+"** held this bracket on their own this season.");
   }
-  const climber=rows.filter(x=>x.climb!=null).sort((a,b)=>b.climb-a.climb)[0];
+  const missed=rows.filter(x=>!x.elig);
+  if(missed.length)
+    out.push("Played but short of the "+need+" nights the prize asks for: "+
+             missed.map(x=>"**"+x.n+"** ("+x.nights+")").join(", ")+".");
+  // a climb off one night is noise, not a season, so this asks the same
+  const climber=able.filter(x=>x.climb!=null).sort((a,b)=>b.climb-a.climb)[0];
   if(climber&&climber.climb>=25)
     out.push("Biggest climb: **"+climber.n+"**, up "+climber.climb+" points across the season.");
   const keenest=rows.slice().sort((a,b)=>b.nights-a.nights||b.games-a.games)[0];
@@ -3690,6 +3703,7 @@ function levelUps(S){
   const out=[];
   const ranked=Object.keys(S.players).map(n=>({...S.players[n], p:byN2(n)}))
     .filter(x=>x.p&&x.now!=null&&x.rd<=SEASON_RD&&x.nights>=seasonMinNights(S));
+  // level ups are about the season, so they ask for the same attendance
 
   ranked.filter(x=>x.was!=null).forEach(x=>{
     const hit=MILESTONES.filter(m=>x.was<m&&x.now>=m);
@@ -3759,7 +3773,7 @@ async function seasonCanvas(){
     y+=divHead-16;
     g.rows.forEach((r,i)=>{
       if(i%2===0){ c.fillStyle=CLR.panel; round(PAD-10,y-5,CARD_W-PAD*2+20,ROW-4,9); c.fill() }
-      if(i<3){
+      if(i<3&&r.elig){
         c.fillStyle=PLACE_CLR[i];
         c.beginPath(); c.arc(PAD+13,y+14,13,0,Math.PI*2); c.fill();
         c.fillStyle=CLR.bg; c.font=fnt(800,14,true);
@@ -3767,8 +3781,9 @@ async function seasonCanvas(){
         c.fillStyle=CLR.dim; c.font=fnt(500,14,true);
       }
       c.textAlign="center"; c.fillText(String(i+1), PAD+13, y+19); c.textAlign="left";
-      c.fillStyle=CLR.ink; c.font=fnt(i<3?700:500,18);
-      var nm=r.n; const room=CARD_W-PAD*2-300;
+      c.fillStyle=r.elig?CLR.ink:CLR.dim; c.font=fnt(i<3&&r.elig?700:500,18);
+      var nm=r.n+(r.elig?"":"  \u00b7  "+r.nights+" of "+S.bounds.nights);
+      const room=CARD_W-PAD*2-300;
       while(c.measureText(nm).width>room&&nm.length>4) nm=nm.slice(0,-2)+"\u2026";
       c.fillText(nm, PAD+40, y+20);
       c.textAlign="right";
@@ -3822,6 +3837,7 @@ async function postSeason(status){
   }
   sent++;
   status&&status("posting what happened\u2026");
+  // the rule is stated in the channel, not left for somebody to discover
   await dscSend(c.hook,"",seasonEmbeds()); sent++;
 
   const ups=levelUps(S);
@@ -3833,6 +3849,8 @@ async function postSeason(status){
 
   status&&status("signing off\u2026");
   await dscSend(c.hook,
+    "The season prize goes to the top of each bracket among everyone who played at "+
+    "least "+seasonMinNights(S)+" of the "+S.bounds.nights+" nights."+NL+NL+
     "That is Season "+no+". Thank you to everyone who turned up, wrote a result down, "+
     "or sat opposite somebody they had no business beating."+NL+NL+
     "**Season "+(no+1)+" starts next. See you next season.**"+
