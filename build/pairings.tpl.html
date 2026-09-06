@@ -722,7 +722,7 @@ function render(){
 }
 
 /* ---------- settings ---------- */
-$("#gear").onclick=()=>{renderSheet();renderPub();$("#sheet").classList.remove("hidden")};
+$("#gear").onclick=()=>{renderSheet();renderPub();renderDsc();$("#sheet").classList.remove("hidden")};
 $("#closeSheet").onclick=()=>$("#sheet").classList.add("hidden");
 $("#lockBtn").onclick=lockNow;
 $("#sheet").onclick=e=>{if(e.target.id==="sheet")$("#sheet").classList.add("hidden")};
