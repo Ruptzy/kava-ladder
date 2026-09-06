@@ -64,6 +64,7 @@ LINKS = {
 # a bare "Omar" to Cruz, which is right most nights and wrong on this one.
 PINNED = {
     ("2026-08-16", "omar"): "Omar Azab",
+    ("2026-08-30", "brian"): "Brian O",
 }
 # the last night of seasons 1-7, counted there already
 ARCHIVED = {"2024-11-24"}
