@@ -217,6 +217,14 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   text-transform:uppercase;cursor:pointer;min-height:52px;margin-top:.3rem}
 .save:disabled{background:var(--panel-2);color:var(--ink-3)}
 /* a working indicator, so a slow upload does not look like a frozen app */
+#rehearseOut{margin:.6rem 0 .2rem}
+#rehearseOut .rl{display:flex;gap:.5rem;align-items:flex-start;padding:.35rem 0;
+border-bottom:1px solid var(--rule);font-size:.83rem;line-height:1.45}
+#rehearseOut .rl b{flex:0 0 1.1rem;font-size:.9rem}
+#rehearseOut .ok b{color:#3BC79A}
+#rehearseOut .no b{color:var(--loss)}
+#rehearseOut .rl small{display:block;color:var(--ink-3);font-size:.76rem}
+#rehearseOut .sum{margin-top:.6rem;font-size:.86rem;font-weight:700}
 .spin{display:inline-block;width:.72em;height:.72em;border:2px solid var(--rule-2);
 border-top-color:var(--scarlet);border-radius:50%;animation:sp .7s linear infinite;
 vertical-align:-.1em;margin-right:.15rem}
@@ -348,6 +356,11 @@ vertical-align:-.1em;margin-right:.15rem}
   <p class="hintline">In Discord: Server Settings &rarr; Integrations &rarr; Webhooks &rarr; New Webhook,
     point it at #ladder-standings, then Copy Webhook URL. Kept on this phone only, like the token above.</p>
   <button class="close" id="dTest">Send a test message</button>
+  <div class="lbl">Before the first night</div>
+  <p class="hintline">Runs every step of Submit and stops before the two that write. Nothing is
+    published, nothing is posted.</p>
+  <button class="close" id="rehearse">Rehearse a full submit</button>
+  <div id="rehearseOut"></div>
   <div class="lbl">This device</div>
   <button class="close" id="lockBtn" style="color:var(--loss);border-color:#4A2E16">Lock — hand the phone over safely</button>
   <button class="close" id="closeSheet">Done</button>
@@ -3319,6 +3332,104 @@ $("#submitBtn").onclick=()=>{
   $("#confirm").classList.remove("hidden");
 };
 $("#noSubmit").onclick=()=>$("#confirm").classList.add("hidden");
+
+/* Every step Submit takes, short of the two that write. A read-only dress
+   rehearsal, so the first night of a season is not the first time anybody finds
+   out whether the token was pasted correctly. */
+async function rehearse(log){
+  const out=[], add=(ok,label,detail)=>{ out.push({ok,label,detail}); log&&log(out) };
+  const c=pubCfg(), h=dscCfg();
+
+  // 1. is there a night to work with
+  if(rounds.length){
+    const missing=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
+    add(!missing, rounds.length+" rounds on the board, "+playing.size+" players",
+      missing?missing+" board(s) still have no result":"every board has a result");
+  }else{
+    add(false,"No night on the board",
+      "Draw a round and enter some results first, then rehearse again. The checks below still run.");
+  }
+
+  // 2. filing it, then straight back out
+  let filed=null, html=null;
+  try{
+    filed=fileNight();
+    add(true,"The night files into the club record",
+      filed?(filed.games.length+" games would be added"):"nothing to file yet");
+  }catch(e){ add(false,"The night will not file",e.message) }
+
+  // 3. the page builds - this is where a data problem shows up
+  try{
+    html=buildLadder();
+    add(true,"The website builds",Math.round(html.length/1024)+"KB");
+  }catch(e){ add(false,"The website will not build",e.message) }
+  finally{ unfileNight(filed) }
+
+  // 4. can the token actually push
+  if(!c.owner||!c.repo||!c.token){
+    add(false,"GitHub is not set up",
+      "Fill in the username, repository and token above. Without them nothing can publish.");
+  }else{
+    try{
+      const r=await ghCheck(c);
+      const canPush=!(r.permissions&&!r.permissions.push);
+      add(canPush,"GitHub accepts the token",
+        canPush?("can write to "+(r.full_name||c.owner+"/"+c.repo)):
+                "the token can read "+(r.full_name||"")+" but not write to it");
+    }catch(e){ add(false,"GitHub refused",e.message) }
+  }
+
+  // 5. is the webhook real
+  if(!h.hook){
+    add(false,"Discord is not set up","Paste the webhook URL above.");
+  }else{
+    try{
+      const r=await fetch(h.hook);
+      if(r.ok){ const j=await r.json();
+        add(true,"The Discord webhook is live","posts as \u201c"+(j.name||"webhook")+"\u201d");
+      }else add(false,"Discord will not accept that webhook","it answered "+r.status+" \u2014 make a new one");
+    }catch(e){ add(false,"Could not reach Discord",e.message) }
+  }
+
+  // 6. what tonight would actually send
+  try{
+    const sh=seasonShape();
+    const kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results");
+    add(true,"Tonight would post "+kind,
+      "season "+sh.no+", night "+sh.nights+" of about "+sh.expected);
+    if(rounds.length){
+      const blob=await canvasBlob(await (sh.finale?seasonCanvas():nightCanvas()));
+      add(blob.size<8*1024*1024,"The picture draws",Math.round(blob.size/1024)+"KB");
+    }
+  }catch(e){ add(false,"Could not work out tonight's post",e.message) }
+
+  return out;
+}
+
+function rehearseHTML(rows,done){
+  const bad=rows.filter(r=>!r.ok).length;
+  return rows.map(r=>'<div class="rl '+(r.ok?"ok":"no")+'"><b>'+(r.ok?"\u2713":"\u2715")+'</b>'+
+      '<span>'+esc(r.label)+(r.detail?'<small>'+esc(r.detail)+'</small>':'')+'</span></div>').join("")+
+    (done?'<p class="sum" style="color:'+(bad?"var(--loss)":"#3BC79A")+'">'+
+      (bad?bad+" thing"+(bad===1?"":"s")+" to fix before the first night.":
+           "All clear. Submit will go through.")+'</p>':'');
+}
+
+{
+  const b=document.getElementById("rehearse");
+  if(b) b.onclick=async()=>{
+    const box=$("#rehearseOut");
+    b.disabled=true; b.textContent="Rehearsing\u2026";
+    box.innerHTML='<p class="hintline"><span class="spin"></span> running every step\u2026</p>';
+    try{
+      const rows=await rehearse(rs=>{ box.innerHTML=rehearseHTML(rs,false) });
+      box.innerHTML=rehearseHTML(rows,true);
+    }catch(e){
+      box.innerHTML='<p class="hintline" style="color:var(--loss)">The rehearsal itself failed: '+esc(e.message)+'</p>';
+    }
+    b.disabled=false; b.textContent="Rehearse a full submit";
+  };
+}
 
 /* Nothing waits forever. A phone in a bar loses signal mid-upload and fetch
    will happily hang until the tab is closed, which looks exactly like the app

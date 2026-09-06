@@ -56,6 +56,18 @@ action behind it was a silent no-op - Delete round, Re-pair and Clear scores all
 looked broken when in fact nothing could get past the guard. `alert()` failed the
 same way in reverse: warnings nobody ever saw. There are none of either left.
 
+### Rehearsing before a season
+
+**Rehearse a full submit**, in settings, runs every step Submit runs and stops
+before the two that write. It files the night and takes it straight back out,
+builds the real page and measures it, asks GitHub whether the token can actually
+push (a read), asks Discord whether the webhook is real (also a read), works out
+which of the three posts tonight would be, and draws the picture. Then it lists
+what works and what does not, and why.
+
+It exists because the setup is only ever wrong on the one night it matters. If
+every line is a tick, the first night of a season will go through.
+
 ### Submitting a night
 
 **Submit the night** is the one button the evening ends on, and it does the
