@@ -3872,9 +3872,14 @@ function signOff(S,no,pc){
   L.push("**SEASON "+(no+1)+" STARTS NEXT. SEE YOU THERE.** \u265C\u265E");
   if(pc.owner&&pc.repo){
     L.push("");
-    L.push("Full standings, every player's page, night by night: "+siteUrl(pc));
+    L.push("\uD83D\uDCCA **LOOK YOURSELF UP** \u2014 "+siteUrl(pc));
+    L.push("Every single player has their own page. Your rating graph night by night, "+
+           "every game you have played, your record against everybody in the club, your "+
+           "trophies, your achievements, and the whole club history going back to 2022.");
+    L.push("Go find your name and see what your season actually looked like. "+
+           "Tap somebody else's while you are there \u2014 you might not like what the "+
+           "head-to-head says.");
   }
-  L.push("Want your personal rating graph? DM me.");
   return L.join(NL);
 }
 
