@@ -1457,7 +1457,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <div class="top"><div class="w">
 <div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="112" height="112">
-<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small>Seasons <b>8&ndash;9</b></small></div>
+<div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small id="wmSeason"></small></div>
 <div class="season"><b>Season 10</b><small>up next</small></div></div>
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -1471,7 +1471,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <main id="board">
 <section class="ln" id="ln"></section>
 <div class="pod" id="pod"></div>
-<div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p>Seasons 8 &amp; 9 &middot; tap a name</p></div>
+<div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p id="ladSub">&nbsp;</p></div>
 <p class="l">Beat someone better, gain more. The <b>&plusmn;</b> is wiggle room &mdash; it shrinks as you play.</p>
 <div class="sortbar">
 <div class="sorts" id="sorts"></div>
@@ -1512,10 +1512,10 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="box"><div class="sc"><table><thead><tr>
 <th style="padding-left:1rem">#</th><th>Player</th><th class="r">Old-system rating</th><th class="r hm">Games</th><th class="hm">W&ndash;D&ndash;L</th><th class="hm">Since then</th>
 </tr></thead><tbody id="arc"></tbody></table></div></div>
-<div class="sh"><h2>All <span>time</span></h2><p>Seasons 1&ndash;7 and 8&ndash;9 added together</p></div>
+<div class="sh"><h2>All <span>time</span></h2><p>Every era the club has a record of, added together</p></div>
 <p class="l">Everyone who played in both eras, with their whole record at the club.</p>
 <div class="box"><div class="sc"><table><thead><tr>
-<th style="padding-left:1rem">Player</th><th class="r">Games</th><th class="hm">Seasons 1&ndash;7</th><th class="hm">Seasons 8 &amp; 9</th><th>All time</th>
+<th style="padding-left:1rem">Player</th><th class="r">Games</th><th class="hm">Seasons 1&ndash;7</th><th class="hm">Since then</th><th>All time</th>
 </tr></thead><tbody id="alltime"></tbody></table></div></div>
 </main>
 <main id="rv" class="hid">
@@ -1552,6 +1552,12 @@ const D=${JSON.stringify(D)};
 const $=s=>document.querySelector(s), E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 var esc=E;
 const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1;
+/* The ladder is one season. Everything before it is the vault: still in the
+   ratings, because Glicko needs the whole run to know what anybody is worth,
+   but off the board and counted only where a total is claimed. */
+const SEASON=D.season||null, VAULT=D.vault||null;
+const SEA=SEASON?("Season "+SEASON.no):"This season";
+const seaLower=SEASON?("season "+SEASON.no):"this season";
 /* ALL includes the one-off visitors, so their games still count towards the
    regulars' records and ratings. P is who the site actually shows. */
 const ALL=D.players, P=ALL.filter(p=>!p.gh);
@@ -1728,7 +1734,9 @@ window.addEventListener("hashchange",route);
   const fresh=D.built&&daysBetween(D.built,today)<=2;
   $("#upd").className="upd"+(fresh?" fresh":"");
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; includes <b>'+fshort(D.date)+'</b>'+(D.next?'<br>Next night <b>'+fshort(D.next)+'</b>':'');
-  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; seasons 8 &amp; 9: "+D.games.length+" games across "+DATES.length+" club nights &middot; seasons 1&ndash;7 archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
+  { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
+  { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
+  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
 const TABART=D.tabart||[];
@@ -1737,7 +1745,9 @@ const TABS=[{i:"all"}].concat(D.divisions.map(d=>({i:d})));
 const artOK=TABS.every(t=>TABART.indexOf(tabSlug(t.i))>=0);
 if(artOK) $("#tabs").classList.add("art");
 $("#tabs").innerHTML=TABS.map(t=>{
-  const n=t.i==="all"?P.length:P.filter(p=>p.d===t.i).length;
+  // the count is who played this season, which is what the tab opens onto
+  const played=P.filter(p=>p.games>0);
+  const n=t.i==="all"?played.length:played.filter(p=>p.d===t.i).length;
   const art=artOK?'<i class="ta" style="background-image:url(tabs/'+tabSlug(t.i)+'.png)"></i>':'';
   return '<button role="tab" data-d="'+E(t.i)+'" aria-selected="false" aria-label="'+E(longDiv(t.i))+', '+n+' players">'+art+
     '<span class="lg">'+E(longDiv(t.i))+'</span><span class="sm">'+E(shortDiv(t.i))+'</span>'+
@@ -1784,14 +1794,16 @@ document.addEventListener("click",e=>{ if(!e.target.closest(".srch")) hideSearch
 
 /* ---------- board ---------- */
 const pct=(w,d,g)=>g?Math.round((w+d/2)/g*100):0;
-const pool=()=>P.filter(p=>div==="all"||p.d===div);
+/* A season's ladder is the people who played it. Somebody who missed the
+   whole season keeps their rating and their page, but is not on the board. */
+const pool=()=>P.filter(p=>p.games>0&&(div==="all"||p.d===div));
 const rank=()=>pool().filter(p=>!away(p)&&p.rd<=RS);
 const prov=()=>pool().filter(p=>!away(p)&&p.rd>RS);
 const gone=()=>pool().filter(away);
 const SORTS=[
  {k:"r", ic:"🏆", t:"Rating",         col:"Last night", val:p=>p.r, show:null, note:"Ranked once the ± is 110 or less. Away after 90 days without a game."},
  {k:"win", ic:"🎯", t:"Win rate",       col:"Win rate",   val:p=>pct(p.rec[0],p.rec[1],p.games), show:p=>pct(p.rec[0],p.rec[1],p.games)+"%", min:8, note:"Draws count half. Fewer than 8 games drops to the bottom."},
- {k:"g", ic:"♟️", t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game in seasons 8 and 9."},
+ {k:"g", ic:"♟️", t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game this season."},
  {k:"imp", ic:"📈", t:"Most improved",  col:"3 months",   val:p=>p.imp==null?-9999:p.imp,
    show:p=>p.imp!=null?(p.imp>0?"+"+p.imp:p.imp)
      :'<span style="font-size:.7rem;color:var(--ink-3)">'+(p.d===DIVS[0]?"—":"settling")+'</span>',
@@ -1989,7 +2001,10 @@ function drawArchive(){
 }
 function nightsAll(){
   // one row per club night, oldest first: [date, games, players, white, drawn, black, era]
-  const out=(ARC&&ARC.tl?ARC.tl:[]).map(x=>x.concat([0]));
+  // three eras, drawn as two: the old records, then everything since. The
+    // vault is in "since" because that is what the All time column means too.
+    const out=(ARC&&ARC.tl?ARC.tl:[]).map(x=>x.concat([0]));
+    ((VAULT&&VAULT.tl)||[]).forEach(x=>out.push(x.concat([1])));
   DATES.forEach((d,i)=>{
     let g=0,w=0,dr=0,b=0; const pl={};
     D.games.forEach(x=>{ if(x[0]!==i) return; g++; pl[x[1]]=1; pl[x[2]]=1;
@@ -2025,7 +2040,7 @@ function timelineChart(s){
   return svgWrap(ticks+bars+marks,W,H,"Games played on each club night since 2022")+
     '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#5B6067;margin-right:.3rem"></i>Seasons 1&ndash;7</span>'+
-    '<span><i style="display:inline-block;width:12px;height:9px;background:#FE273A;margin-right:.3rem"></i>Seasons 8 &amp; 9</span></div>'+
+    '<span><i style="display:inline-block;width:12px;height:9px;background:#FE273A;margin-right:.3rem"></i>Since then</span></div>'+
     '<p class="cap">Games played on each of the '+rows.length+' club nights on record. Busiest was '+
     fdate(s.busiest[0])+' with '+s.busiest[1]+' games.</p>';
 }
@@ -2056,7 +2071,7 @@ function colourChart2(s){
   const o=s.old.reduce((a,r)=>[a[0]+r[3],a[1]+r[4],a[2]+r[5]],[0,0,0]);
   const n=s.now.reduce((a,r)=>[a[0]+r[3],a[1]+r[4],a[2]+r[5]],[0,0,0]);
   return (s.old.length?bar("Seasons 1&ndash;7",o[0],o[1],o[2]):'')+
-    (s.now.length?bar("Seasons 8 &amp; 9",n[0],n[1],n[2]):'')+
+    (s.now.length?bar("Since then",n[0],n[1],n[2]):'')+
     bar("All time",s.w,s.d,s.b)+
     '<p class="cap">Who wins with which colour, across every recorded game.</p>';
 }
@@ -2082,8 +2097,11 @@ function drawAllTime(){
   const rows=Object.keys(ARC.link).map(cur=>{
     const a=ARCBY[ARC.link[cur]], p=byN[cur];
     if(!a||!p) return null;
-    const tot=[p.rec[0]+a.rec[0],p.rec[1]+a.rec[1],p.rec[2]+a.rec[2]];
-    return {n:cur, old:a, g:p.games+a.g, now:p.rec, tot:tot};
+    // "since seasons 1-7" is the vault plus this season, or the totals lose 813 games
+    const v=p.v||[0,0,0,0];
+    const since=[p.rec[0]+v[0],p.rec[1]+v[1],p.rec[2]+v[2]], sinceG=p.games+v[3];
+    const tot=[since[0]+a.rec[0],since[1]+a.rec[1],since[2]+a.rec[2]];
+    return {n:cur, old:a, g:sinceG+a.g, now:since, tot:tot};
   }).filter(Boolean).sort((x,y)=>y.g-x.g);
   if(!rows.length){ $("#alltime").innerHTML=''; return }
   $("#alltime").innerHTML=rows.map(r=>'<tr data-n="'+E(r.n)+'" tabindex="0" role="button">'+
@@ -2096,12 +2114,14 @@ function drawAllTime(){
 function legacyFor(p){
   const key=ARC&&ARC.link?ARC.link[p.n]:null, a=key?ARCBY[key]:null;
   if(!a) return "";
-  const tot=[p.rec[0]+a.rec[0], p.rec[1]+a.rec[1], p.rec[2]+a.rec[2]], g=p.games+a.g;
+  const v=p.v||[0,0,0,0];
+  const since=[p.rec[0]+v[0], p.rec[1]+v[1], p.rec[2]+v[2]], sinceG=p.games+v[3];
+  const tot=[since[0]+a.rec[0], since[1]+a.rec[1], since[2]+a.rec[2]], g=sinceG+a.g;
   const td=(t,extra)=>'<td style="padding:.35rem .2rem;'+(extra||"")+'">'+t+'</td>';
   return '<p style="margin:0 0 .8rem;color:var(--ink-2);font-size:.86rem">Played as <b>'+E(a.n)+'</b> in seasons 1&ndash;7.</p>'+
    '<table style="font-size:.86rem"><tbody>'+
    '<tr>'+td("Seasons 1&ndash;7","color:var(--ink-3)")+td(a.g+" games","text-align:right;font-family:var(--fm)")+td(a.rec.join("–"),"text-align:right;font-family:var(--fm);font-weight:700")+'</tr>'+
-   '<tr>'+td("Seasons 8 &amp; 9","color:var(--ink-3)")+td(p.games+" games","text-align:right;font-family:var(--fm)")+td(p.rec.join("–"),"text-align:right;font-family:var(--fm);font-weight:700")+'</tr>'+
+   '<tr>'+td("Since then","color:var(--ink-3)")+td(sinceG+" games","text-align:right;font-family:var(--fm)")+td(since.join("–"),"text-align:right;font-family:var(--fm);font-weight:700")+'</tr>'+
    '<tr>'+td("All time","font-weight:700;padding:.5rem .2rem")+td(g+" games","text-align:right;font-family:var(--fm);font-weight:700")+td(tot.join("–"),"text-align:right;font-family:var(--fm);font-weight:700;color:var(--gain)")+'</tr>'+
    '</tbody></table><p class="cap">Old-system rating back then: '+a.r+'. Not comparable with today&rsquo;s number.</p>';
 }
@@ -2381,7 +2401,7 @@ function facts(p){
   if(p.avgOpp) c.push([surprise(function(x){return x.avgOpp||0},p.avgOpp)-.05,"📏",p.avgOpp,"Average rating of everyone they have faced."]);
   var oppsN=Object.keys(p.opp).length; if(oppsN>=2) c.push([surprise(function(x){return Object.keys(x.opp).length},oppsN)-.05,"🌍",oppsN,"Different opponents faced."]);
   if(p.first) c.push([surprise(function(x){return x.first},p.first)-.1,"🌱",fshort(p.first),"First night on the board."]);
-  if(p.games>=2) c.push([surprise(function(x){return x.games},p.games)-.1,"♜",p.games,"Games played in seasons 8 and 9."]);
+  if(p.games>=2) c.push([surprise(function(x){return x.games},p.games)-.1,"♜",p.games,"Games played in "+seaLower+"."]);
   if(p.low&&p.peak&&p.peak[0]-p.low[0]>=150&&p.games>=10) c.push([surprise(function(x){return x.peak&&x.low?x.peak[0]-x.low[0]:0},p.peak[0]-p.low[0]),"🎢",(p.peak[0]-p.low[0])+" pts","Between their lowest and highest rating."]);
   c.sort(function(a,b){return b[0]-a[0]});
   return c.slice(0,5).map(function(f){return [f[1],f[2],f[3]]});

@@ -108,7 +108,65 @@ def anonymise(history, seeds, hidden):
     return h, {a.get(k, k): v for k, v in seeds.items()}
 
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=()):
+SEASON_ANCHOR=(9,"2026-06-01")   # season 9 opens here; three months each
+SEASON_MONTHS=3
+
+
+def season_of(date):
+    """Which season a date falls in, and the calendar window it runs over."""
+    no,anchor=SEASON_ANCHOR
+    y,m=int(date[:4]),int(date[5:7])
+    ay,am=int(anchor[:4]),int(anchor[5:7])
+    step=((y-ay)*12+(m-am))//SEASON_MONTHS
+    sm=am+step*SEASON_MONTHS; sy=ay+(sm-1)//12; sm=(sm-1)%12+1
+    em=sm+SEASON_MONTHS; ey=sy+(em-1)//12; em=(em-1)%12+1
+    return no+step, "%04d-%02d-01"%(sy,sm), "%04d-%02d-01"%(ey,em)
+
+
+def split_season(history):
+    """The nights of the season the last night belongs to, and everything
+    before them. Ratings are built from both; the page only shows the season."""
+    if not history:
+        return None, [], []
+    no,start,end=season_of(history[-1]["date"])
+    season=[h for h in history if start<=h["date"]<end]
+    vault=[h for h in history if h["date"]<start]
+    return {"no":no,"from":start,"to":end}, vault, season
+
+
+def vault_timeline(vault):
+    """One row per vaulted night, shaped like the old era's: the club history
+    page draws all three eras off the same rows."""
+    out=[]
+    for night in vault:
+        w=d=b=0; who=set()
+        for a,c,r in night["games"]:
+            who.add(a); who.add(c)
+            if r=="w": w+=1
+            elif r=="b": b+=1
+            else: d+=1
+        out.append([night["date"], len(night["games"]), len(who), w, d, b])
+    return out
+
+
+def vault_totals(vault):
+    """Each player's record across the vaulted nights, as a total."""
+    out={}
+    for night in vault:
+        for w,b,r in night["games"]:
+            for n,k in ((w, 0 if r=="w" else 1 if r=="d" else 2),
+                        (b, 0 if r=="b" else 1 if r=="d" else 2)):
+                e=out.setdefault(n,[0,0,0,0])
+                e[k]+=1; e[3]+=1
+    return out
+
+
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None):
+    VAULT=vault_totals(vault)
+    VAULT_SUM={"nights":len(vault),"games":sum(len(n["games"]) for n in vault),
+               "from":vault[0]["date"] if vault else None,
+               "to":vault[-1]["date"] if vault else None,
+               "tl":vault_timeline(vault)}
     dates=[h["date"] for h in history]; last=dates[-1] if dates else None
     names=[]; ni={}
     def id_(n):
@@ -128,8 +186,15 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=()):
     for n,p in P.items():
         if p["n"]<=0: continue
         n=show(n)
-        rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),"seed":round(seeds.get(n,1000)),
-             "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"]]}
+        # hist and seed are trimmed to the nights the page holds, so the
+        # journey chart starts where the season does rather than at a rating
+        # from a year ago that nothing on this page explains
+        before=[h for h in p["hist"] if h[0] not in di]
+        rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),
+             "seed":round(before[-1][1] if before else seeds.get(n,1000)),
+             "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"] if d in di]}
+        v=VAULT.get(n)
+        if v: rec["v"]=v
         if n not in divOf: rec["gh"]=1        # a visitor: games count, but off the ladder
         if awayOf.get(n): rec["aw"]=1
         if activeOf.get(n): rec["ac"]=1
@@ -144,7 +209,8 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=()):
         while built and d.isoformat()<built and guard<12: d+=datetime.timedelta(days=med); guard+=1
         nxt=d.isoformat()
     return {"club":"KAVA Social Chess Club","built":built,"date":last,"next":nxt,"divisions":divisions,
-            "dates":dates,"names":names,"games":games,"byes":byes,"players":players,"archive":archive}
+            "dates":dates,"names":names,"games":games,"byes":byes,"players":players,"archive":archive,
+            "season":season,"vault":VAULT_SUM}
 
 if __name__=="__main__":
     HISTORY=json.load(open(here('history.json'))); SEEDS=json.load(open(here('seeds.json')))
@@ -155,8 +221,11 @@ if __name__=="__main__":
     except Exception: HIDDEN=[]
     built=datetime.date.today().isoformat()
     HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
+    # the replay reads everything; only the page narrows to the season
     P=run(HISTORY,SEEDS)
-    D=ladder_data(P,HISTORY,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,HIDDEN)
+    SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
+    D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
+                  HIDDEN,VAULTED,SEASON)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people
@@ -170,6 +239,9 @@ if __name__=="__main__":
              .replace('${SITE}',SITE).replace('${DESC}',DESC).replace('<\\/script>','</script>'))
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
+    print('season %d: %s .. %s | vault %d nights, %d games'
+          % (SEASON["no"], D["dates"][0], D["dates"][-1], len(VAULTED),
+             sum(len(n["games"]) for n in VAULTED)))
     print('players',len([p for p in D["players"] if not p.get("gh")]),
           '(+%d visitors)'%len([p for p in D["players"] if p.get("gh")]),
           '| games',len(D["games"]),'| nights',len(D["dates"]),

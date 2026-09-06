@@ -76,6 +76,25 @@ served from the same public site as the ladder. Nothing can be published from it
 without the GitHub token, which Harold types in and which lives only in his
 phone's storage.
 
+## Seasons and the vault
+
+A season is three months, anchored in `buildsite.py` on season 9 opening
+1 June 2026. Everything else counts off that in three-month steps, so the club
+rolls into season 10 on its own the first night anybody plays in September.
+
+The ladder is one season. The vault is every night before it. Ratings are built
+from **both** - Glicko needs the whole run to know what anybody is worth, and a
+six-night season could never settle a rating on its own - but the games, records,
+trophies and achievements on the board are the season's. A player who missed the
+season keeps their rating and their page and is not on the board.
+
+Two places have to remember the vault exists or they quietly lose 813 games: the
+All time table, which adds seasons 1-7 to the vault to the season, and the club
+history page, which draws all three eras off the same per-night rows and so needs
+`D.vault.tl`. Both are covered; the totals on the history page are the check
+worth watching, since they should always say 3,166 games over 88 nights until
+somebody plays again.
+
 ## Where the games come from
 
 Three importers, all writing `history.json`:
