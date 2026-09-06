@@ -48,6 +48,26 @@ marked with their night count. Not winning a card is no reason to be left off
 the season. The rule is stated in the Discord post rather than left for somebody
 to discover when they do not get one.
 
+### One button, three posts
+
+`postAuto()` works out which post the night calls for and the button says which
+before it is pressed.
+
+* **Tonight's results** on a normal night.
+* **The halfway update** once the season reaches `seasonShape().mid` nights -
+  floor of the expected length, because rounding up put it on night four of six.
+  It fires once per season and remembers that on the phone, so a reload does not
+  offer it again.
+* **The season finale** when the next night due would land in the following
+  season, which is knowable on the night rather than after waiting to see if
+  anybody turns up.
+
+The expected length of a season is its window over the club's usual gap between
+nights, so none of it is typed in.
+
+The halfway post is the one that changes behaviour: it names, per bracket,
+exactly who is short of the nights a gift card needs and how many are left.
+
 ### Posting to Discord
 
 No bot. A Discord incoming webhook is a URL for one channel: POST to it and the
@@ -178,6 +198,17 @@ Podium cards live in `podium/1.png`, `2.png`, `3.png`; the circle position for
 each is set per card in the CSS, measured off the art.
 
 Achievements: 71 of them, defined in `ladderbuild.js` (search `var ACH=`).
+
+Each one carries the night it was earned (`achWhen`), and a profile leads with a
+feed of the last three nights' worth. `playerAsOf()` rebuilds only what the tests
+read and winds the career totals back by whatever the season did after that
+night, which is what makes a career achievement land on the right night instead
+of the first one. Anything already true before the season shows as earned
+earlier rather than dated; that night is in the vault.
+
+The dated milestones panel is gone. Seventy-one achievements with progress cover
+everything it listed and a good deal it did not, and two panels saying
+overlapping things was one too many.
 
 **They count a career, not a season.** Scoping the ladder to one season killed 44
 of them outright - six nights caps everybody at six nights and about thirty

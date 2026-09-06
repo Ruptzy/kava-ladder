@@ -276,7 +276,6 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <div id="finish"></div>
     <button class="close" id="copyBtn" style="margin-top:1rem">Copy results for Discord</button>
     <button class="close" id="dscBtn">Post to Discord</button>
-    <button class="close" id="seaBtn">Post the season summary</button>
     <p class="hintline" id="dscState"></p>
     <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
     <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
@@ -3726,7 +3725,7 @@ function levelUps(S){
   return out.sort((a,b)=>b.sort-a.sort).map(x=>x.line).slice(0,6);
 }
 
-async function seasonCanvas(){
+async function seasonCanvas(title){
   const S=seasonStats();
   const groups=DATA.divisions.map(d=>({div:d, rows:seasonTable(S,d).slice(0,10)}))
                              .filter(g=>g.rows.length);
@@ -3757,7 +3756,7 @@ async function seasonCanvas(){
   c.fillStyle=CLR.ink; c.font=fnt(800,26);
   c.fillText("KAVA SOCIAL CHESS CLUB", lx, y+25);
   c.fillStyle=CLR.red; c.font=fnt(800,26);
-  c.fillText("SEASON COMPLETE", lx, y+53);
+  c.fillText(title||"SEASON COMPLETE", lx, y+53);
   const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
   c.fillStyle=CLR.dim; c.font=fnt(500,13,true);
   c.fillText((fd(S.bounds.from)+" \u2013 "+fd(S.bounds.to)+"   \u00b7   "+
@@ -3825,6 +3824,31 @@ function seasonEmbeds(){
               description:seasonNotes(S,g.d,g.rows).join(NL+NL)}));
 }
 
+/* Where the season stands, and therefore which post tonight calls for.
+
+   The club plays every other Sunday, so the number of nights a three-month
+   season should hold is its length over the usual gap. Halfway is half of that.
+   The finale is when the next night due would land in the next season - which
+   is knowable on the night, without waiting to see whether anybody turns up. */
+function seasonShape(){
+  const b=seasonBounds();
+  const ds=HISTORY.map(n=>n.date);
+  const gaps=[];
+  for(let i=1;i<ds.length;i++) gaps.push((new Date(ds[i])-new Date(ds[i-1]))/86400000);
+  gaps.sort((x,y)=>x-y);
+  const usual=gaps.length?gaps[Math.floor(gaps.length/2)]:14;
+  const span=(new Date(b.runsTo)-new Date(b.runsFrom))/86400000+1;
+  const expected=Math.max(1,Math.round(span/usual));
+  const next=new Date(new Date(b.to+"T12:00").getTime()+usual*86400000);
+  const iso=next.getFullYear()+"-"+String(next.getMonth()+1).padStart(2,"0")+
+            "-"+String(next.getDate()).padStart(2,"0");
+  const finale=iso>b.runsTo;
+  // floored: rounding up put the halfway post on night four of six
+  const mid=Math.max(2,Math.floor(expected/2));
+  return {...b, expected, usual, nextDue:iso, finale, mid,
+          halfway:!finale&&b.nights>=mid};
+}
+
 /* The champions, and whether they broke their section's ceiling doing it. */
 function champions(S){
   return DATA.divisions.map(d=>{
@@ -3881,6 +3905,92 @@ function signOff(S,no,pc){
            "head-to-head says.");
   }
   return L.join(NL);
+}
+
+/* Halfway. The one line that matters is how many more nights somebody needs,
+   so it is per player and it is specific. */
+function halfwayNotes(S,sh,div,rows){
+  const out=[], need=seasonMinNights(S);
+  const able=eligible(rows);
+  if(able.length){
+    const top=able[0], second=able[1];
+    out.push(second
+      ? "**"+top.n+"** leads on "+top.now+", "+(top.now-second.now)+" clear of "+second.n+"."
+      : "**"+top.n+"** leads this bracket on "+top.now+".");
+  }
+  const short=rows.filter(x=>!x.elig).sort((a,b)=>b.now-a.now);
+  if(short.length){
+    out.push("Needs more nights to be in the running: "+
+      short.map(x=>"**"+x.n+"** ("+x.nights+" of "+need+")").join(", ")+".");
+  }
+  const left=sh.expected-sh.nights;
+  if(left>0&&short.length)
+    out.push("There "+(left===1?"is 1 night":"are "+left+" nights")+" left. Still plenty of time.");
+  return out.slice(0,3);
+}
+
+async function postHalfway(status){
+  const c=dscCfg();
+  if(!c.hook) throw new Error("Add the webhook in settings first.");
+  const S=seasonStats(), sh=seasonShape(), pc=pubCfg(), no=sh.no;
+  const games=HISTORY.filter(n=>n.date>=S.bounds.from&&n.date<=S.bounds.to)
+                     .reduce((a,n)=>a+n.games.length,0);
+  const head="# Season "+no+", halfway\n"+sh.nights+" of about "+sh.expected+
+    " nights  \u00b7  "+games+" games so far";
+  let sent=0;
+  try{
+    status&&status("drawing the standings\u2026");
+    const blob=await canvasBlob(await seasonCanvas("STANDINGS SO FAR"));
+    status&&status("posting the standings\u2026");
+    await dscSendFile(c.hook,blob,"kava-halfway.png",head);
+  }catch(e){
+    await dscSend(c.hook,head,null);
+  }
+  sent++;
+  status&&status("posting where everyone stands\u2026");
+  await dscSend(c.hook,"",DATA.divisions.map(d=>({d,rows:seasonTable(S,d)}))
+    .filter(g=>g.rows.length)
+    .map(g=>({title:divLabel(g.d),color:DSC_RED,
+              description:halfwayNotes(S,sh,g.d,g.rows).join(NL+NL)})));
+  sent++;
+  const L=["@everyone","",
+    "\u26A1 **SEASON "+no+" IS HALF DONE** \u26A1","",
+    "The gift cards are still anybody's. You need **"+seasonMinNights(S)+" of the "+
+    sh.expected+" nights** to be in the running, so if you have missed a couple, "+
+    "now is the time to turn up.",""];
+  if(pc.owner&&pc.repo){
+    L.push("\uD83D\uDCCA **See exactly where you stand** \u2014 "+siteUrl(pc));
+    L.push("Your rating graph, every game, your record against everybody, and how many "+
+           "nights you have in.");
+  }
+  L.push("");
+  L.push("Next night: **"+fdLong(sh.nextDue)+"**. Bring something for the top of your bracket.");
+  await dscSend(c.hook,L.join(NL));
+  sent++;
+  return sent;
+}
+
+function fdLong(s){
+  return new Date(s+"T12:00").toLocaleDateString("en-GB",
+    {weekday:"long",day:"numeric",month:"long"});
+}
+
+/* One button. It works out which of the three tonight is. */
+/* Whether the halfway post has gone out for a season, kept on the phone so a
+   reload does not offer it a second time. */
+function halfwayKey(no){ return "kava.halfway."+no }
+function halfwayDone(no){ try{ return localStorage.getItem(halfwayKey(no))==="1" }catch(e){ return false } }
+function markHalfway(no){ try{ localStorage.setItem(halfwayKey(no),"1") }catch(e){} }
+
+async function postAuto(status){
+  const sh=seasonShape();
+  if(sh.finale) return {kind:"the season finale", n:await postSeason(status)};
+  if(sh.halfway&&!halfwayDone(sh.no)){
+    const n=await postHalfway(status);
+    markHalfway(sh.no);
+    return {kind:"the halfway update", n};
+  }
+  return {kind:"tonight's results", n:await postNight(status)};
 }
 
 async function postSeason(status){
@@ -4031,39 +4141,37 @@ function renderPub(){
     setTimeout(()=>{ b.textContent="Send a test message" },4500);
   };
 }
+/* One button. It says which of the three it is about to send before you press
+   it, so nothing is a surprise, and it works the answer out from the season. */
+function autoLabel(){
+  try{
+    const sh=seasonShape();
+    if(sh.finale) return "Post the season finale";
+    if(sh.halfway&&!halfwayDone(sh.no)) return "Post the halfway update";
+    return "Post tonight's results";
+  }catch(e){ return "Post to Discord" }
+}
+function renderAuto(){
+  const b=document.getElementById("dscBtn");
+  if(b&&!b.disabled) b.textContent=autoLabel();
+}
 {
   const b=document.getElementById("dscBtn");
   if(b) b.onclick=async()=>{
-    const was=b.textContent, st=$("#dscState");
+    const st=$("#dscState");
     b.disabled=true;
     try{
-      const n=await postNight(m=>{ if(st) st.textContent=m });
+      const r=await postAuto(m=>{ if(st) st.textContent=m });
       b.textContent="Posted";
-      if(st) st.textContent="In the channel"+(n>1?" as "+n+" messages":"")+".";
+      if(st) st.textContent=r.kind.charAt(0).toUpperCase()+r.kind.slice(1)+
+        " is in the channel, "+r.n+" message"+(r.n===1?"":"s")+".";
     }catch(e){
-      b.textContent="Post to Discord";
       if(st) st.textContent=e.message;
     }
     b.disabled=false;
-    setTimeout(()=>{ b.textContent=was },4000);
+    setTimeout(renderAuto,4000);
   };
-}
-{
-  const b=document.getElementById("seaBtn");
-  if(b) b.onclick=async()=>{
-    const was=b.textContent, st=$("#dscState");
-    b.disabled=true;
-    try{
-      const n=await postSeason(m=>{ if(st) st.textContent=m });
-      b.textContent="Posted";
-      if(st) st.textContent="The season is in the channel, "+n+" messages.";
-    }catch(e){
-      b.textContent=was;
-      if(st) st.textContent=e.message;
-    }
-    b.disabled=false;
-    setTimeout(()=>{ b.textContent=was },4000);
-  };
+  renderAuto();
 }
 $("#pTest").onclick=async()=>{
   const b=$("#pTest"), c=pubCfg(); b.textContent="Checking…";

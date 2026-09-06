@@ -276,7 +276,6 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <div id="finish"></div>
     <button class="close" id="copyBtn" style="margin-top:1rem">Copy results for Discord</button>
     <button class="close" id="dscBtn">Post to Discord</button>
-    <button class="close" id="seaBtn">Post the season summary</button>
     <p class="hintline" id="dscState"></p>
     <button class="close" id="pubBtn" style="background:var(--scarlet);color:#fff;border:none;font-weight:700">Publish to the club website</button>
     <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
@@ -1243,6 +1242,14 @@ text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.5rem}
 .ach{position:relative;display:flex;gap:.55rem;align-items:flex-start;padding:.55rem .6rem;border-radius:8px;
 border:1px solid var(--rule);background:rgba(30,32,35,.6)}
+.feed{margin:0 0 .9rem;padding:.7rem .8rem;border:1px solid var(--rule-2);border-radius:10px;
+background:linear-gradient(150deg,rgba(254,39,58,.07),rgba(30,32,35,.6) 70%)}
+.feed>b{display:block;font-family:var(--fm);font-size:.6rem;letter-spacing:.16em;
+text-transform:uppercase;color:var(--scarlet);margin-bottom:.45rem}
+.fd{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;margin-top:.35rem}
+.fd small{font-family:var(--fm);font-size:.62rem;color:var(--ink-3);min-width:3.6rem}
+.fa{font-size:.78rem;color:var(--ink-2);background:var(--panel-2);border:1px solid var(--rule);
+border-radius:999px;padding:.18rem .5rem}
 .ach.hunt{border-style:dashed;background:linear-gradient(150deg,rgba(59,199,154,.1),rgba(30,32,35,.7) 65%)}
 .ach.hunt.got{border-color:var(--gain)}
 .ach.hunt .pgb{margin-top:.35rem}
@@ -1713,23 +1720,7 @@ function derive(){
     p.topDiv=Object.keys(p.byDiv).sort((a,b)=>divRank(a)-divRank(b))[0]||p.d;
     p.recent=lg.slice(-10).reverse();
     p.bigNight=0; p.nightly.forEach(n=>{ if(!n.first&&n.delta>p.bigNight) p.bigNight=n.delta });
-    p.milestones=milestonesOf(p);
   });
-}
-function milestonesOf(p){
-  const out=[], lg=p.log; if(!lg.length) return out;
-  const add=(ni,label,detail)=>out.push([DATES[ni],label,detail||""]);
-  add(lg[0].ni,"First game","against "+anon(lg[0].o));
-  const fw=lg.find(l=>l.s===1); if(fw) add(fw.ni,"First win","against "+anon(fw.o));
-  const fu=lg.find(l=>l.s===1&&!(l.first&&lg.length>4)&&l.orat-l.mrat>=UPSET); if(fu) add(fu.ni,"First upset","beat "+fu.o+", rated "+(fu.orat-fu.mrat)+" higher");
-  let cur=0, s5=false, s10=false;
-  lg.forEach(l=>{ cur=l.s===1?cur+1:0; if(cur===5&&!s5){ s5=true; add(l.ni,"Five wins in a row") } if(cur===10&&!s10){ s10=true; add(l.ni,"Ten wins in a row") } });
-  [25,50,100,150].forEach(k=>{ if(lg.length>=k) add(lg[k-1].ni,k+" games played") });
-  let bestWin=null; lg.forEach(l=>{ if(l.s===1&&(!bestWin||l.orat>bestWin.orat)) bestWin=l });
-  if(bestWin&&p.games>=5) add(bestWin.ni,"Best win so far","beat "+bestWin.o+" when they were rated "+bestWin.orat);
-  if(p.peak&&p.games>=8) out.push([p.peak[1],"Career high","rating reached "+p.peak[0]]);
-  out.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);
-  return out;
 }
 derive();
 
@@ -2381,6 +2372,78 @@ var ACH=[
  A("improve-120","📈","On the Up","Gain 120 points over three months.",(p,c)=>p.imp!=null&&p.imp>=120,(p,c)=>[Math.max(0,p.imp||0),120])
 ];
 var ACHART=(D.achart&&D.achart.length)?D.achart:[];
+/* The player as they stood after a given night of the season: enough of them
+   for the achievement tests, and no more. Career totals come down by whatever
+   they went on to do after that night. */
+function playerAsOf(p, upTo){
+  const log=p.log.filter(l=>l.ni<=upTo);
+  const q=Object.assign(Object.create(Object.getPrototypeOf(p)), p);
+  q.log=log;
+  q.games=log.length;
+  q.rec=[0,0,0]; q.wh=[0,0,0]; q.bl=[0,0,0]; q.opp={}; q.att={};
+  log.forEach(l=>{
+    const k=l.s===1?0:l.s===.5?1:2;
+    q.rec[k]++; (l.c==="w"?q.wh:q.bl)[k]++;
+    (q.opp[l.o]=q.opp[l.o]||[0,0,0])[k]++;
+    q.att[l.ni]=1;
+  });
+  Object.keys(p.att).forEach(ni=>{ if(+ni<=upTo) q.att[ni]=1 });
+  q.cons=Object.keys(q.att).length;
+  q.nightly=p.nightly.filter(n=>n.ni<=upTo);
+  q.first=log.length?DATES[log[0].ni]:null;
+  q.last=log.length?DATES[log[log.length-1].ni]:null;
+  const res=l=>l.s===1?"W":l.s===.5?"D":"L";
+  const all=log.map(res); let best=0,cur=0;
+  all.forEach(x=>{ cur=x==="W"?cur+1:0; if(cur>best) best=cur });
+  let tail=0; for(let i=all.length-1;i>=0&&all[i]==="W";i--) tail++;
+  q.streak=[best,tail];
+  q.upsets=log.filter(l=>l.s===1&&!(l.first&&log.length>4)&&l.orat-l.mrat>=UPSET).length;
+  q.trophies=[0,0,0]; q.byDiv={};
+  p.trophyNights.forEach(tn=>{ if(tn[0]<=upTo){
+    q.trophies[tn[1]-1]++; (q.byDiv[tn[2]]=q.byDiv[tn[2]]||[0,0,0])[tn[1]-1]++; } });
+  const h=p.hist.filter(x=>x[0]<=upTo);
+  q.hist=h;
+  q.r=h.length?h[h.length-1][1]:p.seed;
+  let pk=null, lo=null; h.forEach(x=>{ if(!pk||x[1]>pk[1]) pk=x; if(!lo||x[1]<lo[1]) lo=x });
+  q.peak=pk?[pk[1],DATES[pk[0]]]:null; q.low=lo?[lo[1],DATES[lo[0]]]:null;
+  if(p.c){
+    // the career, wound back by what the season did after this night
+    const after=p.log.filter(l=>l.ni>upTo);
+    const back=[0,0,0], bw=[0,0,0], bb=[0,0,0];
+    after.forEach(l=>{ const k=l.s===1?0:l.s===.5?1:2;
+      back[k]++; (l.c==="w"?bw:bb)[k]++; });
+    const nightsAfter=new Set(after.map(l=>l.ni)).size;
+    q.c=Object.assign({},p.c,{
+      games:p.c.games-after.length,
+      rec:[p.c.rec[0]-back[0],p.c.rec[1]-back[1],p.c.rec[2]-back[2]],
+      wh:[p.c.wh[0]-bw[0],p.c.wh[1]-bw[1],p.c.wh[2]-bw[2]],
+      bl:[p.c.bl[0]-bb[0],p.c.bl[1]-bb[1],p.c.bl[2]-bb[2]],
+      nights:p.c.nights-nightsAfter,
+      last:q.last||p.c.last});
+  }
+  return q;
+}
+
+/* The first night of the season each achievement came true. Anything already
+   true beforehand is not dated: that night is in the vault. */
+function achWhen(p){
+  if(p._achWhen) return p._achWhen;
+  const when={}, nights=p.nightly.map(n=>n.ni);
+  let prev=null;
+  if(nights.length){
+    const before=playerAsOf(p, nights[0]-1);
+    prev=new Set(achFor(before).filter(r=>r.got).map(r=>r.a.id));
+    prev.forEach(id=>when[id]="earlier");
+  }
+  nights.forEach(ni=>{
+    const now=new Set(achFor(playerAsOf(p,ni)).filter(r=>r.got).map(r=>r.a.id));
+    now.forEach(id=>{ if(!prev||!prev.has(id)) when[id]=DATES[ni] });
+    prev=now;
+  });
+  p._achWhen=when;
+  return when;
+}
+
 function achFor(p){
   const c=achCtx(p);
   return ACH.map(a=>{
@@ -2396,6 +2459,18 @@ function huntTile(){
     '<span class="tx"><b class="nm2">Egg hunter</b>'+
     '<span class="hw">Found '+f+' of '+n+' easter eggs. Yours, on this device.</span>'+
     '<span class="pgb"><i style="width:'+Math.round(f/n*100)+'%"></i></span></span></div>';
+}
+/* What they picked up, most recent night first. */
+function achFeed(p){
+  const when=achWhen(p), by={};
+  ACH.forEach(a=>{ const w=when[a.id];
+    if(w&&w!=="earlier"){ (by[w]=by[w]||[]).push(a) } });
+  const dates=Object.keys(by).sort().reverse().slice(0,3);
+  if(!dates.length) return "";
+  return '<div class="feed"><b>Recently earned</b>'+dates.map(function(d){
+    return '<div class="fd"><small>'+fshort(d)+'</small>'+by[d].map(function(a){
+      return '<span class="fa">'+a.ic+' '+esc(a.name)+'</span>' }).join("")+'</div>' }).join("")+
+    '</div>';
 }
 function achBlock(p){
   const rows=achFor(p), got=rows.filter(r=>r.got).length;
@@ -2419,6 +2494,7 @@ function achBlock(p){
   };
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
     '<small>earned</small></div>'+
+    achFeed(p)+
     '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,11).map(tile).join("")+'</div>'+
     '<div class="achs hid" id="achRest">'+order.slice(12).map(tile).join("")+'</div>'+
     '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
@@ -2650,10 +2726,6 @@ function trophyLine(p){
   return '<span class="trow">'+[0,1,2].map(function(i){
     return '<i class="t'+(i+1)+'"></i>'+(T[i]?T[i]:'<s>0</s>') }).join("")+'</span>';
 }
-function milestones(p){
-  if(!p.milestones.length) return '<p style="color:var(--ink-3)">Nothing yet — first game coming.</p>';
-  return '<ul class="tl">'+p.milestones.map(function(m){return '<li><small>'+fshort(m[0])+'</small><b>'+esc(m[1])+'</b>'+(m[2]?' <span style="color:var(--ink-2)">— '+esc(m[2])+'</span>':'')+'</li>'}).join("")+'</ul>';
-}
 /* Opponents as the page shows them: everyone who has left the club and is no
    longer listed collapses into a single Visitors line, so a profile never has
    two rows that both read the same. */
@@ -2755,7 +2827,6 @@ function drawGraphs(){
   $("#graphs2").innerHTML=
     card("Achievements", achBlock(p), "gwide")+
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
-    card("Milestones", milestones(p))+
     card("Record against everyone", vsTable(p));
   var more=$("#achMore");
   if(more) more.onclick=function(){
@@ -3798,7 +3869,7 @@ function levelUps(S){
   return out.sort((a,b)=>b.sort-a.sort).map(x=>x.line).slice(0,6);
 }
 
-async function seasonCanvas(){
+async function seasonCanvas(title){
   const S=seasonStats();
   const groups=DATA.divisions.map(d=>({div:d, rows:seasonTable(S,d).slice(0,10)}))
                              .filter(g=>g.rows.length);
@@ -3829,7 +3900,7 @@ async function seasonCanvas(){
   c.fillStyle=CLR.ink; c.font=fnt(800,26);
   c.fillText("KAVA SOCIAL CHESS CLUB", lx, y+25);
   c.fillStyle=CLR.red; c.font=fnt(800,26);
-  c.fillText("SEASON COMPLETE", lx, y+53);
+  c.fillText(title||"SEASON COMPLETE", lx, y+53);
   const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
   c.fillStyle=CLR.dim; c.font=fnt(500,13,true);
   c.fillText((fd(S.bounds.from)+" \u2013 "+fd(S.bounds.to)+"   \u00b7   "+
@@ -3897,6 +3968,31 @@ function seasonEmbeds(){
               description:seasonNotes(S,g.d,g.rows).join(NL+NL)}));
 }
 
+/* Where the season stands, and therefore which post tonight calls for.
+
+   The club plays every other Sunday, so the number of nights a three-month
+   season should hold is its length over the usual gap. Halfway is half of that.
+   The finale is when the next night due would land in the next season - which
+   is knowable on the night, without waiting to see whether anybody turns up. */
+function seasonShape(){
+  const b=seasonBounds();
+  const ds=HISTORY.map(n=>n.date);
+  const gaps=[];
+  for(let i=1;i<ds.length;i++) gaps.push((new Date(ds[i])-new Date(ds[i-1]))/86400000);
+  gaps.sort((x,y)=>x-y);
+  const usual=gaps.length?gaps[Math.floor(gaps.length/2)]:14;
+  const span=(new Date(b.runsTo)-new Date(b.runsFrom))/86400000+1;
+  const expected=Math.max(1,Math.round(span/usual));
+  const next=new Date(new Date(b.to+"T12:00").getTime()+usual*86400000);
+  const iso=next.getFullYear()+"-"+String(next.getMonth()+1).padStart(2,"0")+
+            "-"+String(next.getDate()).padStart(2,"0");
+  const finale=iso>b.runsTo;
+  // floored: rounding up put the halfway post on night four of six
+  const mid=Math.max(2,Math.floor(expected/2));
+  return {...b, expected, usual, nextDue:iso, finale, mid,
+          halfway:!finale&&b.nights>=mid};
+}
+
 /* The champions, and whether they broke their section's ceiling doing it. */
 function champions(S){
   return DATA.divisions.map(d=>{
@@ -3953,6 +4049,92 @@ function signOff(S,no,pc){
            "head-to-head says.");
   }
   return L.join(NL);
+}
+
+/* Halfway. The one line that matters is how many more nights somebody needs,
+   so it is per player and it is specific. */
+function halfwayNotes(S,sh,div,rows){
+  const out=[], need=seasonMinNights(S);
+  const able=eligible(rows);
+  if(able.length){
+    const top=able[0], second=able[1];
+    out.push(second
+      ? "**"+top.n+"** leads on "+top.now+", "+(top.now-second.now)+" clear of "+second.n+"."
+      : "**"+top.n+"** leads this bracket on "+top.now+".");
+  }
+  const short=rows.filter(x=>!x.elig).sort((a,b)=>b.now-a.now);
+  if(short.length){
+    out.push("Needs more nights to be in the running: "+
+      short.map(x=>"**"+x.n+"** ("+x.nights+" of "+need+")").join(", ")+".");
+  }
+  const left=sh.expected-sh.nights;
+  if(left>0&&short.length)
+    out.push("There "+(left===1?"is 1 night":"are "+left+" nights")+" left. Still plenty of time.");
+  return out.slice(0,3);
+}
+
+async function postHalfway(status){
+  const c=dscCfg();
+  if(!c.hook) throw new Error("Add the webhook in settings first.");
+  const S=seasonStats(), sh=seasonShape(), pc=pubCfg(), no=sh.no;
+  const games=HISTORY.filter(n=>n.date>=S.bounds.from&&n.date<=S.bounds.to)
+                     .reduce((a,n)=>a+n.games.length,0);
+  const head="# Season "+no+", halfway\n"+sh.nights+" of about "+sh.expected+
+    " nights  \u00b7  "+games+" games so far";
+  let sent=0;
+  try{
+    status&&status("drawing the standings\u2026");
+    const blob=await canvasBlob(await seasonCanvas("STANDINGS SO FAR"));
+    status&&status("posting the standings\u2026");
+    await dscSendFile(c.hook,blob,"kava-halfway.png",head);
+  }catch(e){
+    await dscSend(c.hook,head,null);
+  }
+  sent++;
+  status&&status("posting where everyone stands\u2026");
+  await dscSend(c.hook,"",DATA.divisions.map(d=>({d,rows:seasonTable(S,d)}))
+    .filter(g=>g.rows.length)
+    .map(g=>({title:divLabel(g.d),color:DSC_RED,
+              description:halfwayNotes(S,sh,g.d,g.rows).join(NL+NL)})));
+  sent++;
+  const L=["@everyone","",
+    "\u26A1 **SEASON "+no+" IS HALF DONE** \u26A1","",
+    "The gift cards are still anybody's. You need **"+seasonMinNights(S)+" of the "+
+    sh.expected+" nights** to be in the running, so if you have missed a couple, "+
+    "now is the time to turn up.",""];
+  if(pc.owner&&pc.repo){
+    L.push("\uD83D\uDCCA **See exactly where you stand** \u2014 "+siteUrl(pc));
+    L.push("Your rating graph, every game, your record against everybody, and how many "+
+           "nights you have in.");
+  }
+  L.push("");
+  L.push("Next night: **"+fdLong(sh.nextDue)+"**. Bring something for the top of your bracket.");
+  await dscSend(c.hook,L.join(NL));
+  sent++;
+  return sent;
+}
+
+function fdLong(s){
+  return new Date(s+"T12:00").toLocaleDateString("en-GB",
+    {weekday:"long",day:"numeric",month:"long"});
+}
+
+/* One button. It works out which of the three tonight is. */
+/* Whether the halfway post has gone out for a season, kept on the phone so a
+   reload does not offer it a second time. */
+function halfwayKey(no){ return "kava.halfway."+no }
+function halfwayDone(no){ try{ return localStorage.getItem(halfwayKey(no))==="1" }catch(e){ return false } }
+function markHalfway(no){ try{ localStorage.setItem(halfwayKey(no),"1") }catch(e){} }
+
+async function postAuto(status){
+  const sh=seasonShape();
+  if(sh.finale) return {kind:"the season finale", n:await postSeason(status)};
+  if(sh.halfway&&!halfwayDone(sh.no)){
+    const n=await postHalfway(status);
+    markHalfway(sh.no);
+    return {kind:"the halfway update", n};
+  }
+  return {kind:"tonight's results", n:await postNight(status)};
 }
 
 async function postSeason(status){
@@ -4103,39 +4285,37 @@ function renderPub(){
     setTimeout(()=>{ b.textContent="Send a test message" },4500);
   };
 }
+/* One button. It says which of the three it is about to send before you press
+   it, so nothing is a surprise, and it works the answer out from the season. */
+function autoLabel(){
+  try{
+    const sh=seasonShape();
+    if(sh.finale) return "Post the season finale";
+    if(sh.halfway&&!halfwayDone(sh.no)) return "Post the halfway update";
+    return "Post tonight's results";
+  }catch(e){ return "Post to Discord" }
+}
+function renderAuto(){
+  const b=document.getElementById("dscBtn");
+  if(b&&!b.disabled) b.textContent=autoLabel();
+}
 {
   const b=document.getElementById("dscBtn");
   if(b) b.onclick=async()=>{
-    const was=b.textContent, st=$("#dscState");
+    const st=$("#dscState");
     b.disabled=true;
     try{
-      const n=await postNight(m=>{ if(st) st.textContent=m });
+      const r=await postAuto(m=>{ if(st) st.textContent=m });
       b.textContent="Posted";
-      if(st) st.textContent="In the channel"+(n>1?" as "+n+" messages":"")+".";
+      if(st) st.textContent=r.kind.charAt(0).toUpperCase()+r.kind.slice(1)+
+        " is in the channel, "+r.n+" message"+(r.n===1?"":"s")+".";
     }catch(e){
-      b.textContent="Post to Discord";
       if(st) st.textContent=e.message;
     }
     b.disabled=false;
-    setTimeout(()=>{ b.textContent=was },4000);
+    setTimeout(renderAuto,4000);
   };
-}
-{
-  const b=document.getElementById("seaBtn");
-  if(b) b.onclick=async()=>{
-    const was=b.textContent, st=$("#dscState");
-    b.disabled=true;
-    try{
-      const n=await postSeason(m=>{ if(st) st.textContent=m });
-      b.textContent="Posted";
-      if(st) st.textContent="The season is in the channel, "+n+" messages.";
-    }catch(e){
-      b.textContent=was;
-      if(st) st.textContent=e.message;
-    }
-    b.disabled=false;
-    setTimeout(()=>{ b.textContent=was },4000);
-  };
+  renderAuto();
 }
 $("#pTest").onclick=async()=>{
   const b=$("#pTest"), c=pubCfg(); b.textContent="Checking…";

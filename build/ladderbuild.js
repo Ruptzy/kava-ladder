@@ -430,6 +430,14 @@ text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 .achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:.5rem}
 .ach{position:relative;display:flex;gap:.55rem;align-items:flex-start;padding:.55rem .6rem;border-radius:8px;
 border:1px solid var(--rule);background:rgba(30,32,35,.6)}
+.feed{margin:0 0 .9rem;padding:.7rem .8rem;border:1px solid var(--rule-2);border-radius:10px;
+background:linear-gradient(150deg,rgba(254,39,58,.07),rgba(30,32,35,.6) 70%)}
+.feed>b{display:block;font-family:var(--fm);font-size:.6rem;letter-spacing:.16em;
+text-transform:uppercase;color:var(--scarlet);margin-bottom:.45rem}
+.fd{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;margin-top:.35rem}
+.fd small{font-family:var(--fm);font-size:.62rem;color:var(--ink-3);min-width:3.6rem}
+.fa{font-size:.78rem;color:var(--ink-2);background:var(--panel-2);border:1px solid var(--rule);
+border-radius:999px;padding:.18rem .5rem}
 .ach.hunt{border-style:dashed;background:linear-gradient(150deg,rgba(59,199,154,.1),rgba(30,32,35,.7) 65%)}
 .ach.hunt.got{border-color:var(--gain)}
 .ach.hunt .pgb{margin-top:.35rem}
@@ -900,23 +908,7 @@ function derive(){
     p.topDiv=Object.keys(p.byDiv).sort((a,b)=>divRank(a)-divRank(b))[0]||p.d;
     p.recent=lg.slice(-10).reverse();
     p.bigNight=0; p.nightly.forEach(n=>{ if(!n.first&&n.delta>p.bigNight) p.bigNight=n.delta });
-    p.milestones=milestonesOf(p);
   });
-}
-function milestonesOf(p){
-  const out=[], lg=p.log; if(!lg.length) return out;
-  const add=(ni,label,detail)=>out.push([DATES[ni],label,detail||""]);
-  add(lg[0].ni,"First game","against "+anon(lg[0].o));
-  const fw=lg.find(l=>l.s===1); if(fw) add(fw.ni,"First win","against "+anon(fw.o));
-  const fu=lg.find(l=>l.s===1&&!(l.first&&lg.length>4)&&l.orat-l.mrat>=UPSET); if(fu) add(fu.ni,"First upset","beat "+fu.o+", rated "+(fu.orat-fu.mrat)+" higher");
-  let cur=0, s5=false, s10=false;
-  lg.forEach(l=>{ cur=l.s===1?cur+1:0; if(cur===5&&!s5){ s5=true; add(l.ni,"Five wins in a row") } if(cur===10&&!s10){ s10=true; add(l.ni,"Ten wins in a row") } });
-  [25,50,100,150].forEach(k=>{ if(lg.length>=k) add(lg[k-1].ni,k+" games played") });
-  let bestWin=null; lg.forEach(l=>{ if(l.s===1&&(!bestWin||l.orat>bestWin.orat)) bestWin=l });
-  if(bestWin&&p.games>=5) add(bestWin.ni,"Best win so far","beat "+bestWin.o+" when they were rated "+bestWin.orat);
-  if(p.peak&&p.games>=8) out.push([p.peak[1],"Career high","rating reached "+p.peak[0]]);
-  out.sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);
-  return out;
 }
 derive();
 
@@ -1568,6 +1560,78 @@ var ACH=[
  A("improve-120","📈","On the Up","Gain 120 points over three months.",(p,c)=>p.imp!=null&&p.imp>=120,(p,c)=>[Math.max(0,p.imp||0),120])
 ];
 var ACHART=(D.achart&&D.achart.length)?D.achart:[];
+/* The player as they stood after a given night of the season: enough of them
+   for the achievement tests, and no more. Career totals come down by whatever
+   they went on to do after that night. */
+function playerAsOf(p, upTo){
+  const log=p.log.filter(l=>l.ni<=upTo);
+  const q=Object.assign(Object.create(Object.getPrototypeOf(p)), p);
+  q.log=log;
+  q.games=log.length;
+  q.rec=[0,0,0]; q.wh=[0,0,0]; q.bl=[0,0,0]; q.opp={}; q.att={};
+  log.forEach(l=>{
+    const k=l.s===1?0:l.s===.5?1:2;
+    q.rec[k]++; (l.c==="w"?q.wh:q.bl)[k]++;
+    (q.opp[l.o]=q.opp[l.o]||[0,0,0])[k]++;
+    q.att[l.ni]=1;
+  });
+  Object.keys(p.att).forEach(ni=>{ if(+ni<=upTo) q.att[ni]=1 });
+  q.cons=Object.keys(q.att).length;
+  q.nightly=p.nightly.filter(n=>n.ni<=upTo);
+  q.first=log.length?DATES[log[0].ni]:null;
+  q.last=log.length?DATES[log[log.length-1].ni]:null;
+  const res=l=>l.s===1?"W":l.s===.5?"D":"L";
+  const all=log.map(res); let best=0,cur=0;
+  all.forEach(x=>{ cur=x==="W"?cur+1:0; if(cur>best) best=cur });
+  let tail=0; for(let i=all.length-1;i>=0&&all[i]==="W";i--) tail++;
+  q.streak=[best,tail];
+  q.upsets=log.filter(l=>l.s===1&&!(l.first&&log.length>4)&&l.orat-l.mrat>=UPSET).length;
+  q.trophies=[0,0,0]; q.byDiv={};
+  p.trophyNights.forEach(tn=>{ if(tn[0]<=upTo){
+    q.trophies[tn[1]-1]++; (q.byDiv[tn[2]]=q.byDiv[tn[2]]||[0,0,0])[tn[1]-1]++; } });
+  const h=p.hist.filter(x=>x[0]<=upTo);
+  q.hist=h;
+  q.r=h.length?h[h.length-1][1]:p.seed;
+  let pk=null, lo=null; h.forEach(x=>{ if(!pk||x[1]>pk[1]) pk=x; if(!lo||x[1]<lo[1]) lo=x });
+  q.peak=pk?[pk[1],DATES[pk[0]]]:null; q.low=lo?[lo[1],DATES[lo[0]]]:null;
+  if(p.c){
+    // the career, wound back by what the season did after this night
+    const after=p.log.filter(l=>l.ni>upTo);
+    const back=[0,0,0], bw=[0,0,0], bb=[0,0,0];
+    after.forEach(l=>{ const k=l.s===1?0:l.s===.5?1:2;
+      back[k]++; (l.c==="w"?bw:bb)[k]++; });
+    const nightsAfter=new Set(after.map(l=>l.ni)).size;
+    q.c=Object.assign({},p.c,{
+      games:p.c.games-after.length,
+      rec:[p.c.rec[0]-back[0],p.c.rec[1]-back[1],p.c.rec[2]-back[2]],
+      wh:[p.c.wh[0]-bw[0],p.c.wh[1]-bw[1],p.c.wh[2]-bw[2]],
+      bl:[p.c.bl[0]-bb[0],p.c.bl[1]-bb[1],p.c.bl[2]-bb[2]],
+      nights:p.c.nights-nightsAfter,
+      last:q.last||p.c.last});
+  }
+  return q;
+}
+
+/* The first night of the season each achievement came true. Anything already
+   true beforehand is not dated: that night is in the vault. */
+function achWhen(p){
+  if(p._achWhen) return p._achWhen;
+  const when={}, nights=p.nightly.map(n=>n.ni);
+  let prev=null;
+  if(nights.length){
+    const before=playerAsOf(p, nights[0]-1);
+    prev=new Set(achFor(before).filter(r=>r.got).map(r=>r.a.id));
+    prev.forEach(id=>when[id]="earlier");
+  }
+  nights.forEach(ni=>{
+    const now=new Set(achFor(playerAsOf(p,ni)).filter(r=>r.got).map(r=>r.a.id));
+    now.forEach(id=>{ if(!prev||!prev.has(id)) when[id]=DATES[ni] });
+    prev=now;
+  });
+  p._achWhen=when;
+  return when;
+}
+
 function achFor(p){
   const c=achCtx(p);
   return ACH.map(a=>{
@@ -1583,6 +1647,18 @@ function huntTile(){
     '<span class="tx"><b class="nm2">Egg hunter</b>'+
     '<span class="hw">Found '+f+' of '+n+' easter eggs. Yours, on this device.</span>'+
     '<span class="pgb"><i style="width:'+Math.round(f/n*100)+'%"></i></span></span></div>';
+}
+/* What they picked up, most recent night first. */
+function achFeed(p){
+  const when=achWhen(p), by={};
+  ACH.forEach(a=>{ const w=when[a.id];
+    if(w&&w!=="earlier"){ (by[w]=by[w]||[]).push(a) } });
+  const dates=Object.keys(by).sort().reverse().slice(0,3);
+  if(!dates.length) return "";
+  return '<div class="feed"><b>Recently earned</b>'+dates.map(function(d){
+    return '<div class="fd"><small>'+fshort(d)+'</small>'+by[d].map(function(a){
+      return '<span class="fa">'+a.ic+' '+esc(a.name)+'</span>' }).join("")+'</div>' }).join("")+
+    '</div>';
 }
 function achBlock(p){
   const rows=achFor(p), got=rows.filter(r=>r.got).length;
@@ -1606,6 +1682,7 @@ function achBlock(p){
   };
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
     '<small>earned</small></div>'+
+    achFeed(p)+
     '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,11).map(tile).join("")+'</div>'+
     '<div class="achs hid" id="achRest">'+order.slice(12).map(tile).join("")+'</div>'+
     '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
@@ -1837,10 +1914,6 @@ function trophyLine(p){
   return '<span class="trow">'+[0,1,2].map(function(i){
     return '<i class="t'+(i+1)+'"></i>'+(T[i]?T[i]:'<s>0</s>') }).join("")+'</span>';
 }
-function milestones(p){
-  if(!p.milestones.length) return '<p style="color:var(--ink-3)">Nothing yet — first game coming.</p>';
-  return '<ul class="tl">'+p.milestones.map(function(m){return '<li><small>'+fshort(m[0])+'</small><b>'+esc(m[1])+'</b>'+(m[2]?' <span style="color:var(--ink-2)">— '+esc(m[2])+'</span>':'')+'</li>'}).join("")+'</ul>';
-}
 /* Opponents as the page shows them: everyone who has left the club and is no
    longer listed collapses into a single Visitors line, so a profile never has
    two rows that both read the same. */
@@ -1942,7 +2015,6 @@ function drawGraphs(){
   $("#graphs2").innerHTML=
     card("Achievements", achBlock(p), "gwide")+
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
-    card("Milestones", milestones(p))+
     card("Record against everyone", vsTable(p));
   var more=$("#achMore");
   if(more) more.onclick=function(){
