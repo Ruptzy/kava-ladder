@@ -724,9 +724,28 @@ function newRound(){
 }
 function render(){
   $("#hsub").textContent=(CFG.style==="swiss"?"Swiss":CFG.style==="close"?"Closest rating":"Widest gap")+" · club night";
-  [...$("#steps").children].forEach(b=>{if(b.dataset.s!=="in")b.disabled=!rounds.length});
+  /* Standings stays reachable with an empty board when a season is still owed
+     its sign-off, because that is where Submit lives. */
+  const owed=finaleOwed();
+  [...$("#steps").children].forEach(b=>{if(b.dataset.s!=="in")
+    b.disabled=!rounds.length&&!(owed&&b.dataset.s==="stand")});
   if(view==="in")renderRoster(); if(view==="round")renderRound(); if(view==="stand")renderStand();
-  renderBar(); queueSave();
+  syncSubmit(owed); renderBar(); queueSave();
+}
+
+/* One button, so it has to say which of its two jobs it is about to do. */
+function syncSubmit(owed){
+  const b=$("#submitBtn"), st=$("#submitState");
+  if(!b) return;
+  if(!rounds.length&&owed){
+    let no=""; try{ no=seasonBounds().no }catch(e){}
+    b.disabled=false;
+    b.textContent="Send off season "+no;
+    if(st) st.textContent="Nothing on the board. This posts the season finale to Discord.";
+  }else{
+    b.disabled=false;
+    b.textContent="Submit the night";
+  }
 }
 
 /* ---------- settings ---------- */
@@ -3336,6 +3355,19 @@ function confirmBody(){
   const miss=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
   if(submitStage) return '<p class="cf">The night is already saved and the website is live.<br>'+
     'This will post <b>'+kind+'</b> to Discord and clear the board.</p>';
+  if(!rounds.length){
+    let no="", nights="";
+    try{ const S=seasonBounds(); no=S.no; nights=S.nights }catch(e){}
+    return '<p class="cf"><b>Season '+no+' is over.</b><br>'+nights+
+      ' nights, already in the club record.</p>'+
+      '<p class="cf">Nothing is on the board, so there is no night to save and nothing new to '+
+      'publish. This will only:</p>'+
+      '<p class="cf">Post <b>the season finale</b> to Discord'+
+      (h.hook?'':' <span class="warn">— no webhook set</span>')+
+      ' — the standings picture, each bracket, the level ups and the sign-off.<br>'+
+      'It tags <b>@everyone</b>.</p>'+
+      '<p class="cf">A season can only be signed off once.</p>';
+  }
   return '<p class="cf"><b>'+esc(d)+'</b><br>'+rounds.length+' round'+(rounds.length===1?"":"s")+
       ' \u00b7 '+playing.size+' played'+(miss?' \u00b7 <span class="warn">'+miss+
       ' board'+(miss===1?"":"s")+' with no result</span>':'')+'</p>'+
@@ -3352,7 +3384,7 @@ function confirmBody(){
 }
 
 $("#submitBtn").onclick=()=>{
-  if(!rounds.length){ $("#submitState").textContent="No rounds to submit yet."; return }
+  if(!rounds.length&&!finaleOwed()){ $("#submitState").textContent="No rounds to submit yet."; return }
   $("#confirmBody").innerHTML=confirmBody();
   $("#confirm").classList.remove("hidden");
 };
@@ -3496,9 +3528,13 @@ $("#doSubmit").onclick=async()=>{
      without it. The post is built from the rounds, so the board is cleared last
      of all - and only if everything worked. */
   let filed=null;
+  const postOnly=!rounds.length;   // a season signed off after the fact
   try{
     let url=submitStage&&submitStage.url;
-    if(!submitStage){
+    if(postOnly){
+      const c=pubCfg();
+      url=(c.owner&&c.repo)?siteUrl(c):"";
+    }else if(!submitStage){
       sayStep("saving the night");
       filed=fileNight();
       sayStep("publishing the website");
@@ -3507,25 +3543,32 @@ $("#doSubmit").onclick=async()=>{
     let posted=null;
     try{ posted=await withTimeout(postAuto(sayStep), 60, "Posting to Discord") }
     catch(e){
-      submitStage={url};   // filed and published: only the post is still owed
+      // post-only has nothing filed behind it, so there is no half-done state
+      if(!postOnly) submitStage={url};
       $("#confirm").classList.add("hidden");
       st.innerHTML='<span style="color:var(--loss)"><b>Discord would not take the post.</b><br>'+
-        esc(e.message||"Unknown error.")+'</span><br>The night is saved and the website is live at '+
-        '<a href="'+url+'" target="_blank" rel="noopener" style="color:var(--scarlet)">'+url+'</a>.'+
-        '<br>The board is untouched. Press Submit again to send the post on its own.';
+        esc(e.message||"Unknown error.")+'</span><br>'+
+        (postOnly?'Nothing else was touched. Fix it and press Submit again.'
+                 :'The night is saved and the website is live'+
+          (url?' at <a href="'+url+'" target="_blank" rel="noopener" '+
+               'style="color:var(--scarlet)">'+url+'</a>':'')+'.'+
+          '<br>The board is untouched. Press Submit again to send the post on its own.');
       b.disabled=false; b.textContent="Yes \u2014 do it";
       return;
     }
     submitStage=null;
     clearBoard();
     $("#confirm").classList.add("hidden");
-    st.innerHTML='Done. <a href="'+url+'" target="_blank" rel="noopener" '+
-      'style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">Night saved, '+
-      'website published, and '+posted.kind+' posted as '+posted.n+
-      ' message'+(posted.n===1?"":"s")+'. The board is cleared. GitHub takes a minute to refresh.</small>';
+    const link=url?'<a href="'+url+'" target="_blank" rel="noopener" '+
+      'style="color:var(--scarlet)">'+url+'</a>':'';
+    st.innerHTML='Done. '+link+'<br><small style="color:var(--ink-3)">'+
+      (postOnly?'':'Night saved, website published, and ')+
+      posted.kind+' posted as '+posted.n+' message'+(posted.n===1?"":"s")+'.'+
+      (postOnly?'':' The board is cleared. GitHub takes a minute to refresh.')+'</small>';
   }catch(e){
     unfileNight(filed);
-    st.innerHTML='<span style="color:var(--loss)"><b>Could not publish the website.</b><br>'+
+    st.innerHTML='<span style="color:var(--loss)"><b>'+
+      (postOnly?'Could not send the sign-off.':'Could not publish the website.')+'</b><br>'+
       esc(e.message||"Unknown error.")+'</span><br>Nothing was saved and nothing was posted. '+
       'The board is exactly as you left it.';
     $("#confirm").classList.add("hidden");
@@ -4256,10 +4299,28 @@ function fdLong(s){
 function halfwayKey(no){ return "kava.halfway."+no }
 function halfwayDone(no){ try{ return localStorage.getItem(halfwayKey(no))==="1" }catch(e){ return false } }
 function markHalfway(no){ try{ localStorage.setItem(halfwayKey(no),"1") }catch(e){} }
+/* The finale is remembered the same way, so a season cannot be sent off twice. */
+function finaleKey(no){ return "kava.finale."+no }
+function finaleDone(no){ try{ return localStorage.getItem(finaleKey(no))==="1" }catch(e){ return false } }
+function markFinale(no){ try{ localStorage.setItem(finaleKey(no),"1") }catch(e){} }
+
+/* A season that is over and has never been signed off. Normally this happens on
+   the last night, with the board still full, and Submit does all of it in one
+   press. But a season can also end quietly - the last night already in the
+   record, nothing on the board - and the sign-off is still owed. Then Submit
+   posts and does nothing else: there is no night to save and no new result to
+   publish. */
+function finaleOwed(){
+  try{ const sh=seasonShape(); return !!(sh.finale&&!finaleDone(sh.no)) }catch(e){ return false }
+}
 
 async function postAuto(status){
   const sh=seasonShape();
-  if(sh.finale) return {kind:"the season finale", n:await postSeason(status)};
+  if(sh.finale){
+    const n=await postSeason(status);
+    markFinale(sh.no);
+    return {kind:"the season finale", n};
+  }
   if(sh.halfway&&!halfwayDone(sh.no)){
     const n=await postHalfway(status);
     markHalfway(sh.no);
