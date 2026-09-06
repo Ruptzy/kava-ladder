@@ -32,6 +32,19 @@ except Exception:
 # The phone renders the same page from its own copy of the history, so it has to
 # arrive already relabelled. Doing the swap only in the site build put every
 # removed name straight back the moment Harold published from his phone.
+def band_of(r, divisions):
+    """Same rule as the page: the bracket is the rating band, and the numbers
+    come out of the division names so renaming one keeps working."""
+    import re
+    nums = [int(re.search(r"(\d+)", d).group(1)) if re.search(r"(\d+)", d) else 0
+            for d in divisions]
+    for i, d in enumerate(divisions):
+        floor = nums[0] if i == 0 else (nums[i + 1] if i + 1 < len(divisions) else None)
+        if floor is None or r >= floor:
+            return d
+    return divisions[-1]
+
+
 history, seeds = buildsite.anonymise(history, seeds, hidden)
 
 # The roster file carries the club's hand-kept numbers, which drift behind the
@@ -46,6 +59,7 @@ for p in roster["roster"]:
     r = rated.get(p["n"])
     if r and r["n"] > 0:
         q["r"] = round(r["r"])
+        q["d"] = band_of(q["r"], roster["divisions"])
     board.append(q)
 board.sort(key=lambda p: -p["r"])
 

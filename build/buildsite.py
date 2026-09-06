@@ -193,6 +193,7 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
         rec={"n":n,"d":divOf.get(n,""),"r":round(p["r"]),"rd":round(p["rd"]),
              "seed":round(before[-1][1] if before else seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"] if d in di]}
+        if not before: rec["nw"]=1     # no rating before this season: seed is a guess
         v=VAULT.get(n)
         if v: rec["v"]=v
         if n not in divOf: rec["gh"]=1        # a visitor: games count, but off the ladder

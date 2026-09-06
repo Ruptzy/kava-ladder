@@ -193,6 +193,21 @@ won in. The earliest snapshot is 30 November 2025; nights before it fall back to
 the player's bracket today, which is worth remembering for the early 2025
 nights, where a bracket can come down to one or two people.
 
+The bracket is the rating band, worked out per night rather than kept by hand.
+The numbers come out of the division names, so "over 1400" floors at 1400 and
+renaming a bracket keeps working. `divhistory.json` is no longer read for
+trophies: the hand-kept sheets drifted five months behind the ratings and were
+putting U1400 cups on a rating of 927.
+
+**Brackets ratchet up and never down inside a season.** Your bracket is the
+highest band your rating has reached this season, so losing games on purpose at
+the end of one cannot drop anybody into an easier bracket to collect its
+rewards. It resets when the next season starts, so a genuinely worse run is
+recognised - just not mid-season and not on demand. A newcomer's seed sets no
+floor: it is a number somebody typed, not a rating anybody has tested, so their
+floor starts at their first real one. Vinny is why that clause exists - seeded
+1000, plays like 695, and was being held in U1400 by the guess.
+
 A bracket of one still awards the cup. Harold's call, asked and answered: you
 turned up and nobody in your bracket outscored you. Fifteen of the cups on the
 board are won that way, five of them Omar Cruz's. Do not quietly add a minimum. The

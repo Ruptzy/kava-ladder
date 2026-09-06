@@ -731,7 +731,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <dt>Why did I disappear?</dt><dd>No games in 90 days moves you to &ldquo;away&rdquo;. Play a night and you are back.</dd>
 <dt>Do games against other brackets count?</dt><dd>Yes. One rating pool, separate boards.</dd>
 <dt>Why is my number different from the old sheet?</dt><dd>New system (Glicko-2), replayed from every game since October 2025. Seasons 1&ndash;7 are kept separately.</dd>
-<dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your own bracket, and you take a cup. You need three games that night for it to count, and a tie shares the place.</dd>
+<dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your bracket that night, so a cup always names the bracket you won it in. Your bracket is the highest your rating has reached this season: it moves up when you earn it and never down until the next season, so losing games can never drop you into an easier one. You need three games that night for it to count, and a tie shares the place.</dd>
 <dt>How is &ldquo;most improved&rdquo; worked out?</dt><dd>Change over the last 90 days, settled ratings only, at least twelve games. Under 1400 ELO and Under 1000 ELO only &mdash; above 1400 a three-month swing says more about who turned up than about anyone improving.</dd>
 </dl></div></div>
 <script>
@@ -763,16 +763,21 @@ const BYE_FULL_FROM="2026-09-01";   // from here a bye scores a whole point
    the latest snapshot on or before it, which is how a trophy stays with the
    division the player was actually in when they won it. */
 const DIVS=D.divisions.slice();
-const DIVHIST=(D.divhist||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
-function divAt(name,date){
-  for(let i=DIVHIST.length-1;i>=0;i--){
-    const s=DIVHIST[i];
-    if(s.date<=date&&s.div[name]) return s.div[name];
-  }
-  for(let i=0;i<DIVHIST.length;i++){          // before the first snapshot, use the earliest on record
-    if(DIVHIST[i].div[name]) return DIVHIST[i].div[name];
-  }
-  const p=byN[name]; return p?p.d:DIVS[DIVS.length-1];
+/* The bracket is the rating band. The numbers come out of the division names,
+   so "over 1400" floors at 1400, "U1400" floors at whatever the next bracket
+   opens at, and the last one catches everybody else. */
+const DIVNUM=DIVS.map(d=>{ const m=String(d).match(/(\d+)/); return m?+m[1]:0 });
+const DIVFLOOR=DIVS.map((d,i)=> i===0?DIVNUM[0] : (i+1<DIVS.length?DIVNUM[i+1]:-Infinity));
+function bandOf(r){
+  for(let i=0;i<DIVS.length;i++) if(r>=DIVFLOOR[i]) return DIVS[i];
+  return DIVS[DIVS.length-1];
+}
+/* The band a player was in going into a given night. Hand-kept bracket sheets
+   drifted months behind the ratings and put U1400 cups on 927; this cannot. */
+function divAt(name,ni){
+  const p=byN[name]; if(!p) return DIVS[DIVS.length-1];
+  const r=(p.rbMax&&p.rbMax[ni]!=null)?p.rbMax[ni]:p.peak9!=null?p.peak9:p.r;
+  return bandOf(r);
 }
 const divRank=d=>{ const i=DIVS.indexOf(d); return i<0?DIVS.length:i };   // 0 is the strongest
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
@@ -791,8 +796,23 @@ let NIGHT=[];
 /* ---------- everything derived from the games ---------- */
 function derive(){
   ALL.forEach(p=>{
-    p.log=[]; p.opp={}; p.rec=[0,0,0]; p.wh=[0,0,0]; p.bl=[0,0,0]; p.games=0; p.att={}; p.rb={};
-    let prev=p.seed; p.hist.forEach(h=>{ p.rb[h[0]]=prev; prev=h[1]; });
+    p.log=[]; p.opp={}; p.rec=[0,0,0]; p.wh=[0,0,0]; p.bl=[0,0,0]; p.games=0; p.att={}; p.rb={}; p.rbMax={};
+    /* rbMax is the best rating this player had entering any night so far. A
+       bracket ratchets up and never down inside a season, so losing on purpose
+       at the end of one cannot drop anybody into an easier bracket for its
+       rewards. The floor resets when the next season starts. */
+    /* A newcomer's seed is a number somebody typed, not a rating anybody has
+       tested, so it sets no floor. Their first night has nothing else to go on
+       and uses it; from the second the floor is real ratings only. */
+    let prev=p.seed, mx=-Infinity;
+    p.hist.forEach((h,i)=>{
+      p.rb[h[0]]=prev;
+      if(!(p.nw&&i===0)) mx=Math.max(mx,prev);
+      p.rbMax[h[0]]=mx===-Infinity?prev:mx;
+      prev=h[1];
+    });
+    p.peak9=Math.max(mx===-Infinity?p.r:mx,p.r);
+    p.d=bandOf(p.peak9);      // the board and the cups read the same band
   });
   const rb=(p,ni)=>p.rb[ni]!=null?p.rb[ni]:p.seed;
   D.games.forEach(g=>{
@@ -822,7 +842,7 @@ function derive(){
     // and again within each bracket, which is where the trophies come from
     N.sec={}; N.secDiv={}; const byDiv={};
     N.table.forEach(row=>{ const p=byN[row[0]]; if(!p||p.gh||row[2]<TROPHY_MIN) return;
-      const d=divAt(p.n,DATES[N.ni]);
+      const d=divAt(p.n,N.ni);
       N.secDiv[row[0]]=d; (byDiv[d]=byDiv[d]||[]).push(row) });
     Object.keys(byDiv).forEach(d=>{ let place=0, prev=null;
       byDiv[d].forEach((row,i)=>{ if(prev===null||row[1]!==prev){ place=i+1; prev=row[1] } N.sec[row[0]]=place }) });
@@ -1415,8 +1435,8 @@ function achCtx(p){
   const span=(first&&last)?daysBetween(first,last):0;
   const years=(first&&last)?(new Date(first+"T12:00").getFullYear()!==new Date(last+"T12:00").getFullYear()):false;
   const climb=(p.peak&&p.low)?p.peak[0]-p.low[0]:0;
-  const startDiv=p.log.length?divAt(p.n,DATES[p.log[0].ni]):p.d;
-  const nowDiv=p.log.length?divAt(p.n,DATES[p.log[p.log.length-1].ni]):p.d;
+  const startDiv=p.log.length?divAt(p.n,p.log[0].ni):p.d;
+  const nowDiv=p.log.length?divAt(p.n,p.log[p.log.length-1].ni):p.d;
   const tro=p.trophies;
   const months={}; nights.forEach(i=>{ months[DATES[i].slice(0,7)]=1 });
   const calYears={}; nights.forEach(i=>{ calYears[DATES[i].slice(0,4)]=1 });
