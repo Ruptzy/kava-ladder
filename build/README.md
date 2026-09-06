@@ -230,9 +230,14 @@ night, climbed to 1045, and a mid-season move would have handed his cups to a
 bracket where he finished third and won nothing.
 
 Nothing moves inside a season, so nothing can be moved by losing on purpose
-inside one. Across seasons, the floor is last season's peak: **a bracket sticks
-for two seasons** (`SEASON_LOOKBACK`), which is what stops somebody arranging an
-easier bracket for next time.
+inside one. Across seasons the floor is **what you averaged last season**, not
+what you peaked at (`window_level`, `SEASON_LOOKBACK`). An average rather than a
+peak, deliberately: a peak promotes somebody on one good night and then holds
+them there - Sonny touched 1024 once, finished the season on 942, and was being
+kept out of the bracket he belonged in. An average is also the harder of the two
+to fake. You can tank a finishing number in a fortnight; you cannot tank a
+season's worth of them, so somebody who spends a season at 1300 and dumps the
+last two nights still averages about 1250 and stays where they are.
 
 `season_bands()` in `buildsite.py` works this out once and both pages read it.
 The site used to derive it from the shipped ratings and the phone from the

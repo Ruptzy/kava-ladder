@@ -138,19 +138,25 @@ def lookback_start(season_start):
     return d
 
 
-def window_peaks(P, frm, to):
-    """Each player's best rating entering a night inside the window. Ratings the
-    club has actually tested, so a seed nobody has played against sets nothing."""
+def window_level(P, frm, to):
+    """What each player actually was over the window: the average rating they
+    carried into its nights.
+
+    An average rather than a peak, deliberately. A peak promotes somebody on one
+    good night and then holds them there - Sonny touched 1024 once, finished the
+    season on 942, and was being kept out of the bracket he belonged in. An
+    average is also the harder of the two to fake: you can tank a finishing
+    number in a fortnight, but not a season's worth of them."""
     out={}
     for n,p in P.items():
-        best=None
+        vals=[]
         prev=None
         for date,r,rd in p["hist"]:
             if prev is not None and frm<=date<to:
-                best=prev if best is None else max(best,prev)
+                vals.append(prev)
             prev=r
-        if best is not None:
-            out[n]=round(best)
+        if vals:
+            out[n]=round(sum(vals)/len(vals))
     return out
 
 
@@ -209,8 +215,9 @@ def season_bands(P, season_nights, peaks, divisions):
 
     Break your section's ceiling mid-season and you still play for its prize,
     then move up when the next season starts - Harold's rule, and the only one
-    that does not punish improving. The floor is last season's peak, so nobody
-    can arrange an easier bracket by losing on purpose late in a season."""
+    that does not punish improving. The floor is what they averaged last season,
+    so a bad fortnight cannot buy an easier bracket and one good night cannot
+    cost them the one they belong in."""
     dates={n["date"] for n in season_nights}
     out={}
     for n,p in P.items():
@@ -369,7 +376,7 @@ if __name__=="__main__":
     # the replay reads everything; only the page narrows to the season
     P=run(HISTORY,SEEDS)
     SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
-    PEAKS=window_peaks(P, lookback_start(SEASON["from"]), SEASON["from"])
+    PEAKS=window_level(P, lookback_start(SEASON["from"]), SEASON["from"])
     try: ARCM=json.load(open(here('archive_raw.json')))['matches']
     except Exception: ARCM=[]
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))

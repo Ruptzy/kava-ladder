@@ -53,7 +53,7 @@ history, seeds = buildsite.anonymise(history, seeds, hidden)
 rated = buildsite.run(history, seeds)
 # the same season bands the site ships, so the phone cannot disagree with it
 _season, _vault, _nights = buildsite.split_season(history)
-_peaks = buildsite.window_peaks(rated, buildsite.lookback_start(_season["from"]), _season["from"])
+_peaks = buildsite.window_level(rated, buildsite.lookback_start(_season["from"]), _season["from"])
 BANDS = buildsite.season_bands(rated, _nights, _peaks, roster["divisions"])
 board = []
 for p in roster["roster"]:
