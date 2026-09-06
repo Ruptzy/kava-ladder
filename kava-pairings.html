@@ -3942,7 +3942,8 @@ function canvasBlob(cv){
 /* an attachment is multipart, not JSON */
 async function dscSendFile(hook,blob,filename,content){
   const fd=new FormData();
-  fd.append("payload_json",JSON.stringify({content:content||"",allowed_mentions:{parse:[]}}));
+  fd.append("payload_json",JSON.stringify({content:content||"",
+    allowed_mentions:{parse:[]}, avatar_url:clubAvatar()}));
   fd.append("files[0]",blob,filename);
   const url=hook+(hook.indexOf("?")<0?"?wait=true":"&wait=true");
   for(let tries=0;tries<4;tries++){
@@ -4446,8 +4447,15 @@ async function postSeason(status){
   return sent;
 }
 
+/* The club badge, from the published site. Falls back to the club's own copy if
+   the website is not set up, so a post is never faceless. */
+function clubAvatar(){
+  try{ const c=pubCfg(); if(c.owner&&c.repo) return siteUrl(c)+"logo.png" }catch(e){}
+  return "https://ruptzy.github.io/kava-ladder/logo.png";
+}
+
 async function dscSend(hook,content,embeds){
-  const payload={allowed_mentions:{parse:[]}};
+  const payload={allowed_mentions:{parse:[]}, avatar_url:clubAvatar()};
   if(content) payload.content=content;
   if(embeds&&embeds.length) payload.embeds=embeds;
   return dscPost(hook,payload);
