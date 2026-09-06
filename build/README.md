@@ -222,7 +222,22 @@ renaming a bracket keeps working. `divhistory.json` is no longer read for
 trophies: the hand-kept sheets drifted five months behind the ratings and were
 putting U1400 cups on a rating of 927.
 
-**A bracket sticks for two seasons.** `SEASON_LOOKBACK` in `buildsite.py`. Your bracket is the
+**Your bracket is fixed on your first night of a season and holds.** Break your
+section's ceiling mid-season and you still play for its prize, then move up when
+the next season starts - Harold's own practice, and the only version that does
+not punish improving. Sonny is why: he entered Season 9 on 942, played every
+night, climbed to 1045, and a mid-season move would have handed his cups to a
+bracket where he finished third and won nothing.
+
+Nothing moves inside a season, so nothing can be moved by losing on purpose
+inside one. Across seasons, the floor is last season's peak: **a bracket sticks
+for two seasons** (`SEASON_LOOKBACK`), which is what stops somebody arranging an
+easier bracket for next time.
+
+`season_bands()` in `buildsite.py` works this out once and both pages read it.
+The site used to derive it from the shipped ratings and the phone from the
+roster, and they had already drifted - two implementations of one rule is the
+failure this project keeps finding. Your bracket is the
 highest band your rating has reached this season, so losing games on purpose at
 the end of one cannot drop anybody into an easier bracket to collect its
 rewards. It does not reset at the season boundary either, which is the whole point: the

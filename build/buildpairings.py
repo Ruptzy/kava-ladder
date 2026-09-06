@@ -51,6 +51,10 @@ history, seeds = buildsite.anonymise(history, seeds, hidden)
 # replayed ones - up to sixty points, which is enough to pair two people who
 # should not meet. Pair on the same rating the site shows.
 rated = buildsite.run(history, seeds)
+# the same season bands the site ships, so the phone cannot disagree with it
+_season, _vault, _nights = buildsite.split_season(history)
+_peaks = buildsite.window_peaks(rated, buildsite.lookback_start(_season["from"]), _season["from"])
+BANDS = buildsite.season_bands(rated, _nights, _peaks, roster["divisions"])
 board = []
 for p in roster["roster"]:
     if p["n"] in hidden:
@@ -59,7 +63,7 @@ for p in roster["roster"]:
     r = rated.get(p["n"])
     if r and r["n"] > 0:
         q["r"] = round(r["r"])
-        q["d"] = band_of(q["r"], roster["divisions"])
+        q["d"] = BANDS.get(p["n"]) or band_of(q["r"], roster["divisions"])
     board.append(q)
 board.sort(key=lambda p: -p["r"])
 

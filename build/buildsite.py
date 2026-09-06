@@ -192,6 +192,39 @@ def vault_totals(vault):
     return out
 
 
+def band_of(r, divisions):
+    """The bracket a rating falls in. Thresholds come out of the division names,
+    so "over 1400" floors at 1400 and renaming one keeps working."""
+    import re
+    nums=[int(re.search(r"(\d+)",d).group(1)) if re.search(r"(\d+)",d) else 0 for d in divisions]
+    for i,d in enumerate(divisions):
+        floor=nums[0] if i==0 else (nums[i+1] if i+1<len(divisions) else None)
+        if floor is None or r>=floor:
+            return d
+    return divisions[-1]
+
+
+def season_bands(P, season_nights, peaks, divisions):
+    """Each player's bracket for the season, fixed on their first night of it.
+
+    Break your section's ceiling mid-season and you still play for its prize,
+    then move up when the next season starts - Harold's rule, and the only one
+    that does not punish improving. The floor is last season's peak, so nobody
+    can arrange an easier bracket by losing on purpose late in a season."""
+    dates={n["date"] for n in season_nights}
+    out={}
+    for n,p in P.items():
+        if p["n"]<=0: continue
+        inside=[h for h in p["hist"] if h[0] in dates]
+        before=[h for h in p["hist"] if h[0] not in dates]
+        if not inside: continue
+        # a newcomer's seed is untested, so their band comes from their first
+        # played night rather than from a number somebody typed
+        entry=before[-1][1] if before else inside[0][1]
+        out[n]=band_of(max(entry, peaks.get(n, -10**9)), divisions)
+    return out
+
+
 def career_stats(history, arc_matches, link, names):
     """Everything an achievement counts, over every night on record.
 
@@ -265,7 +298,7 @@ def career_stats(history, arc_matches, link, names):
     return final
 
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None):
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None,bands=None):
     PEAKS=peaks or {}
     VAULT=vault_totals(vault)
     VAULT_SUM={"nights":len(vault),"games":sum(len(n["games"]) for n in vault),
@@ -299,6 +332,8 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
              "seed":round(before[-1][1] if before else seeds.get(n,1000)),
              "hist":[[di[d],round(r),round(rd)] for d,r,rd in p["hist"] if d in di]}
         if not before: rec["nw"]=1     # no rating before this season: seed is a guess
+        bd=(bands or {}).get(n)
+        if bd: rec["bd"]=bd            # the bracket for this season, fixed on night one
         cr=(career or {}).get(n)
         if cr: rec["c"]=cr             # what they have done, over every night on record
         pk=PEAKS.get(n)
@@ -338,8 +373,9 @@ if __name__=="__main__":
     try: ARCM=json.load(open(here('archive_raw.json')))['matches']
     except Exception: ARCM=[]
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
+    BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
-                  HIDDEN,VAULTED,SEASON,PEAKS,CAREER)
+                  HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS)
     DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people

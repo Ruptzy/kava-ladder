@@ -731,7 +731,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <dt>Why did I disappear?</dt><dd>No games in 90 days moves you to &ldquo;away&rdquo;. Play a night and you are back.</dd>
 <dt>Do games against other brackets count?</dt><dd>Yes. One rating pool, separate boards.</dd>
 <dt>Why is my number different from the old sheet?</dt><dd>New system (Glicko-2), replayed from every game since October 2025. Seasons 1&ndash;7 are kept separately.</dd>
-<dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your bracket that night, so a cup always names the bracket you won it in. Your bracket is the highest your rating has reached this season or last: it moves up the moment you earn it, and falling out of one takes two full seasons of playing below it. Losing games can never drop you into an easier bracket, this season or the next. You need three games that night for it to count, and a tie shares the place.</dd>
+<dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your bracket that night, so a cup always names the bracket you won it in. Your bracket is set on your first night of the season and holds until the season ends, so nothing you do mid-season moves you. Break your section&rsquo;s ceiling and you still play for its prize, then move up for the next one. Falling out of a bracket takes two full seasons of playing below it. You need three games that night for it to count, and a tie shares the place.</dd>
 <dt>How is &ldquo;most improved&rdquo; worked out?</dt><dd>Change over the last 90 days, settled ratings only, at least twelve games. Under 1400 ELO and Under 1000 ELO only &mdash; above 1400 a three-month swing says more about who turned up than about anyone improving.</dd>
 </dl></div></div>
 <script>
@@ -775,10 +775,8 @@ function bandOf(r){
 /* The band a player was in going into a given night. Hand-kept bracket sheets
    drifted months behind the ratings and put U1400 cups on 927; this cannot. */
 function divAt(name,ni){
-  const p=byN[name]; if(!p) return DIVS[DIVS.length-1];
-  let r=(p.rbMax&&p.rbMax[ni]!=null)?p.rbMax[ni]:(p.peak9!=null?p.peak9:p.r);
-  if(p.pk!=null) r=Math.max(r,p.pk);
-  return bandOf(r);
+  const p=byN[name];
+  return p&&p.band?p.band:DIVS[DIVS.length-1];
 }
 const divRank=d=>{ const i=DIVS.indexOf(d); return i<0?DIVS.length:i };   // 0 is the strongest
 const away=p=>!!p.aw||(!p.ac&&p.idle!=null&&p.idle>IDLE);
@@ -797,27 +795,28 @@ let NIGHT=[];
 /* ---------- everything derived from the games ---------- */
 function derive(){
   ALL.forEach(p=>{
-    p.log=[]; p.opp={}; p.rec=[0,0,0]; p.wh=[0,0,0]; p.bl=[0,0,0]; p.games=0; p.att={}; p.rb={}; p.rbMax={};
-    /* rbMax is the best rating this player had entering any night so far. A
-       bracket ratchets up and never down inside a season, so losing on purpose
-       at the end of one cannot drop anybody into an easier bracket for its
-       rewards. The floor resets when the next season starts. */
-    /* A newcomer's seed is a number somebody typed, not a rating anybody has
-       tested, so it sets no floor. Their first night has nothing else to go on
-       and uses it; from the second the floor is real ratings only. */
-    let prev=p.seed, mx=-Infinity;
-    p.hist.forEach((h,i)=>{
-      p.rb[h[0]]=prev;
-      if(!(p.nw&&i===0)) mx=Math.max(mx,prev);
-      p.rbMax[h[0]]=mx===-Infinity?prev:mx;
-      prev=h[1];
-    });
-    /* A band sticks for two seasons. p.pk is the best rating the club tested
-       last season, so tanking the end of one cannot open the next in an easier
-       bracket: you would have to spend two full seasons down there, by which
-       point you are not sandbagging, you are simply that player now. */
-    p.peak9=Math.max(mx===-Infinity?p.r:mx,p.r,p.pk!=null?p.pk:-Infinity);
-    p.d=bandOf(p.peak9);      // the board and the cups read the same band
+    p.log=[]; p.opp={}; p.rec=[0,0,0]; p.wh=[0,0,0]; p.bl=[0,0,0]; p.games=0; p.att={}; p.rb={};
+    let prev=p.seed;
+    p.hist.forEach(h=>{ p.rb[h[0]]=prev; prev=h[1]; });
+    /* The bracket is set on the first night of the season and does not move
+       inside it. Break your section's ceiling and you still play for its prize,
+       then go up when the next season starts - which is how Harold has always
+       run it, and the only version that does not punish improving.
+
+       A newcomer's seed is a number somebody typed rather than a rating anybody
+       has tested, so theirs is set by the first night they actually play.
+       p.pk is the best rating the club tested last season: a band sticks for two
+       seasons, so tanking the end of one cannot open the next in an easier
+       bracket. Nothing moves within a season, so nothing can be moved by losing
+       on purpose within one either. */
+    const entry=p.nw?(p.hist.length?p.hist[0][1]:p.r):p.seed;
+    p.entry=entry;
+    // the build works the band out once; this only falls back if it is absent
+    p.band=p.bd||bandOf(Math.max(entry,p.pk!=null?p.pk:-Infinity));
+    p.peak9=Math.max(entry,p.r,p.pk!=null?p.pk:-Infinity);
+    p.hist.forEach(h=>{ p.peak9=Math.max(p.peak9,h[1]) });
+    p.up=divRank(bandOf(p.r))<divRank(p.band);   // earned a move up next season
+    p.d=p.band;
   });
   const rb=(p,ni)=>p.rb[ni]!=null?p.rb[ni]:p.seed;
   D.games.forEach(g=>{
