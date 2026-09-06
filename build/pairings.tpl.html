@@ -3731,7 +3731,7 @@ async function seasonCanvas(){
   if(!groups.length) throw new Error("No season to summarise yet.");
   try{ await document.fonts.ready }catch(e){}
 
-  const headH=112, divHead=44, gap=18, footH=54;
+  const headH=136, divHead=44, gap=18, footH=54;
   let h=PAD+headH;
   groups.forEach(g=>{ h+=divHead+g.rows.length*ROW+gap });
   h+=footH+PAD;
@@ -3759,7 +3759,7 @@ async function seasonCanvas(){
   const fd=s=>new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short"});
   c.fillStyle=CLR.dim; c.font=fnt(500,13,true);
   c.fillText((fd(S.bounds.from)+" \u2013 "+fd(S.bounds.to)+"   \u00b7   "+
-              S.bounds.nights+" NIGHTS").toUpperCase(), lx+232, y+53);
+              S.bounds.nights+" NIGHTS   ·   SEASON "+seasonNumber()).toUpperCase(), lx, y+82);
   y+=headH-26;
   c.fillStyle=CLR.red; c.fillRect(PAD,y,CARD_W-PAD*2,2);
   y+=24;
@@ -3771,17 +3771,24 @@ async function seasonCanvas(){
     c.fillText("RATING    SEASON      W\u2013D\u2013L   NIGHTS", CARD_W-PAD, y+14);
     c.textAlign="left";
     y+=divHead-16;
+    // the discs follow the prize: the top three who can actually win it
+    let podium=0;
     g.rows.forEach((r,i)=>{
       if(i%2===0){ c.fillStyle=CLR.panel; round(PAD-10,y-5,CARD_W-PAD*2+20,ROW-4,9); c.fill() }
-      if(i<3&&r.elig){
-        c.fillStyle=PLACE_CLR[i];
+      const place=r.elig?++podium:0;
+      if(place>=1&&place<=3){
+        c.fillStyle=PLACE_CLR[place-1];
         c.beginPath(); c.arc(PAD+13,y+14,13,0,Math.PI*2); c.fill();
         c.fillStyle=CLR.bg; c.font=fnt(800,14,true);
       }else{
         c.fillStyle=CLR.dim; c.font=fnt(500,14,true);
       }
-      c.textAlign="center"; c.fillText(String(i+1), PAD+13, y+19); c.textAlign="left";
-      c.fillStyle=r.elig?CLR.ink:CLR.dim; c.font=fnt(i<3&&r.elig?700:500,18);
+      // eligible players are numbered against each other, because that is the
+      // order the prize goes in; anybody short of the nights has no place to show
+      c.textAlign="center";
+      c.fillText(r.elig?String(place):"·", PAD+13, y+19);
+      c.textAlign="left";
+      c.fillStyle=r.elig?CLR.ink:CLR.dim; c.font=fnt(place>=1&&place<=3?700:500,18);
       var nm=r.n+(r.elig?"":"  \u00b7  "+r.nights+" of "+S.bounds.nights);
       const room=CARD_W-PAD*2-300;
       while(c.measureText(nm).width>room&&nm.length>4) nm=nm.slice(0,-2)+"\u2026";
