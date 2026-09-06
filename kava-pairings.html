@@ -292,8 +292,9 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
       <button class="close" id="loadClub">Load club file</button>
       <input type="file" id="clubFile" accept=".json,application/json" style="display:none">
       <button class="close" id="fileBtn">Save tonight&rsquo;s results only</button>
+      <button class="close" id="finishBtn">Save the night without publishing</button>
     </div>
-    <button class="close" id="finishBtn" style="margin-top:1.2rem;color:var(--loss);border-color:#4A2E16">Finish night &amp; clear the board</button>
+
   </section>
 </div>
 
@@ -325,7 +326,7 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
 <div class="sheet hidden" id="confirm"><div class="card">
   <h3>Check this <span style="color:var(--scarlet)">before it goes out</span></h3>
   <div id="confirmBody"></div>
-  <button class="save" id="doSubmit">Yes &mdash; publish and post</button>
+  <button class="save" id="doSubmit">Yes &mdash; do it</button>
   <button class="close" id="noSubmit">Cancel</button>
 </div></div>
 
@@ -832,7 +833,7 @@ function nightRecord(){
   const games=[], byes=[];
   rounds.forEach(rd=>{
     rd.boards.forEach(b=>{ if(b.res) games.push([byId[b.w].n, byId[b.b].n, b.res]) });
-    if(rd.bye!=null) byes.push(byId[rd.bye].n);
+    if(rd.bye!=null) byes.push([byId[rd.bye].n, 1]);   // a bye is a whole point
   });
   return {date:new Date().toISOString().slice(0,10), games, byes};
 }
@@ -3377,13 +3378,32 @@ $("#finishBtn").onclick=async()=>{
       setSync("ok","night filed");
     }catch(e){ await say("Could not file the night","You may be on a view-only link."); return }
   }
+  fileNight();
+  clearBoard();
+  say("Night filed",HISTORY.length+" nights on record. Nothing has been published or posted.");
+};
+
+/* Tonight into the history, and the roster's ratings along with it. Returns
+   what was added so it can be taken back out if publishing fails. */
+function fileNight(){
   const rec=nightRecord();
-  if(rec.games.length) HISTORY.push(rec);
+  if(!rec.games.length) return null;
+  HISTORY.push(rec);
   const P=runRatings(HISTORY,{...SEEDS});
   R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });   // ratings move on the roster
-  playing=new Set(); gone=new Set(); rounds=[]; cur=0; clearLocal(); saveLocal(); go("in");
-  say("Night filed",HISTORY.length+" nights on record. Export the leaderboard when you are ready.");
-};
+  return rec;
+}
+function unfileNight(rec){
+  if(!rec) return;
+  const i=HISTORY.indexOf(rec);
+  if(i>=0) HISTORY.splice(i,1);
+  const P=runRatings(HISTORY,{...SEEDS});
+  R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });
+}
+function clearBoard(){
+  playing=new Set(); gone=new Set(); rounds=[]; cur=0;
+  clearLocal(); saveLocal(); go("in");
+}
 
 /* ---------- getting the results out, with no service in the middle ---------- */
 const NL=String.fromCharCode(10);
@@ -3446,9 +3466,12 @@ function confirmBody(){
     '<table><tbody>'+ids.map((id,i)=>'<tr><td>'+(i+1)+'. '+esc(byId[id].n)+
       (gone.has(id)?' <span style="color:var(--ink-3)">(left early)</span>':'')+
       '</td><td class="r">'+scoreTxt(st.score[id]||0)+'</td></tr>').join("")+'</tbody></table>'+
-    '<p class="cf">This will publish the website'+(c.owner&&c.repo?' at <b>'+esc(siteUrl(c))+'</b>':
-      ' <span class="warn">\u2014 not set up yet</span>')+
-    ', then post <b>'+kind+'</b> to Discord'+(h.hook?'':' <span class="warn">\u2014 no webhook set</span>')+'.</p>';
+    '<p class="cf">This will:</p><p class="cf">'+
+      '1. Save the night to the club record<br>'+
+      '2. Publish the website'+(c.owner&&c.repo?' at <b>'+esc(siteUrl(c))+'</b>':
+        ' <span class="warn">\u2014 not set up yet</span>')+'<br>'+
+      '3. Post <b>'+kind+'</b> to Discord'+(h.hook?'':' <span class="warn">\u2014 no webhook set</span>')+'<br>'+
+      '4. Clear the board for next time</p>';
 }
 
 $("#moreBtn").onclick=()=>{
@@ -3465,32 +3488,39 @@ $("#noSubmit").onclick=()=>$("#confirm").classList.add("hidden");
 $("#doSubmit").onclick=async()=>{
   const b=$("#doSubmit"), st=$("#submitState");
   b.disabled=true;
-  const say=m=>{ b.textContent=m; if(st) st.textContent=m };
+  const sayStep=m=>{ b.textContent=m; if(st) st.textContent=m };
+  /* The night has to be filed before the site is built, or the site goes out
+     without it. The post is built from the rounds, so the board is cleared last
+     of all - and only if everything worked. */
+  let filed=null;
   try{
-    // the site first: the post links to it, and a link to yesterday is worse
-    // than a post a minute late
-    say("publishing the website\u2026");
-    const url=await publishSite(buildLadder(), say);
-    say("posting to Discord\u2026");
+    sayStep("saving the night\u2026");
+    filed=fileNight();
+    sayStep("publishing the website\u2026");
+    const url=await publishSite(buildLadder(), sayStep);
     let posted=null;
-    try{ posted=await postAuto(say) }
+    try{ posted=await postAuto(sayStep) }
     catch(e){
       $("#confirm").classList.add("hidden");
-      st.innerHTML='<span style="color:var(--loss)">Website published, but Discord refused: '+
-        esc(e.message)+'</span><br>The site is live \u2014 you can post again from the button below.';
-      b.disabled=false; b.textContent="Yes \u2014 publish and post";
+      st.innerHTML='<span style="color:var(--loss)">Discord refused: '+esc(e.message)+'</span><br>'+
+        'The night is saved and the website is live. The board is still here \u2014 '+
+        'try Post to Discord under Other options.';
+      b.disabled=false; b.textContent="Yes \u2014 do it";
       return;
     }
+    clearBoard();
     $("#confirm").classList.add("hidden");
-    st.innerHTML='Published and posted. <a href="'+url+'" target="_blank" rel="noopener" '+
-      'style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">'+
-      posted.kind.charAt(0).toUpperCase()+posted.kind.slice(1)+' went out as '+posted.n+
-      ' message'+(posted.n===1?"":"s")+'. GitHub takes a minute to refresh.</small>';
+    st.innerHTML='Done. <a href="'+url+'" target="_blank" rel="noopener" '+
+      'style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">Night saved, '+
+      'website published, and '+posted.kind+' posted as '+posted.n+
+      ' message'+(posted.n===1?"":"s")+'. The board is cleared. GitHub takes a minute to refresh.</small>';
   }catch(e){
-    st.innerHTML='<span style="color:var(--loss)">Nothing was sent. '+esc(e.message||"Could not publish.")+'</span>';
+    unfileNight(filed);
+    st.innerHTML='<span style="color:var(--loss)">Nothing was sent and nothing was saved. '+
+      esc(e.message||"Could not publish.")+'</span><br>The board is exactly as you left it.';
     $("#confirm").classList.add("hidden");
   }
-  b.disabled=false; b.textContent="Yes \u2014 publish and post";
+  b.disabled=false; b.textContent="Yes \u2014 do it";
 };
 
 $("#pubBtn").onclick=async()=>{
@@ -3638,7 +3668,7 @@ const DIV_LABEL={"over 1400":"Over 1400 ELO","U1400":"Under 1400 ELO","U1000":"U
 function divLabel(d){ return DIV_LABEL[d]||d }
 
 /* W-D-L for the night, which derive() does not keep */
-function nightRecord(id){
+function playerNightRecord(id){
   let w=0,d=0,l=0;
   rounds.forEach(rd=>rd.boards.forEach(b=>{
     if(b.w!==id&&b.b!==id) return;
@@ -3670,7 +3700,7 @@ function nightEmbeds(){
       const medal=place<=3?MEDAL[place-1]+" ":"`"+String(place).padStart(2)+".` ";
       const left=gone.has(id)?"  *(left early)*":"";
       return medal+"**"+byId[id].n+"** — "+scoreTxt(sc)+
-             "  ·  "+nightRecord(id)+left;
+             "  ·  "+playerNightRecord(id)+left;
     });
     return {title:divLabel(d), color:DSC_RED, description:lines.join(NL)};
   });
@@ -3699,7 +3729,7 @@ function nightGroups(){
     return {div:d, rows:ids.map((id,i)=>{
       const sc=st.score[id]||0;
       if(prev===null||sc!==prev){ place=i+1; prev=sc }
-      return {id, place, name:byId[id].n, score:scoreTxt(sc), rec:nightRecord(id), left:gone.has(id)};
+      return {id, place, name:byId[id].n, score:scoreTxt(sc), rec:playerNightRecord(id), left:gone.has(id)};
     })};
   });
 }

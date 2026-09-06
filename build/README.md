@@ -58,17 +58,28 @@ same way in reverse: warnings nobody ever saw. There are none of either left.
 
 ### Submitting a night
 
-**Submit the night** is the one button the evening ends on. It shows a
-confirmation first: the date, the rounds, the number who played, a warning if
-any board has no result, the full standings to check against the actual board,
-where the site will publish to, and which of the three Discord posts it will
-send. Then Cancel or "Yes - publish and post".
+**Submit the night** is the one button the evening ends on, and it does the
+whole thing:
 
-The site publishes first, because the post links to it and a link to yesterday's
-numbers is worse than a post a minute late. If publishing fails, nothing is
-posted. If posting fails after publishing worked it says exactly that, so nobody
-has to guess which half went out, and the Discord button below is still there to
-retry.
+1. saves the night to the club record,
+2. publishes the website,
+3. posts to Discord,
+4. clears the board.
+
+That order is the only one that works, and getting it wrong is what made Submit
+and the old Finish button contradict each other. The site is built from
+`HISTORY`, so tonight has to be filed before it is built or the site goes out
+without it. The Discord post is built from `rounds`, so the board can only be
+cleared once the post is away.
+
+If publishing fails the night is unfiled, nothing is sent, and the board is
+exactly as it was. If posting fails after publishing worked, the night stays
+saved, the site stays live, and the board is deliberately **not** cleared so the
+post can be retried from Other options.
+
+The confirmation shows the date, the rounds, who played, a red warning for any
+board with no result, the full standings to check against the actual board, and
+those four steps with the real URL and which of the three posts it will send.
 
 ### One button, three posts
 
