@@ -3550,6 +3550,8 @@ async function dscSendFile(hook,blob,filename,content){
    off that in three-month steps, so the club rolls into season 10 on its own
    the first night anybody plays in September.                              */
 const SEASON_ANCHOR={no:9, from:"2026-06-01"};   // first day of that season
+/* The club's gift cards, strongest bracket first. Change them here. */
+const PRIZES={"over 1400":"$100 Kava Social gift card","U1400":"$75 gift card","U1000":"$50 gift card"};
 const SEASON_MONTHS=3;
 const BYE_WHOLE_FROM="2026-09-01";  // before this a bye was scored at a half
 
@@ -3823,6 +3825,59 @@ function seasonEmbeds(){
               description:seasonNotes(S,g.d,g.rows).join(NL+NL)}));
 }
 
+/* The champions, and whether they broke their section's ceiling doing it. */
+function champions(S){
+  return DATA.divisions.map(d=>{
+    const won=seasonTable(S,d).filter(x=>x.elig)[0];
+    if(!won) return null;
+    const ceil=CEILING[d];
+    return {div:d, n:won.n, r:won.now, broke:!!(ceil&&won.now>=ceil)};
+  }).filter(Boolean);
+}
+
+function signOff(S,no,pc){
+  const games=HISTORY.filter(n=>n.date>=S.bounds.from&&n.date<=S.bounds.to)
+                     .reduce((a,n)=>a+n.games.length,0);
+  const champs=champions(S);
+  const L=[];
+  L.push("@everyone");
+  L.push("");
+  L.push("\uD83C\uDFC6  **SEASON "+no+" IS IN THE BOOKS**  \uD83C\uDFC6");
+  L.push("");
+  L.push(S.bounds.nights+" nights. "+games+" games. Three brackets, three champions, and a "+
+         "whole lot of chaos on the way there.");
+  L.push("");
+  champs.forEach(c=>{
+    L.push("**"+divLabel(c.div)+" \u2014 "+c.n+"** on "+c.r+
+           (c.broke?"  \u2014 and broke the ceiling doing it. Promoted.":""));
+  });
+  L.push("");
+  L.push("\uD83C\uDF81 **Prizes**");
+  champs.forEach(c=>{ if(PRIZES[c.div]) L.push(divLabel(c.div)+" \u2014 "+PRIZES[c.div]) });
+  L.push("");
+  L.push("Prizes go to the top of each bracket among everyone who played at least **"+
+         seasonMinNights(S)+" of the "+S.bounds.nights+" nights**.");
+  const up=champs.filter(c=>c.broke).map(c=>c.n);
+  if(up.length){
+    L.push("");
+    L.push(up.join(" and ")+" smashed through their section this season. They collect here, "+
+           "then move up for Season "+(no+1)+" \u2014 break the bracket, still get paid, "+
+           "then go hunting something bigger.");
+  }
+  L.push("");
+  L.push("Massive thanks to everyone who turned up, wrote a result down, or sat across from "+
+         "somebody they had no business beating. This ladder only exists because you keep "+
+         "showing up.");
+  L.push("");
+  L.push("**SEASON "+(no+1)+" STARTS NEXT. SEE YOU THERE.** \u265C\u265E");
+  if(pc.owner&&pc.repo){
+    L.push("");
+    L.push("Full standings, every player's page, night by night: "+siteUrl(pc));
+  }
+  L.push("Want your personal rating graph? DM me.");
+  return L.join(NL);
+}
+
 async function postSeason(status){
   const c=dscCfg();
   if(!c.hook) throw new Error("Add the webhook in settings first.");
@@ -3855,13 +3910,7 @@ async function postSeason(status){
   }
 
   status&&status("signing off\u2026");
-  await dscSend(c.hook,
-    "The season prize goes to the top of each bracket among everyone who played at "+
-    "least "+seasonMinNights(S)+" of the "+S.bounds.nights+" nights."+NL+NL+
-    "That is Season "+no+". Thank you to everyone who turned up, wrote a result down, "+
-    "or sat opposite somebody they had no business beating."+NL+NL+
-    "**Season "+(no+1)+" starts next. See you next season.**"+
-    ((pc.owner&&pc.repo)?NL+NL+"Every player's season, night by night: "+siteUrl(pc):""));
+  await dscSend(c.hook, signOff(S,no,pc));
   sent++;
   return sent;
 }
