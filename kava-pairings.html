@@ -1545,7 +1545,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <dt>Do games against other brackets count?</dt><dd>Yes. One rating pool, separate boards.</dd>
 <dt>Why is my number different from the old sheet?</dt><dd>New system (Glicko-2), replayed from every game since October 2025. Seasons 1&ndash;7 are kept separately.</dd>
 <dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your own bracket, and you take a cup. You need three games that night for it to count, and a tie shares the place.</dd>
-<dt>How is &ldquo;most improved&rdquo; worked out?</dt><dd>Change over the last 90 days, settled ratings only, at least twelve games.</dd>
+<dt>How is &ldquo;most improved&rdquo; worked out?</dt><dd>Change over the last 90 days, settled ratings only, at least twelve games. Under 1400 ELO and Under 1000 ELO only &mdash; above 1400 a three-month swing says more about who turned up than about anyone improving.</dd>
 </dl></div></div>
 <script>
 const D=${JSON.stringify(D)};
@@ -1666,7 +1666,11 @@ function derive(){
       if(!p.nem||net<p.nem[4]) p.nem=[o,a[0],a[1],a[2],net]; if(!p.vic||net>p.vic[4]) p.vic=[o,a[0],a[1],a[2],net]; });
     p.first=lg.length?DATES[lg[0].ni]:null;
     const prior=p.hist.filter(h=>DATES[h[0]]<=cutS);
-    p.imp=(prior.length>=3&&p.rd<=RS&&p.games>=12)?p.r-prior[prior.length-1][1]:null;
+    /* Most improved is for the two lower brackets only. Harold's call: at the
+       top a three-month swing says more about which nights people turned up to
+       than about anyone getting better, and it crowds out the players the
+       measure is actually for. */
+    p.imp=(prior.length>=3&&p.rd<=RS&&p.games>=12&&p.d!==DIVS[0])?p.r-prior[prior.length-1][1]:null;
     p.trophies=[0,0,0]; p.trophyNights=[]; p.byDiv={};
     NIGHT.forEach((N,ni)=>{ const pl=N.sec[p.n];
       if(pl>=1&&pl<=3){
@@ -1789,7 +1793,9 @@ const SORTS=[
  {k:"win", ic:"🎯", t:"Win rate",       col:"Win rate",   val:p=>pct(p.rec[0],p.rec[1],p.games), show:p=>pct(p.rec[0],p.rec[1],p.games)+"%", min:8, note:"Draws count half. Fewer than 8 games drops to the bottom."},
  {k:"g", ic:"♟️", t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game in seasons 8 and 9."},
  {k:"imp", ic:"📈", t:"Most improved",  col:"3 months",   val:p=>p.imp==null?-9999:p.imp,
-   show:p=>p.imp==null?'<span style="font-size:.7rem;color:var(--ink-3)">settling</span>':(p.imp>0?"+"+p.imp:p.imp), sign:p=>p.imp||0, note:"Change over the last 90 days. Settled ratings only, at least 12 games."},
+   show:p=>p.imp!=null?(p.imp>0?"+"+p.imp:p.imp)
+     :'<span style="font-size:.7rem;color:var(--ink-3)">'+(p.d===DIVS[0]?"—":"settling")+'</span>',
+   sign:p=>p.imp||0, note:"Change over the last 90 days, for the two lower brackets. Settled ratings only, at least 12 games."},
  {k:"con", ic:"🪑", t:"Most consistent",col:"Nights",     val:p=>p.cons||0, show:p=>(p.cons||0)+" of "+DATES.length, note:"Club nights turned up to."},
  {k:"blk", ic:"♚", t:"Best as Black",  col:"As Black",   val:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g):-1},
    show:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g)+"%":"—"}, min:6, note:"Score with the Black pieces. Fewer than 6 games as Black drops to the bottom."},
