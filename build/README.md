@@ -81,6 +81,22 @@ The confirmation shows the date, the rounds, who played, a red warning for any
 board with no result, the full standings to check against the actual board, and
 those four steps with the real URL and which of the three posts it will send.
 
+The standings screen has three buttons and no more: Submit, Save file, Load
+file. Publish-only, post-only, copy-as-text, save-the-page and
+save-without-publishing are gone - each was a fallback for a step Submit already
+does, and nine ways to do one thing is worse than one.
+
+The one thing they usefully covered was retrying a post after Discord refused.
+`submitStage` holds that instead: press Submit again and it sends the post
+alone, without refiling the night or republishing a live site.
+
+Nothing waits forever. `withTimeout()` caps publishing and posting at sixty
+seconds each, because a phone that loses signal mid-upload leaves fetch hanging
+until the tab is closed, which looks exactly like the app having frozen. The
+status line carries a spinner while it works and the error names what failed and
+what is still true: whether the night was saved, whether the site went up, and
+whether the board was cleared.
+
 ### One button, three posts
 
 `postAuto()` works out which post the night calls for and the button says which

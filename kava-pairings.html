@@ -216,6 +216,19 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   font-family:var(--f-disp);font-variation-settings:"wdth" 112,"wght" 800;font-size:1rem;
   text-transform:uppercase;cursor:pointer;min-height:52px;margin-top:.3rem}
 .save:disabled{background:var(--panel-2);color:var(--ink-3)}
+/* a working indicator, so a slow upload does not look like a frozen app */
+.spin{display:inline-block;width:.72em;height:.72em;border:2px solid var(--rule-2);
+border-top-color:var(--scarlet);border-radius:50%;animation:sp .7s linear infinite;
+vertical-align:-.1em;margin-right:.15rem}
+@keyframes sp{to{transform:rotate(360deg)}}
+.twoup{display:flex;gap:.6rem;margin-top:1.4rem}
+.twoup .close{flex:1;margin-top:0}
+#confirmBody .cf{margin:.1rem 0 .7rem;font-size:.86rem;line-height:1.5;color:var(--ink-2)}
+#confirmBody .cf b{color:var(--ink)}
+#confirmBody table{width:100%;border-collapse:collapse;font-size:.84rem;margin:.2rem 0 .8rem}
+#confirmBody td{padding:.22rem .1rem;border-bottom:1px solid var(--rule)}
+#confirmBody td.r{text-align:right;font-family:var(--f-mono);color:var(--ink-2)}
+#confirmBody .warn{color:var(--loss)}
 </style>
 
 <div id="lock"><div class="box">
@@ -276,25 +289,11 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
     <div id="finish"></div>
     <button class="close" id="submitBtn" style="margin-top:1rem;background:var(--scarlet);color:#fff;border:none;font-weight:700;font-size:.72rem">Submit the night</button>
     <p class="hintline" id="submitState" style="margin:.4rem 0 .8rem"></p>
-    <!-- Submit does both jobs, so everything else is a fallback and folds away.
-         Nine buttons of equal weight made it impossible to see which one to press. -->
-    <button class="close" id="moreBtn" style="color:var(--ink-3)">Other options &#9662;</button>
-    <div id="more" class="hidden">
-      <p class="hintline" style="margin:.6rem 0 .3rem">If Submit is not what you want, or half of it failed:</p>
-      <button class="close" id="pubBtn">Publish the website only</button>
-      <p class="hintline" id="pubLink" style="margin:.4rem 0 .6rem"></p>
-      <button class="close" id="dscBtn">Post to Discord</button>
-      <p class="hintline" id="dscState"></p>
-      <button class="close" id="copyBtn">Copy results as text</button>
-      <p class="hintline" style="margin:.9rem 0 .3rem">Backups and exports:</p>
-      <button class="close" id="ladderBtn">Save the page as a file</button>
-      <button class="close" id="saveClub">Save club file</button>
-      <button class="close" id="loadClub">Load club file</button>
-      <input type="file" id="clubFile" accept=".json,application/json" style="display:none">
-      <button class="close" id="fileBtn">Save tonight&rsquo;s results only</button>
-      <button class="close" id="finishBtn">Save the night without publishing</button>
+    <div class="twoup">
+      <button class="close" id="saveClub">Save file</button>
+      <button class="close" id="loadClub">Load file</button>
     </div>
-
+    <input type="file" id="clubFile" accept=".json,application/json" style="display:none">
   </section>
 </div>
 
@@ -3367,21 +3366,6 @@ async function save(){
     else setSync("err","not saved");
   }
 }
-$("#finishBtn").onclick=async()=>{
-  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
-  if(!await ask("Finish the night?","This clears the board. Submit the night first if you have not - the results are not saved anywhere else.","Finish and clear")) return;
-  if(db){
-    try{
-      const key="nights/"+new Date().toISOString().slice(0,10);
-      await db.doc(key).set({...snapshot(), finished:true});
-      await db.doc(NIGHT).set({at:Date.now(),playing:[],gone:[],added:[],rounds:[],cfg:{...CFG}});
-      setSync("ok","night filed");
-    }catch(e){ await say("Could not file the night","You may be on a view-only link."); return }
-  }
-  fileNight();
-  clearBoard();
-  say("Night filed",HISTORY.length+" nights on record. Nothing has been published or posted.");
-};
 
 /* Tonight into the history, and the roster's ratings along with it. Returns
    what was added so it can be taken back out if publishing fails. */
@@ -3423,13 +3407,10 @@ function resultsText(){
   });
   return lines.join(NL);
 }
-$("#copyBtn").onclick=async()=>{
-  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
-  const txt=resultsText();
-  try{ await navigator.clipboard.writeText(txt); $("#copyBtn").textContent="Copied — paste it into Discord"; 
-       setTimeout(()=>$("#copyBtn").textContent="Copy results for Discord",2500); }
-  catch(e){ prompt("Copy this:",txt) }
-};
+/* Buttons that were removed still have handlers below; on() lets those bind to
+   nothing rather than throwing on a null. */
+function on(id, ev, fn){ const el=document.getElementById(id); if(el) el[ev]=fn }
+
 /* The tool draws its own dialogs. window.confirm returns false with no dialog
    in the browser this runs in, which is what made Delete round, Re-pair and
    Clear scores look broken: nothing could ever get past the guard. */
@@ -3459,6 +3440,8 @@ function confirmBody(){
   try{ const sh=seasonShape();
        kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results") }catch(e){}
   const miss=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
+  if(submitStage) return '<p class="cf">The night is already saved and the website is live.<br>'+
+    'This will post <b>'+kind+'</b> to Discord and clear the board.</p>';
   return '<p class="cf"><b>'+esc(d)+'</b><br>'+rounds.length+' round'+(rounds.length===1?"":"s")+
       ' \u00b7 '+playing.size+' played'+(miss?' \u00b7 <span class="warn">'+miss+
       ' board'+(miss===1?"":"s")+' with no result</span>':'')+'</p>'+
@@ -3474,10 +3457,6 @@ function confirmBody(){
       '4. Clear the board for next time</p>';
 }
 
-$("#moreBtn").onclick=()=>{
-  const m=$("#more"), open=m.classList.toggle("hidden")===false;
-  $("#moreBtn").innerHTML="Other options "+(open?"▴":"▾");
-};
 $("#submitBtn").onclick=()=>{
   if(!rounds.length){ $("#submitState").textContent="No rounds to submit yet."; return }
   $("#confirmBody").innerHTML=confirmBody();
@@ -3485,29 +3464,49 @@ $("#submitBtn").onclick=()=>{
 };
 $("#noSubmit").onclick=()=>$("#confirm").classList.add("hidden");
 
+/* Nothing waits forever. A phone in a bar loses signal mid-upload and fetch
+   will happily hang until the tab is closed, which looks exactly like the app
+   having frozen. */
+function withTimeout(promise, seconds, what){
+  return Promise.race([promise, new Promise((_,rej)=>setTimeout(
+    ()=>rej(new Error(what+" took longer than "+seconds+" seconds. Check your signal and try again.")),
+    seconds*1000))]);
+}
+
+/* Where a half-finished submit got to, so pressing again resumes rather than
+   repeating. Cleared once the board is. */
+let submitStage=null;
+
 $("#doSubmit").onclick=async()=>{
   const b=$("#doSubmit"), st=$("#submitState");
   b.disabled=true;
-  const sayStep=m=>{ b.textContent=m; if(st) st.textContent=m };
+  const spin='<span class="spin"></span> ';
+  const sayStep=m=>{ b.textContent=m; if(st) st.innerHTML=spin+esc(m) };
   /* The night has to be filed before the site is built, or the site goes out
      without it. The post is built from the rounds, so the board is cleared last
      of all - and only if everything worked. */
   let filed=null;
   try{
-    sayStep("saving the night\u2026");
-    filed=fileNight();
-    sayStep("publishing the website\u2026");
-    const url=await publishSite(buildLadder(), sayStep);
+    let url=submitStage&&submitStage.url;
+    if(!submitStage){
+      sayStep("saving the night");
+      filed=fileNight();
+      sayStep("publishing the website");
+      url=await withTimeout(publishSite(buildLadder(), sayStep), 60, "Publishing");
+    }
     let posted=null;
-    try{ posted=await postAuto(sayStep) }
+    try{ posted=await withTimeout(postAuto(sayStep), 60, "Posting to Discord") }
     catch(e){
+      submitStage={url};   // filed and published: only the post is still owed
       $("#confirm").classList.add("hidden");
-      st.innerHTML='<span style="color:var(--loss)">Discord refused: '+esc(e.message)+'</span><br>'+
-        'The night is saved and the website is live. The board is still here \u2014 '+
-        'try Post to Discord under Other options.';
+      st.innerHTML='<span style="color:var(--loss)"><b>Discord would not take the post.</b><br>'+
+        esc(e.message||"Unknown error.")+'</span><br>The night is saved and the website is live at '+
+        '<a href="'+url+'" target="_blank" rel="noopener" style="color:var(--scarlet)">'+url+'</a>.'+
+        '<br>The board is untouched. Press Submit again to send the post on its own.';
       b.disabled=false; b.textContent="Yes \u2014 do it";
       return;
     }
+    submitStage=null;
     clearBoard();
     $("#confirm").classList.add("hidden");
     st.innerHTML='Done. <a href="'+url+'" target="_blank" rel="noopener" '+
@@ -3516,29 +3515,14 @@ $("#doSubmit").onclick=async()=>{
       ' message'+(posted.n===1?"":"s")+'. The board is cleared. GitHub takes a minute to refresh.</small>';
   }catch(e){
     unfileNight(filed);
-    st.innerHTML='<span style="color:var(--loss)">Nothing was sent and nothing was saved. '+
-      esc(e.message||"Could not publish.")+'</span><br>The board is exactly as you left it.';
+    st.innerHTML='<span style="color:var(--loss)"><b>Could not publish the website.</b><br>'+
+      esc(e.message||"Unknown error.")+'</span><br>Nothing was saved and nothing was posted. '+
+      'The board is exactly as you left it.';
     $("#confirm").classList.add("hidden");
   }
   b.disabled=false; b.textContent="Yes \u2014 do it";
 };
 
-$("#pubBtn").onclick=async()=>{
-  const b=$("#pubBtn"), was=b.textContent;
-  try{
-    const html=buildLadder();
-    b.disabled=true;
-    const url=await publishSite(html,s=>{b.textContent=s});
-    b.textContent="Live — tap to open";
-    b.onclick=()=>window.open(url,"_blank");
-    $("#pubLink").innerHTML='Club link: <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--scarlet)">'+url+'</a><br><small style="color:var(--ink-3)">GitHub takes a minute to refresh the page.</small>';
-  }catch(e){ b.textContent=was; say("Could not publish",e.message||""); }
-  finally{ b.disabled=false }
-};
-$("#ladderBtn").onclick=async()=>{
-  try{ await offerFile("index.html",buildLadder(),"text/html") }
-  catch(e){ say("Could not build the page",e.message||"") }
-};
 $("#saveClub").onclick=async()=>{
   await offerFile("kava-club.json",JSON.stringify(clubFile(),null,2));
 };
@@ -3550,18 +3534,6 @@ $("#clubFile").onchange=e=>{
       say("Club file loaded",R.length+" players, "+HISTORY.length+" nights.") }
     catch(err){ say("Could not read that file",err.message||"") } };
   rd.readAsText(f); e.target.value="";
-};
-$("#fileBtn").onclick=async()=>{
-  if(!rounds.length){ say("Nothing here yet","No rounds have been played yet."); return }
-  const name="kava-"+new Date().toISOString().slice(0,10)+".json";
-  const data=JSON.stringify({night:snapshot(),
-    players:[...playing].map(id=>({name:byId[id].n,rating:byId[id].r,bracket:byId[id].d})),
-    text:resultsText()},null,2);
-  let dl=null; try{ dl = window.claude&&claude.use ? await claude.use("downloads") : null }catch(e){}
-  if(dl){ try{ await dl.save({filename:name,data}); return }catch(e){} }
-  try{ const b=new Blob([data],{type:"application/json"}); const u=URL.createObjectURL(b);
-       const a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }
-  catch(e){ prompt("Copy this:",data) }
 };
 (async()=>{
   const local=loadLocal();
@@ -4445,28 +4417,6 @@ function autoLabel(){
     if(sh.halfway&&!halfwayDone(sh.no)) return "Post the halfway update";
     return "Post tonight's results";
   }catch(e){ return "Post to Discord" }
-}
-function renderAuto(){
-  const b=document.getElementById("dscBtn");
-  if(b&&!b.disabled) b.textContent=autoLabel();
-}
-{
-  const b=document.getElementById("dscBtn");
-  if(b) b.onclick=async()=>{
-    const st=$("#dscState");
-    b.disabled=true;
-    try{
-      const r=await postAuto(m=>{ if(st) st.textContent=m });
-      b.textContent="Posted";
-      if(st) st.textContent=r.kind.charAt(0).toUpperCase()+r.kind.slice(1)+
-        " is in the channel, "+r.n+" message"+(r.n===1?"":"s")+".";
-    }catch(e){
-      if(st) st.textContent=e.message;
-    }
-    b.disabled=false;
-    setTimeout(renderAuto,4000);
-  };
-  renderAuto();
 }
 $("#pTest").onclick=async()=>{
   const b=$("#pTest"), c=pubCfg(); b.textContent="Checking…";
