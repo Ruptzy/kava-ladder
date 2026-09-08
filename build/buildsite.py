@@ -22,7 +22,6 @@ def photo_slugs():
     if not os.path.isdir(d): return []
     return sorted(f[:-4] for f in os.listdir(d) if f.endswith('.jpg'))
 TAU=0.5; SC=173.7178; RDMIN=30.0; RDMAX=350.0; FLOOR=100.0
-SITE="https://ruptzy.github.io/kava-ladder/"
 
 def g(phi): return 1/math.sqrt(1+3*phi*phi/(math.pi**2))
 def E(mu,muj,phij): return 1/(1+math.exp(-g(phij)*(mu-muj)))
@@ -389,7 +388,6 @@ if __name__=="__main__":
     BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
                   HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS)
-    DESC="Club ladder · %d games over %d nights · latest night %s"%(len(D["games"]),len(D["dates"]),D["date"])
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people
     # who have left have to come out of those too
@@ -399,7 +397,7 @@ if __name__=="__main__":
     src=open(here('ladderbuild.js'),encoding='utf-8').read()
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
     html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
-             .replace('${SITE}',SITE).replace('${DESC}',DESC).replace('<\\/script>','</script>'))
+             .replace('<\\/script>','</script>'))
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
     print('season %d: %s .. %s | vault %d nights, %d games'

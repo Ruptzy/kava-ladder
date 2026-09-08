@@ -44,24 +44,24 @@ function buildLadder(){
   if(!Object.keys(P).some(n=>P[n].n>0)) throw new Error("No games on record yet — play a night first.");
   const built=new Date().toISOString().slice(0,10);
   const D=ladderData(P,HISTORY,R,DATA.divisions,(typeof ARCHIVE!=="undefined"?ARCHIVE:null),seeds,built);
-  let SITE="https://ruptzy.github.io/kava-ladder/";
-  try{ if(typeof pubCfg==="function"){ const c=pubCfg(); if(c.owner&&c.repo) SITE=siteUrl(c) } }catch(e){}
-  const DESC="Club ladder · "+D.games.length+" games over "+D.dates.length+" nights · latest night "+D.date;
-  return ladderTemplate(D,SITE,DESC);
+  return ladderTemplate(D);
 }
 
-function ladderTemplate(D,SITE,DESC){
+/* The head is static: the club serves at one address, given by the CNAME in
+   the repo root, and says one thing about itself. Nothing here is derived, so
+   nothing here can differ between the two builders. */
+function ladderTemplate(D){
   return `<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>KAVA Ladder</title>
-<meta name="description" content="${DESC}">
+<title>Kava Social Chess Club Ladder &mdash; Bradenton, FL</title>
+<meta name="description" content="Live ratings, player profiles and full game history for the Kava Social Chess Club in Bradenton, Florida. Meets Sundays and Tuesdays, 8PM to midnight.">
 <meta name="theme-color" content="#0C0D0E">
 <link rel="preload" as="image" href="bg.jpg">
 <meta property="og:type" content="website"><meta property="og:site_name" content="KAVA Social Chess Club">
-<meta property="og:title" content="KAVA Ladder"><meta property="og:description" content="${DESC}">
-<meta property="og:url" content="${SITE}"><meta property="og:image" content="${SITE}logo.png">
+<meta property="og:title" content="Kava Social Chess Club Ladder &mdash; Bradenton, FL"><meta property="og:description" content="Live ratings, player profiles and full game history for the Kava Social Chess Club in Bradenton, Florida. Meets Sundays and Tuesdays, 8PM to midnight.">
+<meta property="og:url" content="https://ladder.kavasocialchessclub.com/"><meta property="og:image" content="https://ladder.kavasocialchessclub.com/logo.png">
 <meta name="twitter:card" content="summary">
-<link rel="canonical" href="${SITE}">
+<link rel="canonical" href="https://ladder.kavasocialchessclub.com/">
 <link rel="icon" href="logo.png" type="image/png"><link rel="apple-touch-icon" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=JetBrains+Mono:wght@400;700&display=swap">
@@ -198,6 +198,11 @@ white-space:nowrap;overflow:hidden;text-overflow:clip;text-shadow:0 2px 12px rgb
 .sh h2 span{color:var(--scarlet)}
 .sh p{margin:0 0 0 auto;font-family:var(--fm);font-size:.6rem;letter-spacing:.11em;color:var(--ink-3);text-transform:uppercase}
 p.l{max-width:66ch;color:var(--ink-2);margin:0 0 .9rem;font-size:.92rem}
+.story{max-width:64ch;margin:0 0 1.5rem}
+.story p{color:var(--ink-2);font-size:.95rem;line-height:1.62;margin:0 0 .75rem}
+.story p.pull{margin:1.1rem 0 0;padding-left:.9rem;border-left:3px solid var(--scarlet);
+color:var(--cream);font-size:1rem;line-height:1.5;
+font-family:var(--fd);font-variation-settings:"wdth" 106,"wght" 600}
 .box{border:1px solid var(--rule-2);border-radius:3px;overflow:hidden;background:rgba(22,23,25,.94)}
 .sc{overflow-x:auto}
 table{border-collapse:collapse;width:100%}
@@ -698,8 +703,23 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 </main>
 <main id="hv" class="hid">
 <button class="back" id="hbk">&larr; Back to the ladder</button>
+<div class="sh"><h2>The <span>club</span></h2><p>Downtown Bradenton, Florida &middot; since 2021</p></div>
+<div class="story">
+<p>The club came together in 2021, shortly after the COVID era, when a group of players
+started meeting at Kava Social in downtown Bradenton. When the original organizer stepped
+away, Harold Gonzalez took over as director.</p>
+<p>It grew from there. Stronger players teach. Study nights the whole room works through
+together. Lectures and simuls from FIDE Masters. US Chess rated events for anyone who wants
+them.</p>
+<p>Harold also connected the club outward &mdash; to the Manasota Chess Center, to the Tampa,
+St.&nbsp;Petersburg, Orlando and University of Florida chess communities, to Chess67 and
+US Chess organizers &mdash; and takes members to tournaments around the state.</p>
+<p class="pull">It has never been about who&rsquo;s best in the room. It&rsquo;s a community
+that happens to play chess, where nobody is turned away for being new or rusty.</p>
+</div>
 <div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
-<p class="l">Every game the club has a record of, from the first night in September 2022 to the latest.</p>
+<p class="l">Every game the club has a record of. These records begin in September 2022 &mdash;
+the club is older than its paperwork.</p>
 <dl class="kpis" id="clubKpis"></dl>
 <div class="gwrap" id="clubCharts"></div>
 <div class="sh"><h2>KAVA Social <span>History</span></h2><p id="arcMeta"></p></div>
@@ -746,6 +766,12 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 const D=${JSON.stringify(D)};
 const $=s=>document.querySelector(s), E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 var esc=E;
+/* The tab title, kept in one place so a sub-view cannot wander away from
+   what the head says. */
+const PAGE_TITLE=document.title, CLUB="Kava Social Chess Club";
+/* The club predates its records: it started in 2021, the first night anyone
+   kept is September 2022. Anything about the club's age counts from here. */
+const CLUB_FROM=2021;
 const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1;
 /* The ladder is one season. Everything before it is the vault: still in the
    ratings, because Glicko needs the whole run to know what anybody is worth,
@@ -1101,7 +1127,7 @@ function draw(){
   if(xtShown) cross();
 }
 function showHistory(){
-  CUR=null; RIVAL=null; document.title="Club history \u00b7 KAVA Ladder";
+  CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
   $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#hv").classList.remove("hid");
   scrollTo({top:0,behavior:"instant"});
 }
@@ -1116,7 +1142,7 @@ function fitPodium(){
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitPodium);
 addEventListener("resize",()=>{ document.querySelectorAll("#pod .nm").forEach(e=>e.style.fontSize=""); fitPodium() });
 function showBoard(){
-  if(CUR){ CUR=null; RIVAL=null; document.title="KAVA Ladder"; }
+  if(CUR){ CUR=null; RIVAL=null; document.title=PAGE_TITLE; }
   $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#board").classList.remove("hid");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
@@ -1241,7 +1267,7 @@ function timelineChart(s){
   const marks=[0,Math.floor(rows.length/3),Math.floor(2*rows.length/3),rows.length-1]
     .filter((v,i,a)=>a.indexOf(v)===i)
     .map(i=>'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fshort(rows[i][0])+'</text>').join("");
-  return svgWrap(ticks+bars+marks,W,H,"Games played on each club night since 2022")+
+  return svgWrap(ticks+bars+marks,W,H,"Games played on each club night on record")+
     '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.62rem;color:var(--ink-3)">'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#5B6067;margin-right:.3rem"></i>Seasons 1&ndash;7</span>'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#FE273A;margin-right:.3rem"></i>Since then</span></div>'+
@@ -1282,14 +1308,15 @@ function colourChart2(s){
 function drawClub(){
   if(!document.getElementById("clubKpis")) return;
   const s=clubStats();
-  const yrs=Math.max(1,Math.round((new Date(D.date)-new Date(s.rows[0][0]))/31557600000*10)/10);
+  // measured from the club, not from the first night somebody wrote down
+  const yrs=Math.max(1,new Date(D.date+"T12:00").getFullYear()-CLUB_FROM);
   const everOld=(ARC&&ARC.everPlayed)||0, everNow=P.length;
   $("#allMeta").textContent=fdate(s.rows[0][0])+" \u2013 "+fdate(D.date);
   $("#clubKpis").innerHTML=
     '<div><dt>Games</dt><dd>'+s.games.toLocaleString()+'<small>on record</small></dd></div>'+
-    '<div><dt>Club nights</dt><dd>'+s.nights+'<small>since 2022</small></dd></div>'+
+    '<div><dt>Club nights</dt><dd>'+s.nights+'<small>on record</small></dd></div>'+
     '<div><dt>Players</dt><dd>'+everOld+'+<small>have played a game</small></dd></div>'+
-    '<div><dt>Running</dt><dd>'+yrs+'<small>years</small></dd></div>'+
+    '<div><dt>Running</dt><dd>'+yrs+'+<small>years, since '+CLUB_FROM+'</small></dd></div>'+
     '<div class="hm"><dt>Busiest night</dt><dd>'+s.busiest[1]+'<small>games on '+fshort(s.busiest[0])+'</small></dd></div>';
   $("#clubCharts").innerHTML=
     card("Games on every club night", timelineChart(s), "gwide")+
@@ -1973,7 +2000,7 @@ function openProfile(n,rival){ if(!byN[n]||byN[n].gh) return; if(!CUR){ boardHas
 function showProfile(n,rival){
   var p=byN[n]; if(!p) return;
   var same=CUR&&CUR.n===n; CUR=p; RIVAL=rival&&rival!==n?byN[rival]:null;
-  document.title=p.n+" · KAVA Ladder";
+  document.title=p.n+" · "+CLUB;
   var tt=titleFor(p), el=$("#pnick");
   if(Math.random()<0.12) setTimeout(function(){ egg(scoutLine(p),3600) },900);
   try{ openingEggs(p) }catch(e){}
@@ -2436,7 +2463,7 @@ function drawRecords(){
   $("#recs").innerHTML=rows.join("");
 }
 function showRecords(){
-  CUR=null; RIVAL=null; document.title="Club records \u00b7 KAVA Ladder";
+  CUR=null; RIVAL=null; document.title="Club records \u00b7 "+CLUB;
   drawRecords();
   $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.add("hid");
   $("#rv").classList.remove("hid"); scrollTo({top:0,behavior:"instant"});
