@@ -714,6 +714,8 @@ them.</p>
 <p>Harold also connected the club outward &mdash; to the Manasota Chess Center, to the Tampa,
 St.&nbsp;Petersburg, Orlando and University of Florida chess communities, to Chess67 and
 US Chess organizers &mdash; and takes members to tournaments around the state.</p>
+<p>The league came later. For years this was chess nights and nothing else; the ladder, the
+brackets and the ratings grew out of the club, not the other way round.</p>
 <p class="pull">It has never been about who&rsquo;s best in the room. It&rsquo;s a community
 that happens to play chess, where nobody is turned away for being new or rusty.</p>
 </div>
