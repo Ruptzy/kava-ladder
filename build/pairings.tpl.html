@@ -151,6 +151,11 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
   letter-spacing:.02em;text-transform:uppercase;cursor:pointer;min-height:52px}
 .go:disabled{background:var(--panel-2);color:var(--ink-3)}
 .go.ghost{background:var(--panel);border:1px solid var(--rule-2);color:var(--cream);flex:0 0 auto;padding:.9rem 1rem}
+/* the night can end after any complete round, so the bar offers it there */
+.go.fin{background:var(--scarlet-wash);border:1px solid var(--scarlet);color:var(--cream)}
+#bar.three{flex-wrap:nowrap}
+#bar.three .go{font-size:.8rem;padding:.9rem .45rem;letter-spacing:0;white-space:nowrap}
+#bar.three .go.ghost{padding:.9rem .7rem}
 .cnt{font-family:var(--f-mono);font-size:.66rem;color:var(--ink-3);text-align:center;width:100%;margin-bottom:.4rem}
 .cnt b{color:var(--cream)}
 .tip{background:var(--panel);border-left:3px solid var(--scarlet);border-radius:6px;padding:.55rem .75rem;
@@ -722,15 +727,21 @@ function renderBar(){
   const rd=rounds[rounds.length-1];
   const allIn=rd&&rd.boards.length&&rd.boards.every(b=>b.res);
   const n=activeIds().length;
+  const three=view!=="in"&&!!allIn;
+  $("#bar").classList.toggle("three",three);
   if(view==="in"){
     $("#bar").innerHTML=`<div class="cnt"><b>${n}</b> playing${gone.size?` · ${gone.size} left`:""}${n%2?" · one gets a bye":""}</div>
       <button class="go" id="act" ${n<2?"disabled":""}>${rounds.length?`Back to round ${cur+1}`:"Draw the round"}</button>`;
     $("#act").onclick=rounds.length?(()=>go("round")):(()=>newRound());
   } else {
     $("#bar").innerHTML=`<button class="go ghost" id="back2">Players</button>
-      <button class="go" id="act" ${allIn?"":"disabled"}>${allIn?"Draw next round":"Enter all results"}</button>`;
+      <button class="go" id="act" ${allIn?"":"disabled"}>${allIn?"Next round":"Enter all results"}</button>`+
+      (three?`<button class="go fin" id="finNight">Submit</button>`:"");
     $("#act").onclick=()=>newRound();
     $("#back2").onclick=()=>go("in");
+    // Submit happens on Standings: the sheet asks you to check them, and any
+    // error is written there, so that is where this takes you
+    if(three) $("#finNight").onclick=()=>{ go("stand"); $("#submitBtn").click() };
   }
 }
 function newRound(){
@@ -3613,6 +3624,11 @@ $("#doSubmit").onclick=async()=>{
       (postOnly?'':'Night saved, website published, and ')+
       posted.kind+' posted as '+posted.n+' message'+(posted.n===1?"":"s")+'.'+
       (postOnly?'':' The board is cleared. GitHub takes a minute to refresh.')+'</small>';
+    // clearing the board moves to Players, away from that message, so say it here
+    say(postOnly?"Season sent off":"Night submitted",
+      (postOnly?"":"Saved to the club record and the website is published. ")+
+      "Discord got "+posted.kind+" ("+posted.n+" message"+(posted.n===1?"":"s")+")."+
+      (postOnly?"":" The board is cleared for next time. The website takes a minute to refresh."));
   }catch(e){
     unfileNight(filed);
     st.innerHTML='<span style="color:var(--loss)"><b>'+
