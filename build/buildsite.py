@@ -369,21 +369,82 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
             "dates":dates,"names":names,"games":games,"byes":byes,"players":players,"archive":archive,
             "season":season,"vault":VAULT_SUM}
 
-if __name__=="__main__":
-    HISTORY=json.load(open(here('history.json'))); SEEDS=json.load(open(here('seeds.json')))
-    ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
-    try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
-    except Exception: DIVH=[]
-    try: HIDDEN=json.load(open(here('hidden.json')))
-    except Exception: HIDDEN=[]
-    built=datetime.date.today().isoformat()
-    HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
-    # the replay reads everything; only the page narrows to the season
+NIGHTS_DIR='nights'   # build/nights/<date>.json: one file per night the phone submits
+
+
+def _night_files():
+    d=here(NIGHTS_DIR)
+    if not os.path.isdir(d): return []
+    return [os.path.join(d,f) for f in sorted(os.listdir(d)) if f.endswith('.json')]
+
+
+def load_history():
+    """history.json plus every night the phone has submitted since.
+
+    The phone does not build the site. It saves the night it just played as
+    build/nights/<date>.json and GitHub runs this script, so the site is only
+    ever built one way. A date already in history.json wins: that file is the
+    corrected record, and a night file never overrides a correction."""
+    history=json.load(open(here('history.json'),encoding='utf-8'))
+    have={h["date"] for h in history}
+    for path in _night_files():
+        night=json.load(open(path,encoding='utf-8'))
+        date=night.get("date")
+        for g in night.get("games",[]):
+            if not (isinstance(g,list) and len(g)==3 and g[0] and g[1] and g[2] in ("w","b","d")):
+                raise ValueError("%s: a game is not [white, black, w|b|d]: %r"%(os.path.basename(path),g))
+        if date and date not in have and night.get("games"):
+            history.append({"date":date,"games":night["games"],"byes":night.get("byes",[])})
+            have.add(date)
+    history.sort(key=lambda h:h["date"])
+    return history
+
+
+def night_seeds():
+    """Starting ratings for anybody the phone added on a night. A walk-in's
+    rating is typed in on the phone; if the replay here started them anywhere
+    else, the site and the phone would disagree about that player for good."""
+    out={}
+    for path in _night_files():
+        for n,r in (json.load(open(path,encoding='utf-8')).get("seeds") or {}).items():
+            out.setdefault(n,r)
+    return out
+
+
+def season_bounds(no):
+    """The calendar window of season number no."""
+    ano,anchor=SEASON_ANCHOR
+    y,m=int(anchor[:4]),int(anchor[5:7])
+    m+=(no-ano)*SEASON_MONTHS
+    y+=(m-1)//12; m=(m-1)%12+1
+    return season_of("%04d-%02d-01"%(y,m))[1:]
+
+
+def completed_seasons(history, today):
+    """Seasons over by the calendar that had at least one night, from the first
+    numbered one on. Each gets a frozen page of its own."""
+    cur=season_of(today)[0]
+    out=[]
+    for no in range(SEASON_ANCHOR[0], cur):
+        frm,to=season_bounds(no)
+        if any(frm<=h["date"]<to for h in history):
+            out.append((no,frm,to))
+    return out
+
+
+def page(D):
+    src=open(here('ladderbuild.js'),encoding='utf-8').read()
+    tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
+    return (tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
+               .replace('<\\/script>','</script>'))
+
+
+def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built):
+    """Everything the page ships, from one history. The replay reads all of it;
+    only the page narrows to the season of the last night."""
     P=run(HISTORY,SEEDS)
     SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
     PEAKS=window_level(P, lookback_start(SEASON["from"]), SEASON["from"])
-    try: ARCM=json.load(open(here('archive_raw.json')))['matches']
-    except Exception: ARCM=[]
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
     BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
@@ -394,10 +455,50 @@ if __name__=="__main__":
     D["divhist"]=[{**s,"div":{k:v for k,v in s["div"].items() if k not in HIDDEN}} for s in DIVH]
     D["tabart"]=tab_art()
     D["achart"]=ach_art()
-    src=open(here('ladderbuild.js'),encoding='utf-8').read()
-    tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
-    html=(tpl.replace('${JSON.stringify(D)}',json.dumps(D,separators=(',',':'),ensure_ascii=False))
-             .replace('<\\/script>','</script>'))
+    return D,SEASON,VAULTED
+
+
+SITE_URL="https://ladder.kavasocialchessclub.com/"
+HEAD_TITLE="Kava Social Chess Club Ladder &mdash; Bradenton, FL"
+HEAD_DESC=("Live ratings, player profiles and full game history for the Kava Social Chess Club "
+           "in Bradenton, Florida. Meets Sundays and Tuesdays, 8PM to midnight.")
+
+
+def archive_head(html,no):
+    """A frozen season is its own page: its own title, description and address,
+    so a search result for it says what it is."""
+    t="Season %d final standings &mdash; Kava Social Chess Club"%no
+    d=("Season %d final standings, ratings and every game played, for the Kava Social "
+       "Chess Club in Bradenton, Florida.")%no
+    u=SITE_URL+"season-%d.html"%no
+    for a,b,n in [("<title>%s</title>"%HEAD_TITLE,"<title>%s</title>"%t,1),
+                  ('og:title" content="%s"'%HEAD_TITLE,'og:title" content="%s"'%t,1),
+                  ('content="%s"'%HEAD_DESC,'content="%s"'%d,2),
+                  ('<link rel="canonical" href="%s">'%SITE_URL,'<link rel="canonical" href="%s">'%u,1),
+                  ('og:url" content="%s"'%SITE_URL,'og:url" content="%s"'%u,1)]:
+        assert html.count(a)==n,(a,html.count(a))
+        html=html.replace(a,b)
+    return html
+
+
+
+if __name__=="__main__":
+    HISTORY=load_history(); SEEDS=json.load(open(here('seeds.json')))
+    for n,r in night_seeds().items(): SEEDS.setdefault(n,r)
+    ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
+    try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
+    except Exception: DIVH=[]
+    try: HIDDEN=json.load(open(here('hidden.json')))
+    except Exception: HIDDEN=[]
+    try: ARCM=json.load(open(here('archive_raw.json')))['matches']
+    except Exception: ARCM=[]
+    built=datetime.date.today().isoformat()
+    HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
+    # every season over by the calendar gets a frozen page of its own
+    PAST=completed_seasons(HISTORY, built)
+    D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
+    D["past"]=[no for no,_,_ in PAST]
+    html=page(D)
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
     print('season %d: %s .. %s | vault %d nights, %d games'
@@ -410,3 +511,12 @@ if __name__=="__main__":
     print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
     vis=[p for p in D["players"] if not p.get("gh")][:5]
     print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in vis))
+    for no,frm,to in PAST:
+        cut=[h for h in HISTORY if h["date"]<to]
+        Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
+                            HIDDEN,ARCM,built)
+        Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
+        name='season-%d.html'%no
+        open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
+        print('%s: season %d frozen | %d nights, %d games, %s .. %s'
+              % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))

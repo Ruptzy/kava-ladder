@@ -22,8 +22,10 @@ def here(n): return os.path.join(HERE, n)
 
 
 roster = json.load(io.open(here('roster.json'), encoding='utf-8'))
-history = json.load(io.open(here('history.json'), encoding='utf-8'))
+history = buildsite.load_history()   # history.json plus the nights the phone submitted
 seeds = json.load(io.open(here('seeds.json'), encoding='utf-8'))
+for _n, _r in buildsite.night_seeds().items():
+    seeds.setdefault(_n, _r)
 try:
     hidden = set(json.load(io.open(here('hidden.json'), encoding='utf-8')))
 except Exception:

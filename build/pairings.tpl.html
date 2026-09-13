@@ -3268,7 +3268,7 @@ function setSync(state,msg){
 function snapshot(){
   return {at:Date.now(), history:HISTORY, roster:R.map(p=>({n:p.n,r:p.r,d:p.d,id:p.id,fresh:!!p.fresh})),
     playing:[...playing], gone:[...gone],
-    added:R.filter(p=>p.fresh).map(p=>({n:p.n,r:p.r,d:p.d,pid:p.id})),
+    added:R.filter(p=>p.fresh).map(p=>({n:p.n,r:p.r,d:p.d,pid:p.id,seed:SEEDS[p.n]})),
     rounds:rounds.map(rd=>({bye:rd.bye,boards:rd.boards.map(b=>({w:b.w,b:b.b,res:b.res,sw:b.sw,sb:b.sb}))})),
     pm:pairMsgs, po:pairOrphans,
     cfg:{...CFG}};
@@ -3278,7 +3278,7 @@ function restore(o){
   if(o.history) HISTORY=o.history;
   if(o.roster&&o.roster.length){ R.length=0; Object.keys(byId).forEach(k=>delete byId[k]);
     o.roster.forEach(p=>{const q={n:p.n,r:p.r,d:p.d,idle:0,id:p.id,fresh:p.fresh};R.push(q);byId[q.id]=q}) }
-  (o.added||[]).forEach(a=>{ if(!byId[a.pid]){const p={n:a.n,r:a.r,d:a.d,idle:0,id:a.pid,fresh:true};R.push(p);byId[p.id]=p} });
+  (o.added||[]).forEach(a=>{ if(a.seed!=null&&SEEDS[a.n]==null) SEEDS[a.n]=a.seed; if(!byId[a.pid]){const p={n:a.n,r:a.r,d:a.d,idle:0,id:a.pid,fresh:true};R.push(p);byId[p.id]=p} });
   playing=new Set(o.playing||[]); gone=new Set(o.gone||[]);
   rounds=(o.rounds||[]).map(rd=>({bye:rd.bye,boards:(rd.boards||[]).map(b=>({...b}))}));
   pairMsgs=Array.isArray(o.pm)?o.pm:[]; pairOrphans=Array.isArray(o.po)?o.po:[];
@@ -3399,8 +3399,10 @@ function confirmBody(){
   const c=pubCfg(), h=dscCfg();
   let kind=kindAfterFiling();
   const miss=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
-  if(submitStage) return '<p class="cf">The night is already saved and the website is live.<br>'+
-    'This will post <b>'+kind+'</b> to Discord and clear the board.</p>';
+  if(submitStage) return '<p class="cf">'+(submitStage.built
+      ?'The night is already saved and the website is live.'
+      :'The night is already saved. The website had not finished building.')+'<br>'+
+    'This will '+(submitStage.built?'':'check the build, then ')+'post <b>'+kind+'</b> to Discord and clear the board.</p>';
   if(!rounds.length){
     let no="", nights="";
     try{ const S=seasonBounds(); no=S.no; nights=S.nights }catch(e){}
@@ -3465,12 +3467,25 @@ async function rehearse(log){
       filed?(filed.games.length+" games would be added"):"nothing to file yet");
   }catch(e){ add(false,"The night will not file",e.message) }
 
-  // 3. the page builds - this is where a data problem shows up
-  try{
-    html=buildLadder();
-    add(true,"The website builds",Math.round(html.length/1024)+"KB");
-  }catch(e){ add(false,"The website will not build",e.message) }
-  finally{ unfileNight(filed) }
+  // 3. the website is built by GitHub from the night file, not on this phone
+  unfileNight(filed); filed=null;
+  if(!c.owner||!c.repo){
+    add(false,"The website builder cannot be checked","Fill in GitHub in settings first.");
+  }else{
+    try{
+      const r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo+"/actions/workflows/build.yml/runs?per_page=1",
+        {headers:{Accept:"application/vnd.github+json"}});
+      if(r.status===404) add(false,"GitHub has no website builder","The build workflow is missing from the repo.");
+      else if(!r.ok) add(false,"Could not ask GitHub about the builder","it answered "+r.status);
+      else{
+        const run=((await r.json()).workflow_runs||[])[0];
+        const bad=!!run&&run.status==="completed"&&run.conclusion!=="success";
+        add(!bad,"GitHub builds the website",
+          run?("last build "+(run.status==="completed"?run.conclusion:run.status)+", "+String(run.updated_at||"").slice(0,10))
+             :"set up, not run yet");
+      }
+    }catch(e){ add(false,"Could not reach GitHub",e.message) }
+  }
 
   // 4. can the token actually push
   if(!c.owner||!c.repo||!c.token){
@@ -3596,14 +3611,23 @@ $("#doSubmit").onclick=async()=>{
     }else if(!submitStage){
       sayStep("saving the night");
       filed=fileNight();
-      sayStep("publishing the website");
-      url=await withTimeout(publishSite(buildLadder(), sayStep), 60, "Publishing");
+      if(!filed) throw new Error("There are no finished games to save. Enter at least one result.");
+      const sha=await withTimeout(publishNight(filed, sayStep), 60, "Saving the night");
+      // from here the night is in the club record: a failure further on must not
+      // take it back out of this phone, or the phone and the site would disagree
+      submitStage={url:siteUrl(pubCfg()), sha, built:false};
+      filed=null;
+    }
+    if(!postOnly&&submitStage&&!submitStage.built){
+      await waitForBuild(submitStage.sha, sayStep);
+      submitStage.built=true;
+      url=submitStage.url;
     }
     let posted=null;
     try{ posted=await withTimeout(postAuto(sayStep), 60, "Posting to Discord") }
     catch(e){
       // post-only has nothing filed behind it, so there is no half-done state
-      if(!postOnly) submitStage={url};
+      if(!postOnly) submitStage={url, built:true};
       $("#confirm").classList.add("hidden");
       st.innerHTML='<span style="color:var(--loss)"><b>Discord would not take the post.</b><br>'+
         esc(e.message||"Unknown error.")+'</span><br>'+
@@ -3631,10 +3655,13 @@ $("#doSubmit").onclick=async()=>{
       (postOnly?"":" The board is cleared for next time. The website takes a minute to refresh."));
   }catch(e){
     unfileNight(filed);
+    // the night may already be in the club record, with only the build owed
+    const saved=!postOnly&&!!submitStage&&!submitStage.built;
     st.innerHTML='<span style="color:var(--loss)"><b>'+
-      (postOnly?'Could not send the sign-off.':'Could not publish the website.')+'</b><br>'+
-      esc(e.message||"Unknown error.")+'</span><br>Nothing was saved and nothing was posted. '+
-      'The board is exactly as you left it.';
+      (postOnly?'Could not send the sign-off.':saved?'The website did not finish building.':'Could not save the night.')+'</b><br>'+
+      esc(e.message||"Unknown error.")+'</span><br>'+
+      (saved?'The night is saved in the club record. Nothing was posted to Discord. Press Submit again to check the build and post.'
+            :'Nothing was saved and nothing was posted. The board is exactly as you left it.');
     $("#confirm").classList.add("hidden");
   }
   b.disabled=false; b.textContent="Yes \u2014 do it";
@@ -3721,6 +3748,71 @@ async function publishSite(html,status){
     throw new Error("GitHub said "+r.status+(msg?" — "+msg:""));
   }
   return siteUrl(c);
+}
+
+/* The phone no longer builds the website. It used to, from its own copy of the
+   page code, and that copy had fallen far behind the one the desktop builds
+   with: a Submit would have published a ladder with no season, no photos and
+   every night since 2024. Now the night goes into the repo as a small file and
+   GitHub builds the site from it with the desktop's own script. One builder,
+   nothing to drift. */
+const NIGHT_DIR="build/nights/";
+async function publishNight(rec,status){
+  const c=pubCfg();
+  if(!c.owner||!c.repo||!c.token) throw new Error("Set up the website in settings first.");
+  const branch=c.branch||"main";
+  const url="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/"+NIGHT_DIR+rec.date+".json";
+  // a walk-in starts where they were typed in, on the site as on this phone
+  const seeds={};
+  rec.games.forEach(g=>[g[0],g[1]].forEach(n=>{
+    const p=R.find(x=>x.n===n); if(p&&p.fresh&&SEEDS[n]!=null) seeds[n]=SEEDS[n] }));
+  status&&status("saving the night");
+  let sha=null;
+  try{ const g=await fetch(url+"?ref="+encodeURIComponent(branch),{headers:ghHeaders(c)});
+       if(g.ok) sha=(await g.json()).sha; }catch(e){}
+  const body={message:"Night of "+rec.date, branch,
+    content:b64(JSON.stringify({date:rec.date, games:rec.games, byes:rec.byes||[], seeds},null,1))};
+  if(sha) body.sha=sha;
+  const r=await fetch(url,{method:"PUT",headers:ghHeaders(c),body:JSON.stringify(body)});
+  if(!r.ok){
+    let msg=""; try{ msg=(await r.json()).message||"" }catch(e){}
+    if(r.status===401) throw new Error("The token was not accepted.");
+    if(r.status===404) throw new Error("Repository not found, or the token cannot write to it.");
+    if(r.status===409||r.status===422) throw new Error("GitHub refused the night: "+msg);
+    throw new Error("GitHub said "+r.status+(msg?" \u2014 "+msg:""));
+  }
+  const j=await r.json();
+  if(!j.commit||!j.commit.sha) throw new Error("GitHub saved the night but did not say where.");
+  return j.commit.sha;
+}
+
+/* Wait for GitHub to build the site from that night, so Discord never links to
+   a site that has not caught up, and a failed build is an error on this screen
+   rather than a silence. The repo is public, so its builds can be read without
+   the token - which can write files but not see builds. */
+async function waitForBuild(sha,status,maxSec){
+  const c=pubCfg(), limit=(maxSec||240)*1000, t0=Date.now();
+  const api="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/actions/runs?head_sha="+sha+"&per_page=5";
+  let seen=false;
+  while(Date.now()-t0<limit){
+    status&&status(seen?"building the website":"waiting for GitHub to start building");
+    try{
+      const r=await fetch(api,{headers:{Accept:"application/vnd.github+json"}});
+      if(r.ok){
+        const run=((await r.json()).workflow_runs||[]).find(x=>x.name==="Build the ladder");
+        if(run){ seen=true;
+          if(run.status==="completed"){
+            if(run.conclusion==="success") return run;
+            const e=new Error("GitHub could not build the website ("+run.conclusion+"). "+run.html_url);
+            e.stop=true; throw e;
+          }
+        }
+      }
+    }catch(e){ if(e.stop) throw e }
+    await new Promise(s=>setTimeout(s,8000));
+  }
+  throw new Error(seen?"The website was still building after four minutes."
+                      :"GitHub had not started building the website after four minutes.");
 }
 /* ---------- posting the night to Discord ----------
    A webhook is one URL for one channel. It needs no bot and no server: this
@@ -4778,6 +4870,7 @@ $("#nSave").onclick=()=>{
   if(R.some(p=>p.n.toLowerCase()===n.toLowerCase())){ say("Name already taken","There is already somebody on the roster with that name."); return }
   const p={n,r:Math.max(100,Math.min(2600,+$("#nRate").value||suggest(nDiv))),d:nDiv,idle:0,id:R.length,fresh:true};
   R.push(p);byId[p.id]=p;playing.add(p.id);
+  SEEDS[p.n]=p.r;   // the replay starts them at the rating typed in, here and on the site
   $("#newSheet").classList.add("hidden");filter="";$("#q").value="";
   render();
 };

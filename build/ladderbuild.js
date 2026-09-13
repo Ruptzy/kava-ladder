@@ -111,6 +111,10 @@ text-transform:uppercase;line-height:1.7;text-align:right}
 .upd.fresh b.d{color:var(--gain)}
 .howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;white-space:nowrap}
 .howbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
+a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
+#seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
+#seasonNote:empty{display:none}
+#seasonNote a{color:var(--scarlet);font-weight:700;white-space:nowrap}
 .srch{position:relative;flex:1 1 220px;max-width:340px}
 .srch input{width:100%;background:var(--panel);border:1px solid var(--rule-2);border-radius:8px;color:var(--cream);font:inherit;font-size:.95rem;padding:.55rem .8rem .55rem 2.1rem}
 .srch input::placeholder{color:var(--ink-3)}
@@ -658,13 +662,15 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="top"><div class="w">
 <div class="tb"><img src="logo.png" alt="KAVA Social Chess Club" width="112" height="112">
 <div class="wm"><b>KAVA Social Chess Club <span>League</span></b><small id="wmSeason"></small></div>
-<div class="season"><b>Season 10</b><small>up next</small></div></div>
+<div class="season" id="seasonTag"></div></div>
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player"><div class="sres hid" id="sres"></div></div>
 <button class="howbtn" id="howBtn">How ratings work</button>
 <button class="howbtn" id="histBtn">Club history</button>
+<span id="pastBtns" style="display:contents"></span>
 <div class="upd" id="upd"></div></div>
+<div id="seasonNote"></div>
 <nav class="tabs" id="tabs" aria-label="Brackets"></nav></div></div>
 <div class="sr" id="live" aria-live="polite"></div>
 <div class="w">
@@ -967,6 +973,21 @@ window.addEventListener("hashchange",route);
   $("#upd").className="upd"+(fresh?" fresh":"");
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; includes <b>'+fshort(D.date)+'</b>'+(D.next?'<br>Next night <b>'+fshort(D.next)+'</b>':'');
   { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
+  /* Which season this page is, worked out rather than typed into the masthead:
+     a hand-written "Season 10 up next" is right for exactly one season. */
+  { const arch=D.arch||null, now=new Date().toISOString().slice(0,10);
+    const over=!arch&&SEASON&&now>=SEASON.to;
+    const tag=$("#seasonTag"), note=$("#seasonNote"), past=$("#pastBtns");
+    if(tag) tag.innerHTML=arch?'<b>Final</b><small>standings</small>'
+      :SEASON?'<b>Season '+(SEASON.no+1)+'</b><small>'+(over&&D.next?'starts '+fshort(D.next):'up next')+'</small>':'';
+    if(note) note.innerHTML=arch
+      ?'This is how Season '+arch+' finished. <a href="./">Back to the current season &rarr;</a>'
+      :over?'Season '+SEASON.no+' is over &mdash; these are its final standings. Season '+(SEASON.no+1)+
+            ' starts '+(D.next?'<b>'+fd(D.next)+'</b>':'soon')+'.':'';
+    if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
+      .map(n=>'<a class="howbtn" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
+      (arch?'<a class="howbtn" href="./">Current season</a>':'');
+  }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
   $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
