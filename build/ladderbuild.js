@@ -785,6 +785,10 @@ const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.leng
    ratings, because Glicko needs the whole run to know what anybody is worth,
    but off the board and counted only where a total is claimed. */
 const SEASON=D.season||null, VAULT=D.vault||null;
+/* A season that has started by the calendar but has no night in it yet. The
+   board is then last season's players at the rating they carry, in the
+   bracket they will start in. Up here, not by pool(): the header needs it first. */
+const PRESEASON=!!SEASON&&!D.dates.length&&!D.arch;
 const SEA=SEASON?("Season "+SEASON.no):"This season";
 const seaLower=SEASON?("season "+SEASON.no):"this season";
 /* ALL includes the one-off visitors, so their games still count towards the
@@ -975,15 +979,22 @@ window.addEventListener("hashchange",route);
   { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
   /* Which season this page is, worked out rather than typed into the masthead:
      a hand-written "Season 10 up next" is right for exactly one season. */
-  { const arch=D.arch||null, now=new Date().toISOString().slice(0,10);
+  { const arch=D.arch||null, now=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);   // the club's date, not UTC's
     const over=!arch&&SEASON&&now>=SEASON.to;
     const tag=$("#seasonTag"), note=$("#seasonNote"), past=$("#pastBtns");
+    // once a season is over by the calendar the header names the next one; only
+    // the board keeps the old season's final standings until its first night
+    if(over){ const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON.no+1)+"</b>"; }
+    const first=D.next?(D.next===now?"tonight":fshort(D.next)):"soon";
     if(tag) tag.innerHTML=arch?'<b>Final</b><small>standings</small>'
-      :SEASON?'<b>Season '+(SEASON.no+1)+'</b><small>'+(over&&D.next?'starts '+fshort(D.next):'up next')+'</small>':'';
+      :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
+      :SEASON?'<b>Season '+(SEASON.no+1)+'</b><small>up next</small>':'';
     if(note) note.innerHTML=arch
       ?'This is how Season '+arch+' finished. <a href="./">Back to the current season &rarr;</a>'
-      :over?'Season '+SEASON.no+' is over &mdash; these are its final standings. Season '+(SEASON.no+1)+
-            ' starts '+(D.next?'<b>'+fd(D.next)+'</b>':'soon')+'.':'';
+      :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
+            '. Ratings carry over from Season '+(SEASON.no-1)+', so this is where everyone starts.'
+      :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
+            '. Until the first results are in, this is how Season '+SEASON.no+' finished.':'';
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
       .map(n=>'<a class="howbtn" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
       (arch?'<a class="howbtn" href="./">Current season</a>':'');
@@ -998,8 +1009,10 @@ const TABS=[{i:"all"}].concat(D.divisions.map(d=>({i:d})));
 const artOK=TABS.every(t=>TABART.indexOf(tabSlug(t.i))>=0);
 if(artOK) $("#tabs").classList.add("art");
 $("#tabs").innerHTML=TABS.map(t=>{
-  // the count is who played this season, which is what the tab opens onto
-  const played=P.filter(p=>p.games>0);
+  // the count is who the tab opens onto: this season's players, or before its
+  // first night last season's. Same rule as pool(), written out because pool()
+  // is defined further down and this runs first.
+  const played=P.filter(p=>PRESEASON?(!p.gh&&p.ls>0):p.games>0);
   const n=t.i==="all"?played.length:played.filter(p=>p.d===t.i).length;
   const art=artOK?'<i class="ta" style="background-image:url(tabs/'+tabSlug(t.i)+'.png)"></i>':'';
   return '<button role="tab" data-d="'+E(t.i)+'" aria-selected="false" aria-label="'+E(longDiv(t.i))+', '+n+' players">'+art+
@@ -1049,7 +1062,7 @@ document.addEventListener("click",e=>{ if(!e.target.closest(".srch")) hideSearch
 const pct=(w,d,g)=>g?Math.round((w+d/2)/g*100):0;
 /* A season's ladder is the people who played it. Somebody who missed the
    whole season keeps their rating and their page, but is not on the board. */
-const pool=()=>P.filter(p=>p.games>0&&(div==="all"||p.d===div));
+const pool=()=>P.filter(p=>(PRESEASON?(!p.gh&&p.ls>0):p.games>0)&&(div==="all"||p.d===div));
 const rank=()=>pool().filter(p=>!away(p)&&p.rd<=RS);
 const prov=()=>pool().filter(p=>!away(p)&&p.rd>RS);
 const gone=()=>pool().filter(away);
@@ -2481,17 +2494,18 @@ function drawRecords(){
   const mostGames=P.reduce((m,p)=>!m||p.games>m.games?p:m,null);
   const mostUps=P.reduce((m,p)=>!m||p.upsets>m.upsets?p:m,null);
   const mostGold=P.reduce((m,p)=>!m||p.trophies[0]>m.trophies[0]?p:m,null);
+  // a record of 0 is not a record: before a season's first night the season-only ones are all 0
   if(up) add("Biggest upset",E(up.p),"beat "+E(anon(up.o))+", rated "+up.gap+" higher, on "+fd(up.d));
   if(climb) add("Biggest night",E(climb.n),"+"+climb.v+" rating points on "+fd(climb.d));
-  if(run) add("Longest winning run",run.v+" straight",E(run.n));
-  if(nightGames) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
+  if(run&&run.v>0) add("Longest winning run",run.v+" straight",E(run.n));
+  if(nightGames&&nightGames.g>0) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
   if(busiest) add("Busiest club night",busiest[1]+" games",fd(busiest[0]));
   if(turnout) add("Best turnout",turnout[2]+" players",fd(turnout[0]));
-  if(rival) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
-  if(mostNights) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
-  if(mostGames) add("Most games",mostGames.games,E(mostGames.n));
-  if(mostUps) add("Most upsets",mostUps.upsets,E(mostUps.n));
-  if(mostGold) add("Most nights won",mostGold.trophies[0],E(mostGold.n));
+  if(rival&&rival.g>0) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
+  if(mostNights&&mostNights.cons>0) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
+  if(mostGames&&mostGames.games>0) add("Most games",mostGames.games,E(mostGames.n));
+  if(mostUps&&mostUps.upsets>0) add("Most upsets",mostUps.upsets,E(mostUps.n));
+  if(mostGold&&mostGold.trophies[0]>0) add("Most nights won",mostGold.trophies[0],E(mostGold.n));
   $("#recs").innerHTML=rows.join("");
 }
 function showRecords(){

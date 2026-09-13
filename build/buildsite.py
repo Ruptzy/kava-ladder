@@ -162,12 +162,20 @@ def window_level(P, frm, to):
     return out
 
 
-def split_season(history):
-    """The nights of the season the last night belongs to, and everything
-    before them. Ratings are built from both; the page only shows the season."""
+def split_season(history, today=None):
+    """The nights of the current season, and everything before them. Ratings
+    are built from both; the page only shows the season.
+
+    With `today`, the current season is the calendar's: once a season is over
+    the next one has begun, before anybody has played in it, and the ladder
+    should say so. Without it (a frozen past season) it is the season of the
+    last night."""
     if not history:
         return None, [], []
     no,start,end=season_of(history[-1]["date"])
+    if today:
+        cno,cstart,cend=season_of(today)
+        if cno>no: no,start,end=cno,cstart,cend
     season=[h for h in history if start<=h["date"]<end]
     vault=[h for h in history if h["date"]<start]
     return {"no":no,"from":start,"to":end}, vault, season
@@ -222,6 +230,13 @@ def season_bands(P, season_nights, peaks, divisions):
     cost them the one they belong in."""
     dates={n["date"] for n in season_nights}
     out={}
+    if not dates:
+        # before the season's first night: where each returning player will
+        # start, which is exactly what their first night fixes - no jump on it
+        for n,lvl in peaks.items():
+            q=P.get(n)
+            if q and q["n"]>0: out[n]=band_of(max(q["r"], lvl), divisions)
+        return out
     for n,p in P.items():
         if p["n"]<=0: continue
         inside=[h for h in p["hist"] if h[0] in dates]
@@ -439,11 +454,26 @@ def page(D):
                .replace('<\\/script>','</script>'))
 
 
-def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built):
+def next_night(dates, built):
+    """When the next club night should be, from the usual gap between the
+    recent nights - over the club's record, not just this season's, so the
+    first nights of a season still have an answer."""
+    dates=dates[-7:]
+    if len(dates)<3: return None
+    gaps=sorted((datetime.date.fromisoformat(dates[i])-datetime.date.fromisoformat(dates[i-1])).days
+                for i in range(1,len(dates)))
+    med=gaps[len(gaps)//2]
+    d=datetime.date.fromisoformat(dates[-1])+datetime.timedelta(days=med)
+    guard=0
+    while built and d.isoformat()<built and guard<12: d+=datetime.timedelta(days=med); guard+=1
+    return d.isoformat()
+
+
+def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True):
     """Everything the page ships, from one history. The replay reads all of it;
     only the page narrows to the season of the last night."""
     P=run(HISTORY,SEEDS)
-    SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY)
+    SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY, built if calendar else None)
     PEAKS=window_level(P, lookback_start(SEASON["from"]), SEASON["from"])
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
     BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
@@ -455,6 +485,20 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built):
     D["divhist"]=[{**s,"div":{k:v for k,v in s["div"].items() if k not in HIDDEN}} for s in DIVH]
     D["tabart"]=tab_art()
     D["achart"]=ach_art()
+    # games each player had last season: before a season's first night the board
+    # is last season's players, and a rating alone cannot tell who they were -
+    # the replay moves everybody's rating every night, played or not
+    frm,to=season_bounds(SEASON["no"]-1)
+    last={}
+    for h in HISTORY:
+        if frm<=h["date"]<to:
+            for w,b_,r in h["games"]:
+                last[w]=last.get(w,0)+1; last[b_]=last.get(b_,0)+1
+    for rec in D["players"]:
+        if last.get(rec["n"]): rec["ls"]=last[rec["n"]]
+    D["next"]=next_night([h["date"] for h in HISTORY], built)
+    # no night yet this season: "includes" means the latest night on record
+    if not D["date"] and HISTORY: D["date"]=HISTORY[-1]["date"]
     return D,SEASON,VAULTED
 
 
@@ -502,7 +546,8 @@ if __name__=="__main__":
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
     print('season %d: %s .. %s | vault %d nights, %d games'
-          % (SEASON["no"], D["dates"][0], D["dates"][-1], len(VAULTED),
+          % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
+             D["dates"][-1] if D["dates"] else "-", len(VAULTED),
              sum(len(n["games"]) for n in VAULTED)))
     print('players',len([p for p in D["players"] if not p.get("gh")]),
           '(+%d visitors)'%len([p for p in D["players"] if p.get("gh")]),
@@ -514,7 +559,7 @@ if __name__=="__main__":
     for no,frm,to in PAST:
         cut=[h for h in HISTORY if h["date"]<to]
         Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
-                            HIDDEN,ARCM,built)
+                            HIDDEN,ARCM,built,calendar=False)
         Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
         name='season-%d.html'%no
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
