@@ -3539,15 +3539,27 @@ $("#askNo").onclick=()=>askClose(false);
 /* A message with nothing to decide. */
 function say(title, body){ return ask(title, body, "OK") }
 
+/* What Submit is going to post, worked out the way Submit works it out: with
+   tonight already in the record. Asked before filing, the first night of a new
+   season still looks like the last night of the old one, so the sheet said
+   "the season finale" while Submit went on to post the night. */
+function kindAfterFiling(){
+  let filed=null;
+  try{
+    if(rounds.length&&!submitStage) filed=fileNight();
+    const sh=seasonShape();
+    return sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results");
+  }catch(e){ return "tonight's results" }
+  finally{ unfileNight(filed) }
+}
+
 /* Everything about to happen, laid out to be checked against the board. */
 function confirmBody(){
   const st=derive(rounds.length+1);
   const ids=[...playing].sort((a,b)=>(st.score[b]-st.score[a])||(byId[b].r-byId[a].r));
   const d=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   const c=pubCfg(), h=dscCfg();
-  let kind="tonight's results";
-  try{ const sh=seasonShape();
-       kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results") }catch(e){}
+  let kind=kindAfterFiling();
   const miss=rounds.reduce((n,rd)=>n+rd.boards.filter(b=>!b.res).length,0);
   if(submitStage) return '<p class="cf">The night is already saved and the website is live.<br>'+
     'This will post <b>'+kind+'</b> to Discord and clear the board.</p>';
@@ -3653,9 +3665,12 @@ async function rehearse(log){
     }catch(e){ add(false,"Could not reach Discord",e.message) }
   }
 
-  // 6. what tonight would actually send
+  // 6. what tonight would actually send -- with tonight filed, as Submit does it
+  let filed6=null;
   try{
+    if(rounds.length) filed6=fileNight();
     const sh=seasonShape();
+    unfileNight(filed6); filed6=null;
     const kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results");
     add(true,"Tonight would post "+kind,
       "season "+sh.no+", night "+sh.nights+" of about "+sh.expected);
@@ -3664,6 +3679,7 @@ async function rehearse(log){
       add(blob.size<8*1024*1024,"The picture draws",Math.round(blob.size/1024)+"KB");
     }
   }catch(e){ add(false,"Could not work out tonight's post",e.message) }
+  finally{ unfileNight(filed6) }
 
   return out;
 }
@@ -3819,7 +3835,13 @@ const PUB_KEY="kava.publish";
 function pubCfg(){ try{ return JSON.parse(localStorage.getItem(PUB_KEY)||"{}") }catch(e){ return {} } }
 function setPub(c){ try{ localStorage.setItem(PUB_KEY,JSON.stringify(c)) }catch(e){} }
 // Pages hostnames are lower-case, whatever case the username is written in
-function siteUrl(c){ return "https://"+String(c.owner||"").toLowerCase()+".github.io/"+c.repo+"/" }
+/* The club's repo serves at its own domain (the CNAME file in the repo root);
+   any other repo is still a plain github.io site. A string, not a const, because
+   this can be reached before the consts further down exist. */
+function siteUrl(c){
+  if(String(c.repo||"").toLowerCase()==="kava-ladder") return "https://ladder.kavasocialchessclub.com/";
+  return "https://"+String(c.owner||"").toLowerCase()+".github.io/"+c.repo+"/";
+}
 function b64(str){
   const bytes=new TextEncoder().encode(str); let bin=""; const CH=0x8000;
   for(let i=0;i<bytes.length;i+=CH) bin+=String.fromCharCode.apply(null,bytes.subarray(i,i+CH));
@@ -4524,7 +4546,14 @@ function halfwayDone(no){ try{ return localStorage.getItem(halfwayKey(no))==="1"
 function markHalfway(no){ try{ localStorage.setItem(halfwayKey(no),"1") }catch(e){} }
 /* The finale is remembered the same way, so a season cannot be sent off twice. */
 function finaleKey(no){ return "kava.finale."+no }
-function finaleDone(no){ try{ return localStorage.getItem(finaleKey(no))==="1" }catch(e){ return false } }
+/* Season 9 was signed off from the old github.io address, and the note saying
+   so stayed there when the site moved. Recorded here instead, so the new
+   address cannot offer to post it a second time. */
+function finaleDone(no){
+  const signedOffThrough=9;   // inside, not a const up here: the startup render calls this
+  if(no<=signedOffThrough) return true;
+  try{ return localStorage.getItem(finaleKey(no))==="1" }catch(e){ return false }
+}
 function markFinale(no){ try{ localStorage.setItem(finaleKey(no),"1") }catch(e){} }
 
 /* A season that is over and has never been signed off. Normally this happens on
