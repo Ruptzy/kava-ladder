@@ -233,6 +233,12 @@ border-bottom:1px solid var(--rule);font-size:.83rem;line-height:1.45}
 #rehearseOut .no b{color:var(--loss)}
 #rehearseOut .rl small{display:block;color:var(--ink-3);font-size:.76rem}
 #rehearseOut .sum{margin-top:.6rem;font-size:.86rem;font-weight:700}
+#pairState{margin:-.2rem 0 .8rem}
+#pairState .pst{margin:0;font-size:.8rem;line-height:1.4;color:var(--ink-3)}
+#pairState .pst.ok{color:#3BC79A}
+#pairState .pst.err{color:var(--loss)}
+#pairState .pretry{margin-top:.45rem;min-height:40px;padding:0 1.1rem;background:none;
+border:1px solid var(--loss);border-radius:9px;color:var(--loss);font-weight:700}
 .spin{display:inline-block;width:.72em;height:.72em;border:2px solid var(--rule-2);
 border-top-color:var(--scarlet);border-radius:50%;animation:sp .7s linear infinite;
 vertical-align:-.1em;margin-right:.15rem}
@@ -291,6 +297,7 @@ vertical-align:-.1em;margin-right:.15rem}
   <section id="vRound" class="hidden">
     <h2>Round <span id="rn">1</span></h2>
     <p class="sub" id="rsub"></p>
+    <div id="pairState" aria-live="polite"></div>
     <div class="rchips" id="rchips"></div>
     <div id="repair"></div>
     <div class="rtools" id="rtools"></div>
@@ -363,6 +370,11 @@ vertical-align:-.1em;margin-right:.15rem}
   <input class="fld" id="dHook" type="password" placeholder="Webhook URL" autocomplete="off" autocapitalize="off">
   <p class="hintline">In Discord: Server Settings &rarr; Integrations &rarr; Webhooks &rarr; New Webhook,
     point it at #ladder-standings, then Copy Webhook URL. Kept on this phone only, like the token above.</p>
+  <div class="lbl">Pairings channel</div>
+  <p class="hintline" id="pairCfgState"></p>
+  <input class="fld" id="dPairHook" type="password" placeholder="#pairings webhook URL" autocomplete="off" autocapitalize="off">
+  <p class="hintline">Same steps again: a second webhook, pointed at #pairings. Every round you
+    draw then posts itself there.</p>
   <button class="close" id="dTest">Send a test message</button>
   <div class="lbl">Before the first night</div>
   <p class="hintline">Runs every step of Submit and stops before the two that write. Nothing is
@@ -423,6 +435,9 @@ const R=DATA.roster.map((p,i)=>({...p,id:i}));
 const byId=Object.fromEntries(R.map(p=>[p.id,p]));
 
 let view="in", playing=new Set(), gone=new Set(), rounds=[], cur=0, filter="";
+/* What is in #pairings: pairMsgs[i] is the message for round i+1. Declared here,
+   with the rest of the night, because restore() runs before the Discord code. */
+let pairMsgs=[], pairOrphans=[], pairGen=0, pairBusy=false, pairErr=null, pairAgain=false;
 const CFG={style:"swiss", avoidRematch:true, balanceColours:true, ratingCap:0};
 const STYLES=[
   {k:"swiss", t:"Swiss — top half v bottom half", d:"Proper Swiss. In each score group the 1st seed plays the 7th, 2nd plays 8th. Ratings decide the seeding."},
@@ -607,6 +622,7 @@ function renderRound(){
   cur=Math.min(cur,rounds.length-1);
   const rd=rounds[cur];
   $("#rn").textContent=cur+1;
+  renderPairState();
   const left=rd.boards.filter(b=>!b.res).length;
   $("#rsub").textContent=left?`Tap the winner. ${left} of ${rd.boards.length} still playing.`:"All results in.";
   $("#rchips").innerHTML=rounds.map((_,i)=>
@@ -671,6 +687,7 @@ async function roundTool(t){
     rounds.push(nr);                                   // later rounds are dropped: they were based on this one
   }
   refresh();render();
+  if(t==="del"||t==="redraw") syncPairings();         // the channel follows the board
 }
 $("#boards").onclick=e=>{
   const btn=e.target.closest("[data-r]");if(!btn)return;
@@ -721,6 +738,7 @@ function newRound(){
   const nr=makeRound(rounds.length);
   if(!nr){ say("Nobody left to pair","Everyone here has already played everyone else. Turn off avoid-rematches in settings, or finish the night here."); return }
   rounds.push(nr);cur=rounds.length-1;refresh();go("round");
+  syncPairings();
 }
 function render(){
   $("#hsub").textContent=(CFG.style==="swiss"?"Swiss":CFG.style==="close"?"Closest rating":"Widest gap")+" · club night";
@@ -868,7 +886,7 @@ function loadClubFile(o){
   o.roster.forEach((p,i)=>{const q={n:p.n,r:p.seed,d:p.d||DATA.divisions[DATA.divisions.length-1],idle:0,id:i};R.push(q);byId[i]=q});
   HISTORY=o.nights||[];
   if(o.divisions&&o.divisions.length) DATA.divisions=o.divisions;
-  playing=new Set(); gone=new Set(); rounds=[]; cur=0;
+  playing=new Set(); gone=new Set(); rounds=[]; cur=0; pairMsgs=[]; pairGen++;
   // ratings from the whole history, so the file is the only truth
   const seeds={}; o.roster.forEach(p=>seeds[p.n]=p.seed);
   const P=runRatings(HISTORY,seeds);
@@ -3414,6 +3432,7 @@ function snapshot(){
     playing:[...playing], gone:[...gone],
     added:R.filter(p=>p.fresh).map(p=>({n:p.n,r:p.r,d:p.d,pid:p.id})),
     rounds:rounds.map(rd=>({bye:rd.bye,boards:rd.boards.map(b=>({w:b.w,b:b.b,res:b.res,sw:b.sw,sb:b.sb}))})),
+    pm:pairMsgs, po:pairOrphans,
     cfg:{...CFG}};
 }
 function restore(o){
@@ -3424,6 +3443,7 @@ function restore(o){
   (o.added||[]).forEach(a=>{ if(!byId[a.pid]){const p={n:a.n,r:a.r,d:a.d,idle:0,id:a.pid,fresh:true};R.push(p);byId[p.id]=p} });
   playing=new Set(o.playing||[]); gone=new Set(o.gone||[]);
   rounds=(o.rounds||[]).map(rd=>({bye:rd.bye,boards:(rd.boards||[]).map(b=>({...b}))}));
+  pairMsgs=Array.isArray(o.pm)?o.pm:[]; pairOrphans=Array.isArray(o.po)?o.po:[];
   Object.assign(CFG,o.cfg||{});
   cur=Math.max(0,rounds.length-1); refresh(); return rounds.length>0||playing.size>0;
 }
@@ -3461,7 +3481,7 @@ function unfileNight(rec){
   R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });
 }
 function clearBoard(){
-  playing=new Set(); gone=new Set(); rounds=[]; cur=0;
+  playing=new Set(); gone=new Set(); rounds=[]; cur=0; pairMsgs=[]; pairGen++;
   clearLocal(); saveLocal(); go("in");
 }
 
@@ -3661,11 +3681,16 @@ function rehearseHTML(rows,done){
   const b=document.getElementById("scrapBtn");
   if(b) b.onclick=async()=>{
     if(!rounds.length&&!playing.size){ say("Nothing to throw away","The board is already empty."); return }
+    const up=pairMsgs.filter(Boolean);
     if(!await ask("Throw this board away?",
-      "The pairings and results are deleted. Nothing is saved to the club record, published or posted.",
+      "The pairings and results are deleted. Nothing is saved to the club record, published or posted."+
+      (up.length?(up.length===1?" The round already in #pairings comes down too."
+        :" The "+up.length+" rounds already in #pairings come down too."):""),
       "Throw it away")) return;
     submitStage=null;
+    pairOrphans.push(...up.map(m=>m.id));
     clearBoard();
+    syncPairings();
     $("#sheet").classList.add("hidden");
     say("Board cleared","Ready for a fresh night.");
   };
@@ -3773,6 +3798,7 @@ $("#clubFile").onchange=e=>{
   if(local&&restore(local)) setSync("ok","saved on this phone");
   else setSync("ok","saved on this phone");
   ready=true; render();
+  setTimeout(syncPairings,0);
   // optional free backup, if this view can reach the online store
   try{ db = window.claude && claude.use ? await claude.use("db") : null }catch(e){ db=null }
   if(!db){ setSync("ok","saved on this phone"); return }
@@ -4658,6 +4684,11 @@ async function postNight(status){
 function renderDsc(){
   const c=dscCfg(), el=$("#dHook");
   if(el&&document.activeElement!==el) el.value=c.hook||"";
+  const pe=$("#dPairHook");
+  if(pe&&document.activeElement!==pe) pe.value=c.pairHook||"";
+  const ps=$("#pairCfgState");
+  if(ps) ps.textContent=c.pairHook?"Each round posts itself to the channel this webhook belongs to."
+                                 :"Not set up yet. Pairings stay on this phone.";
   const st=$("#dscCfgState");
   if(st) st.textContent=c.hook?"Posting to the channel this webhook belongs to."
                               :"Not set up yet — no bot needed, just a webhook URL.";
@@ -4682,13 +4713,149 @@ function renderPub(){
   if(el) el.oninput=()=>{ const c=dscCfg(); c.hook=el.value.trim(); setDsc(c); renderDsc() };
 }
 {
+  const el=document.getElementById("dPairHook");
+  let wait=null;
+  if(el) el.oninput=()=>{
+    const c=dscCfg(); c.pairHook=el.value.trim(); setDsc(c); renderDsc(); renderPairState();
+    // set up mid-night: the round in progress goes out once the paste settles
+    clearTimeout(wait); wait=setTimeout(syncPairings,900);
+  };
+}
+addEventListener("online",()=>syncPairings());
+
+/* ---------- round pairings to #pairings ---------- */
+
+/* Read straight from storage, not through dscCfg: this runs in the startup
+   render, before DSC_KEY is declared further down the script. */
+function pairHook(){
+  try{ return (JSON.parse(localStorage.getItem("kava.discord")||"{}").pairHook)||"" }catch(e){ return "" }
+}
+function hookBase(h){ return String(h).split("?")[0].replace(/\/+$/,"") }
+
+/* What a round's pairings are, as one comparable string. Results are left out
+   on purpose: entering a score is not a reason to touch the channel. */
+function pairSig(rd){
+  return rd.boards.map(b=>b.w+"-"+b.b).join(",")+"|"+(rd.bye==null?"":rd.bye);
+}
+function pairName(id){ return String(byId[id]?byId[id].n:"?").replace(/([*_~|])/g,"\\$1") }
+
+function pairEmbed(i,m){
+  const rd=rounds[i];
+  const lines=rd.boards.map((b,j)=>
+    "`"+String(j+1).padStart(2)+"`  \u26AA **"+pairName(b.w)+"**  vs  \u26AB **"+pairName(b.b)+"**");
+  if(rd.bye!=null) lines.push("","Bye: **"+pairName(rd.bye)+"** \u2014 1 point");
+  return {title:"\u265F\uFE0F  Round "+(i+1)+(m&&m.upd?"  \u00b7  updated":""),
+          color:DSC_RED, description:lines.join(NL),
+          footer:{text:"White listed first"+(m&&m.day?"  \u00b7  "+m.day:"")}};
+}
+
+async function pairReq(method,url,payload){
+  for(let tries=0;tries<4;tries++){
+    const r=await fetch(url,{method,
+      headers:payload?{"Content-Type":"application/json"}:{},
+      body:payload?JSON.stringify(payload):undefined});
+    if(r.status===429){ let w=1; try{ w=(await r.json()).retry_after||1 }catch(e){}
+      await new Promise(s=>setTimeout(s,Math.ceil(w*1000)+250)); continue }
+    if(r.status===404) return {gone:true};
+    if(r.status===401||r.status===403) throw new Error("Discord would not accept the #pairings webhook.");
+    if(!r.ok){ let m=""; try{ m=(await r.json()).message||"" }catch(e){}
+      throw new Error("Discord said "+r.status+(m?" \u2014 "+m:"")) }
+    if(r.status===204) return {};
+    try{ return await r.json() }catch(e){ return {} }
+  }
+  throw new Error("Discord kept asking us to slow down.");
+}
+
+/* One pass: bring the channel in line with the board, one request at a time,
+   re-reading the board after every request because it may have moved on. */
+async function pairPass(){
+  const hook=pairHook(); if(!hook) return;
+  const base=hookBase(hook), gen=pairGen;
+  const stale=()=>gen!==pairGen;          // the board was cleared mid-request
+  const quiet={parse:[]};                 // nobody's phone goes off for a pairing
+  for(let guard=0;guard<40;guard++){
+    for(let i=rounds.length;i<pairMsgs.length;i++) if(pairMsgs[i]) pairOrphans.push(pairMsgs[i].id);
+    if(pairMsgs.length>rounds.length) pairMsgs.length=rounds.length;
+
+    if(pairOrphans.length){
+      await withTimeout(pairReq("DELETE",base+"/messages/"+pairOrphans[0]),20,"Taking old pairings down");
+      pairOrphans.shift(); queueSave(); continue;
+    }
+    // a finished round nobody posted does not need posting now
+    const i=rounds.findIndex((rd,k)=>{ const m=pairMsgs[k];
+      return m?m.sig!==pairSig(rd):!rd.boards.every(b=>b.res) });
+    if(i<0) return;
+
+    const sig=pairSig(rounds[i]), m=pairMsgs[i];
+    if(m){
+      const next={...m,sig,upd:true};
+      const r=await withTimeout(pairReq("PATCH",base+"/messages/"+m.id,
+        {embeds:[pairEmbed(i,next)],allowed_mentions:quiet}),20,"Updating the pairings");
+      if(stale()) return;
+      pairMsgs[i]=r.gone?null:next;      // deleted by hand in Discord: post it again
+    }else{
+      const day=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+      const r=await withTimeout(pairReq("POST",base+"?wait=true",
+        {embeds:[pairEmbed(i,{day})],allowed_mentions:quiet}),20,"Posting the pairings");
+      if(r.gone) throw new Error("That #pairings webhook no longer exists \u2014 make a new one.");
+      if(stale()) return;
+      pairMsgs[i]={id:r.id,sig,day};
+    }
+    queueSave();
+  }
+}
+
+function pairWhy(e){
+  const m=(e&&e.message)||"";
+  if(e instanceof TypeError||/fetch|network/i.test(m)) return "no signal. It will post when you are back online.";
+  return m||"something went wrong.";
+}
+
+/* Callers fire this and forget it. If a pass is already running it just goes
+   round once more when it finishes, so there is only ever one in flight. */
+function syncPairings(){
+  if(!pairHook()){ renderPairState(); return }
+  if(pairBusy){ pairAgain=true; return }
+  pairBusy=true; pairErr=null; renderPairState();
+  (async()=>{
+    try{ do{ pairAgain=false; await pairPass() }while(pairAgain) }
+    catch(e){ pairErr=pairWhy(e) }
+    pairBusy=false; renderPairState();
+  })();
+}
+
+function renderPairState(){
+  const el=document.getElementById("pairState"); if(!el) return;
+  if(!rounds.length){ el.innerHTML=""; return }
+  if(!pairHook()){
+    el.innerHTML='<p class="pst">Add the #pairings webhook in settings and every round posts itself.</p>';
+    return;
+  }
+  const rd=rounds[cur], m=pairMsgs[cur];
+  const up=m&&m.sig===pairSig(rd);
+  if(pairErr&&!up){
+    el.innerHTML='<p class="pst err">Round '+(cur+1)+' is not in #pairings yet: '+esc(pairErr)+'</p>'+
+      '<button class="pretry" id="pairRetry">Try again</button>';
+  }else if(up){
+    el.innerHTML='<p class="pst ok">\u2713 Round '+(cur+1)+' is up in #pairings</p>';
+  }else if(!m&&rd.boards.every(b=>b.res)){
+    el.innerHTML="";
+  }else{
+    el.innerHTML='<p class="pst"><span class="spin"></span> Posting round '+(cur+1)+' to #pairings\u2026</p>';
+  }
+}
+document.getElementById("pairState").onclick=e=>{
+  if(e.target.closest("#pairRetry")){ pairErr=null; syncPairings() }
+};
+{
   const b=document.getElementById("dTest");
   if(b) b.onclick=async()=>{
     const c=dscCfg(); b.textContent="Sending…";
     try{
-      if(!c.hook) throw new Error("Paste the webhook URL first.");
-      await dscSend(c.hook,"Test from the KAVA pairing tool. Nothing to see here.");
-      b.textContent="Sent — check the channel";
+      if(!c.hook&&!c.pairHook) throw new Error("Paste a webhook URL first.");
+      if(c.hook) await dscSend(c.hook,"Test from the KAVA pairing tool. Nothing to see here.");
+      if(c.pairHook) await dscSend(c.pairHook,"Test from the KAVA pairing tool. Round pairings will appear here.");
+      b.textContent=(c.hook&&c.pairHook)?"Sent to both — check the channels":"Sent — check the channel";
     }catch(e){ b.textContent=e.message }
     setTimeout(()=>{ b.textContent="Send a test message" },4500);
   };
