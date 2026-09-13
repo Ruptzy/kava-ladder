@@ -1957,12 +1957,21 @@ function oppRows(p){
 function vsTable(p){
   var rec=oppRows(p);
   var opps=Object.keys(rec).sort(function(a,b){var A=rec[a],B=rec[b];return (B[0]+B[1]+B[2])-(A[0]+A[1]+A[2])});
-  return opps.length?'<table style="font-size:.85rem"><tbody>'+opps.map(function(o){ var a=rec[o], k=a[0]>a[2]?"var(--gain)":a[0]<a[2]?"var(--loss)":"var(--ink-2)";
-    // the collapsed row says Visitors already, so it does not need the tag too
-    const lump=o==="Visitors", gh=!lump&&byN[o]&&byN[o].gh;
-    return '<tr'+(gh||lump?'':' data-o="'+esc(o)+'" style="cursor:pointer"')+'><td style="padding:.35rem .2rem">'+esc(o)+
-      (gh?'<span style="font-family:var(--fm);font-size:.58rem;color:var(--ink-3);letter-spacing:.1em"> VISITOR</span>':'')+'</td><td style="text-align:right;padding:.35rem .2rem;font-family:var(--fm);color:'+k+';font-weight:700">'+a[0]+'–'+a[1]+'–'+a[2]+'</td></tr>'}).join("")+'</tbody></table>'
-    :'<p style="color:var(--ink-3);font-size:.86rem;margin:0">No games on record yet.</p>';
+  if(!opps.length) return '<p style="color:var(--ink-3);font-size:.86rem;margin:0">No games on record yet.</p>';
+  /* Three labelled columns, headed in the numbers' own font. A bare 2-0-1 only
+     makes sense to someone who already knows which end is the wins. */
+  var lab='text-align:right;padding:0 .2rem .35rem .6rem;font-family:var(--fm);font-size:.6rem;font-weight:400;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)';
+  // rows open that player, so they are tap targets: .6rem keeps them over 40px
+  var num='text-align:right;padding:.6rem .2rem .6rem .6rem;font-family:var(--fm);font-weight:700;width:2.4rem';
+  return '<table style="font-size:.85rem"><thead><tr><th style="padding:0"></th>'+
+    '<th style="'+lab+'">Won</th><th style="'+lab+'">Drew</th><th style="'+lab+'">Lost</th></tr></thead><tbody>'+
+    opps.map(function(o){ var a=rec[o], k=a[0]>a[2]?"var(--gain)":a[0]<a[2]?"var(--loss)":"var(--ink-2)";
+      // the collapsed row says Visitors already, so it does not need the tag too
+      var lump=o==="Visitors", gh=!lump&&byN[o]&&byN[o].gh;
+      return '<tr'+(gh||lump?'':' data-o="'+esc(o)+'" style="cursor:pointer"')+'><td style="padding:.6rem .2rem">'+esc(o)+
+        (gh?'<span style="font-family:var(--fm);font-size:.58rem;color:var(--ink-3);letter-spacing:.1em"> VISITOR</span>':'')+'</td>'+
+        [a[0],a[1],a[2]].map(function(v){ return '<td style="'+num+';color:'+k+'">'+v+'</td>' }).join("")+'</tr>' }).join("")+
+    '</tbody></table>';
 }
 function suggestRivals(p){
   var out=[], seen={};
