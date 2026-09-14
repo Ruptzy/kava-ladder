@@ -1,0 +1,178 @@
+{
+ "date": "2026-09-14",
+ "games": [
+  [
+   "Scott",
+   "Brian O",
+   "w"
+  ],
+  [
+   "Harold",
+   "Omar Cruz",
+   "w"
+  ],
+  [
+   "Josh",
+   "Sam",
+   "w"
+  ],
+  [
+   "Derek",
+   "Diego",
+   "w"
+  ],
+  [
+   "Mel",
+   "Alex",
+   "b"
+  ],
+  [
+   "Sonny",
+   "Mathew",
+   "b"
+  ],
+  [
+   "Thomas",
+   "Zack",
+   "b"
+  ],
+  [
+   "Alex",
+   "Derek",
+   "b"
+  ],
+  [
+   "Mathew",
+   "Scott",
+   "b"
+  ],
+  [
+   "Zack",
+   "Harold",
+   "b"
+  ],
+  [
+   "Maddie",
+   "Josh",
+   "b"
+  ],
+  [
+   "Brian O",
+   "Sonny",
+   "w"
+  ],
+  [
+   "Omar Cruz",
+   "Thomas",
+   "w"
+  ],
+  [
+   "Sam",
+   "Mel",
+   "b"
+  ],
+  [
+   "Scott",
+   "Alex",
+   "w"
+  ],
+  [
+   "Harold",
+   "Josh",
+   "b"
+  ],
+  [
+   "Zack",
+   "Omar Cruz",
+   "b"
+  ],
+  [
+   "Brian O",
+   "Maddie",
+   "w"
+  ],
+  [
+   "Mel",
+   "Mathew",
+   "b"
+  ],
+  [
+   "Sonny",
+   "Vinny",
+   "w"
+  ],
+  [
+   "Josh",
+   "Scott",
+   "b"
+  ],
+  [
+   "Alex",
+   "Brian O",
+   "w"
+  ],
+  [
+   "Mathew",
+   "Harold",
+   "b"
+  ],
+  [
+   "Omar Cruz",
+   "Sonny",
+   "w"
+  ],
+  [
+   "Maddie",
+   "Mel",
+   "b"
+  ],
+  [
+   "Vinny",
+   "Zack",
+   "b"
+  ],
+  [
+   "Scott",
+   "Harold",
+   "w"
+  ],
+  [
+   "Josh",
+   "Omar Cruz",
+   "b"
+  ],
+  [
+   "Zack",
+   "Alex",
+   "b"
+  ],
+  [
+   "Brian O",
+   "Mathew",
+   "b"
+  ],
+  [
+   "Mel",
+   "Sonny",
+   "b"
+  ],
+  [
+   "Vinny",
+   "Maddie",
+   "b"
+  ]
+ ],
+ "byes": [
+  [
+   "Maddie",
+   1
+  ],
+  [
+   "Diego",
+   1
+  ]
+ ],
+ "seeds": {
+  "Mel": 1200
+ }
+}
