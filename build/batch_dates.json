@@ -1,0 +1,7 @@
+{
+ "why": "Dates in the old workbook that are not one club night: a backlog of games was entered under a single date. The games count - ratings, records, nights attended - but the date is not a night, so it sets no per-night record and no per-night achievement.",
+ "dates": [
+  "2023-07-02",
+  "2024-07-21"
+ ]
+}

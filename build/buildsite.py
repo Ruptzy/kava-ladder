@@ -249,6 +249,12 @@ def season_bands(P, season_nights, peaks, divisions):
     return out
 
 
+def batch_dates():
+    """Old-workbook dates that hold a backlog of games, not one night's play."""
+    try: return set(json.load(open(here('batch_dates.json'),encoding='utf-8')).get("dates",[]))
+    except FileNotFoundError: return set()
+
+
 def career_stats(history, arc_matches, link, names):
     """Everything an achievement counts, over every night on record.
 
@@ -257,10 +263,13 @@ def career_stats(history, arc_matches, link, names):
     Only the accumulating fields are computed - the ones a season can no longer
     reach. Form is left to the season, where it belongs."""
     back = {old: cur for cur, old in (link or {}).items()}
+    BATCH = batch_dates()
     nights = {}
     for night in history:
         nights.setdefault(night["date"], []).extend(night["games"])
     for d, w, b, r in arc_matches or []:
+        if w.strip().lower() == "null" or b.strip().lower() == "null":
+            continue   # the old workbook's placeholder for a missing opponent, not a person
         nights.setdefault(d, []).append([back.get(w, w), back.get(b, b), r])
 
     every = sorted(nights)
@@ -280,10 +289,12 @@ def career_stats(history, arc_matches, link, names):
             out[b]["bl"][0 if r == "b" else 1 if r == "d" else 2] += 1
             out[w]["opp"][b] = out[w]["opp"].get(b, 0) + 1
             out[b]["opp"][w] = out[b]["opp"].get(w, 0) + 1
+        batch = d in BATCH   # a backlog entered under one date: not a night's play
         for me, wdl in per.items():
             e = out[me]
             e["nights"].append(idx[d])
             g = sum(wdl)
+            if batch: continue
             if g > e["maxNight"]: e["maxNight"] = g
             if g >= 5: e["full"] += 1
             if wdl[1] == 0 and wdl[2] == 0 and wdl[0] >= 4: e["sweeps"] += 1
@@ -496,6 +507,7 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True
     D["divhist"]=[{**s,"div":{k:v for k,v in s["div"].items() if k not in HIDDEN}} for s in DIVH]
     D["tabart"]=tab_art()
     D["achart"]=ach_art()
+    D["batch"]=sorted(batch_dates())
     # games each player had last season: before a season's first night the board
     # is last season's players, and a rating alone cannot tell who they were -
     # the replay moves everybody's rating every night, played or not
