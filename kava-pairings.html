@@ -1489,6 +1489,8 @@ background-position:center;margin-left:.5rem;vertical-align:-3px}
 /* compare */
 .cmpsel{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
 .cmpsel label{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
+.scope{margin:.9rem 0 .7rem;gap:.6rem .8rem}
+.scope .sn{font-family:var(--fm);font-size:.7rem;color:var(--ink-3)}
 .cmpsel select,.xsel select{appearance:none;background:var(--panel-2);color:var(--cream);border:1px solid var(--rule-2);
 border-radius:8px;padding:.55rem 2.2rem .55rem .8rem;font-family:var(--fb);font-size:.92rem;cursor:pointer;flex:1;min-width:180px;
 background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
@@ -1613,14 +1615,6 @@ color:var(--rule-2);font-size:1.15rem;transition:color .2s;min-height:40px;verti
 .season-card .sz{font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;color:var(--ink-3);margin:.6rem 0 0;text-transform:uppercase}
 .season-card a.howbtn{margin-top:.7rem}
 .season-card.now{border-color:var(--scarlet-dim)}
-.mbox.wide{max-width:720px}
-.career{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.5rem;margin-top:.9rem}
-.career h4{grid-column:1/-1;margin:.6rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--scarlet)}
-.career h4:first-child{margin-top:0}
-.career div{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:6px;padding:.55rem .7rem;min-width:0}
-.career dt{font-family:var(--fm);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
-.career dd{margin:.15rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.15rem;line-height:1.1}
-.career dd small{display:block;font-family:var(--fb);font-weight:400;font-size:.76rem;color:var(--ink-2);margin-top:.15rem}
 .rec{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem}
 .rec dt{font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .rec dd{margin:.35rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.35rem;line-height:1.1}
@@ -1828,19 +1822,15 @@ the club is older than its paperwork.</p>
 <div class="sh"><h2 id="recsNowH">This <span>season</span></h2><p>So far</p></div>
 <dl class="recs" id="recs"></dl>
 </main>
-<div class="modal" id="career" role="dialog" aria-modal="true" aria-labelledby="careerT"><div class="mbox wide">
-<button class="x" id="careerX" aria-label="Close">&times;</button>
-<h2 id="careerT">Career <span>stats</span></h2>
-<div id="careerBody"></div>
-</div></div>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
 <div class="phead2"><div class="pnick" id="pnick"></div><div class="ph2row"><div id="pav"></div><div style="min-width:0"><h1 id="pname"></h1><div class="psub" id="psub"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
+<div class="cmpsel scope hid" id="scope"><label for="scopeSel">Showing</label><select id="scopeSel"></select><span class="sn" id="scopeNote"></span></div>
 <h2 class="sr" id="pvH2">Player details</h2>
 <dl class="kpis" id="kpis"></dl>
 <div class="gwrap" id="graphs"></div>
 <div id="graphs2"></div>
-<h3 class="factsH">Career highlights</h3>
+<h3 class="factsH" id="factsH">Career highlights</h3>
 <div class="facts" id="facts"></div>
 <div id="graphs3"></div>
 </main>
@@ -2692,18 +2682,19 @@ function achCtx(p){
   const nights=Object.keys(p.att).map(Number).sort((a,b)=>a-b);
   let run=1, bestRun=nights.length?1:0;
   for(let i=1;i<nights.length;i++){ if(nights[i]===nights[i-1]+1){ run++; if(run>bestRun) bestRun=run } else run=1 }
+  const DS=dsOf(p), DT=DS.dates;
   let backAfter=0;
   for(let i=1;i<nights.length;i++){
-    const gap=daysBetween(DATES[nights[i-1]],DATES[nights[i]]);
+    const gap=daysBetween(DT[nights[i-1]],DT[nights[i]]);
     if(gap>backAfter) backAfter=gap;
   }
   const perNight=p.nightly.map(n=>n.w+n.dr+n.l);
   const opps=Object.keys(p.opp);
-  const oppDivs={}; opps.forEach(o=>{ const q=byN[o]; if(q&&q.d) oppDivs[q.d]=1 });
+  const oppDivs={}; opps.forEach(o=>{ const q=DS.byN[o]; if(q&&q.d) oppDivs[q.d]=1 });
   let debutFaced=false, topBeaten=false;
   const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0];
   p.log.forEach(l=>{
-    const q=byN[l.o];
+    const q=DS.byN[l.o];
     if(q&&q.log&&q.log.length&&q.log[0].ni===l.ni&&q.n!==p.n&&l.ni!==p.log[0].ni) debutFaced=true;
     if(top&&l.o===top.n&&l.s===1) topBeaten=true;
   });
@@ -2713,24 +2704,25 @@ function achCtx(p){
   const span=(first&&last)?daysBetween(first,last):0;
   const years=(first&&last)?(new Date(first+"T12:00").getFullYear()!==new Date(last+"T12:00").getFullYear()):false;
   const climb=(p.peak&&p.low)?p.peak[0]-p.low[0]:0;
-  const startDiv=p.log.length?divAt(p.n,p.log[0].ni):p.d;
-  const nowDiv=p.log.length?divAt(p.n,p.log[p.log.length-1].ni):p.d;
+  const rl=p.log.filter(l=>!l.nr);   // the old system had no brackets
+  const startDiv=rl.length?bandAtNi(p,rl[0].ni):p.d;
+  const nowDiv=rl.length?bandAtNi(p,rl[rl.length-1].ni):p.d;
   const tro=p.trophies;
-  const months={}; nights.forEach(i=>{ months[DATES[i].slice(0,7)]=1 });
-  const calYears={}; nights.forEach(i=>{ calYears[DATES[i].slice(0,4)]=1 });
+  const months={}; nights.forEach(i=>{ months[DT[i].slice(0,7)]=1 });
+  const calYears={}; nights.forEach(i=>{ calYears[DT[i].slice(0,4)]=1 });
   const fullNights=p.nightly.filter(n=>n.w+n.dr+n.l>=5).length;
   const tough=p.log.filter(l=>l.orat-l.mrat>=200).length;
   let topRival=0; Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2]; if(g>topRival) topRival=g });
-  const beatDivs={}; Object.keys(p.opp).forEach(o=>{ const q=byN[o]; if(q&&q.d&&p.opp[o][0]>0) beatDivs[q.d]=1 });
+  const beatDivs={}; Object.keys(p.opp).forEach(o=>{ const q=DS.byN[o]; if(q&&q.d&&p.opp[o][0]>0) beatDivs[q.d]=1 });
   const nemesisBeaten=Object.keys(p.opp).some(o=>p.opp[o][0]>=1&&p.opp[o][2]>=4);
   let debuts=0; const seenDebut={};
-  p.log.forEach(l=>{ const q=byN[l.o];
+  p.log.forEach(l=>{ const q=DS.byN[l.o];
     if(q&&q.log&&q.log.length&&q.log[0].ni===l.ni&&q.n!==p.n&&l.ni!==p.log[0].ni&&!seenDebut[q.n]){ seenDebut[q.n]=1; debuts++ } });
   let bounced=false, lossRun=0;
   p.log.forEach(l=>{ if(l.s===0) lossRun++; else { if(l.s===1&&lossRun>=3) bounced=true; lossRun=0 } });
   const field=P.filter(x=>x.n!==p.n&&x.d===p.d&&!away(x)&&x.rd<=RS);
   const fieldLeft=field.filter(x=>!p.opp[x.n]).length;
-  const share=nights.length?nights.length/Math.max(1,(LASTI-nights[0]+1)):0;
+  const share=nights.length?nights.length/Math.max(1,(DT.length-1-nights[0]+1)):0;
   /* Everything that counts up reads the career, so a season's worth of nights
      cannot make a lifetime of turning up unreachable. Form stays seasonal:
      trophies, promotion, the climb, and how much of this field is left. */
@@ -2847,6 +2839,7 @@ var ACH=[
    and kept on the object, like achWhen does. */
 function achX(p){
   if(p._ax) return p._ax;
+  const DS=dsOf(p), DT=DS.dates, NT=DS.night, BN=DS.byN, UNR=DS.unrated||{};
   const L=p.log, byNi={};
   L.forEach(l=>{ (byNi[l.ni]=byNi[l.ni]||[]).push(l) });
   const nis=Object.keys(byNi).map(Number).sort((a,b)=>a-b);
@@ -2857,15 +2850,15 @@ function achX(p){
   let ub=0; x.unbeaten=0; L.forEach(l=>{ if(l.s>0){ ub++; if(ub>x.unbeaten) x.unbeaten=ub } else ub=0 });
   x.peak=Math.max(p.peak?p.peak[0]:0, p.r||0);
   // beating up
-  x.maxGap=0; x.winsHigher=0;
-  L.forEach(l=>{ if(l.s===1){ const g=l.orat-l.mrat; if(g>x.maxGap) x.maxGap=g; if(g>0) x.winsHigher++ } });
+  x.maxGap=0;
+  L.forEach(l=>{ if(l.s===1){ const g=l.orat-l.mrat; if(g>x.maxGap) x.maxGap=g } });
   x.dragon=false;
-  nis.forEach(ni=>{ const N=NIGHT[ni]; if(!N||!N.table.length) return;
-    let top=null, tr=-1; N.table.forEach(r=>{ const q=byN[r[0]]; if(!q) return; const rr=q.rb[ni]!=null?q.rb[ni]:q.seed; if(rr>tr){ tr=rr; top=r[0] } });   // rating going into that night
+  nis.forEach(ni=>{ const N=NT[ni]; if(!N||!N.table.length||UNR[ni]) return;
+    let top=null, tr=-1; N.table.forEach(r=>{ const q=BN[r[0]]; if(!q) return; const rr=q.rb[ni]!=null?q.rb[ni]:q.seed; if(rr>tr){ tr=rr; top=r[0] } });   // rating going into that night
     if(top&&top!==p.n&&byNi[ni].some(l=>l.o===top&&l.s===1)) x.dragon=true; });
   // rivalries, in the order the games were played
   const seq={}; L.forEach(l=>{ (seq[l.o]=seq[l.o]||[]).push(l.s) });
-  x.settled=false; x.revenge=false; x.turned=false; x.deadEven=false; x.lead=0; x.beatUnique=0; x.drewTwice=false; x.maxWith=0;
+  x.settled=false; x.revenge=false; x.turned=false; x.beatUnique=0; x.drewTwice=false; x.maxWith=0;
   Object.keys(seq).forEach(o=>{
     const s=seq[o]; let w=0,d=0,l=0,lossRun=0,wasNeg=false;
     if(s.length>x.maxWith) x.maxWith=s.length;
@@ -2874,8 +2867,6 @@ function achX(p){
       lossRun=r===0?lossRun+1:0;
       if(w-l<0) wasNeg=true; if(wasNeg&&w-l>0) x.turned=true;
     });
-    if(w+d+l>=4&&w===l) x.deadEven=true;
-    if(w-l>x.lead) x.lead=w-l;
     if(w>0) x.beatUnique++;
     if(d>=2) x.drewTwice=true;
   });
@@ -2904,7 +2895,7 @@ function achX(p){
     if(g.some(q=>q.s===1&&q.orat>q.mrat)&&g.some(q=>q.s===0&&q.orat<q.mrat)) x.chaos=true;
     if(w===1&&d===1&&l===1&&g.length===3) x.imperfect=true;
     const mine=p.nightly.find(n=>n.ni===ni);
-    if(mine&&mine.delta>0&&!P.some(q=>q.n!==p.n&&q.nightly.some(n=>n.ni===ni&&n.delta>mine.delta))) x.mainCharacter=true;
+    if(mine&&mine.delta>0&&mine.delta>=topDelta(DS)[ni]) x.mainCharacter=true;
     const rec=w+"-"+d+"-"+l, opps=g.map(q=>q.o).sort().join("|");
     if(prevRec!==null&&rec===prevRec) x.dejaVu=true;
     if(prevOpps!==null&&opps===prevOpps) x.groundhog=true;
@@ -2912,13 +2903,21 @@ function achX(p){
   });
   // coming back, and the season
   x.comeback=false;
-  for(let i=1;i<nis.length;i++){ if(daysBetween(DATES[nis[i-1]],DATES[nis[i]])>=90&&byNi[nis[i]][0].s===1) x.comeback=true }
+  for(let i=1;i<nis.length;i++){ if(daysBetween(DT[nis[i-1]],DT[nis[i]])>=90&&byNi[nis[i]][0].s===1) x.comeback=true }
   x.plotArmor=false;
   if(p.low&&p.hist.length){ const lowNi=(p.hist.find(h=>h[1]===p.low[0])||[])[0];
     const next=nis.find(ni=>ni>lowNi); if(next!=null&&byNi[next][0].s===1) x.plotArmor=true }
-  x.nightGames=nis.map(ni=>byNi[ni].length);   // this season, in order, for the exact-number secrets
-  x.seasonWins=p.rec[0]; x.seasonGain=p.hist.length?p.r-p.hist[0][1]:0;
-  x.positive=p.games>=10&&p.rec[0]>p.rec[2];
+  x.nightGames=nis.map(ni=>byNi[ni].length);   // every night, in order, for the exact-number secrets
+  // the season-shaped ones take the best single season on record
+  const SK=DS.seasonOf||(()=>0), bySea={}; L.forEach(l=>{ const k=SK(l.ni); if(k!=null) (bySea[k]=bySea[k]||[]).push(l) });   // Seasons 1-7 have no season lines in the record
+  x.seasonWins=0; x.seasonGain=0; x.positive=false; x.winsHigher=0; x.lead=0; x.deadEven=false;
+  Object.keys(bySea).forEach(k=>{ const g=bySea[k], w=g.filter(l=>l.s===1).length, lo=g.filter(l=>l.s===0).length;
+    if(w>x.seasonWins) x.seasonWins=w; if(g.length>=10&&w>lo) x.positive=true;
+    const wh=g.filter(l=>l.s===1&&!l.nr&&l.orat-l.mrat>0).length; if(wh>x.winsHigher) x.winsHigher=wh;
+    const rec={}; g.forEach(l=>{ const e=rec[l.o]=rec[l.o]||[0,0,0]; e[l.s===1?0:l.s===.5?1:2]++ });
+    Object.keys(rec).forEach(o=>{ const e=rec[o]; if(e[0]-e[2]>x.lead) x.lead=e[0]-e[2]; if(e[0]+e[1]+e[2]>=4&&e[0]===e[2]) x.deadEven=true }) });
+  const hs={}; p.hist.forEach(h=>{ const k=SK(h[0]); if(k!=null) (hs[k]=hs[k]||[]).push(h) });
+  Object.keys(hs).forEach(k=>{ const h=hs[k], gain=h[h.length-1][1]-h[0][1]; if(gain>x.seasonGain) x.seasonGain=gain });
   x.archives=!!(ARC&&ARC.link&&ARC.link[p.n]);
   return p._ax=x;
 }
@@ -3030,8 +3029,9 @@ var ACHART=(D.achart&&D.achart.length)?D.achart:[];
    for the achievement tests, and no more. Career totals come down by whatever
    they went on to do after that night. */
 function playerAsOf(p, upTo){
-  const log=p.log.filter(l=>l.ni<=upTo);
+  const log=p.log.filter(l=>l.ni<=upTo), DT=dsOf(p).dates;
   const q=Object.assign(Object.create(Object.getPrototypeOf(p)), p);
+  delete q._ax; delete q._achWhen;   // the season's patterns are not this night's
   q.log=log;
   q.games=log.length;
   q.rec=[0,0,0]; q.wh=[0,0,0]; q.bl=[0,0,0]; q.opp={}; q.att={};
@@ -3044,8 +3044,8 @@ function playerAsOf(p, upTo){
   Object.keys(p.att).forEach(ni=>{ if(+ni<=upTo) q.att[ni]=1 });
   q.cons=Object.keys(q.att).length;
   q.nightly=p.nightly.filter(n=>n.ni<=upTo);
-  q.first=log.length?DATES[log[0].ni]:null;
-  q.last=log.length?DATES[log[log.length-1].ni]:null;
+  q.first=log.length?DT[log[0].ni]:null;
+  q.last=log.length?DT[log[log.length-1].ni]:null;
   const res=l=>l.s===1?"W":l.s===.5?"D":"L";
   const all=log.map(res); let best=0,cur=0;
   all.forEach(x=>{ cur=x==="W"?cur+1:0; if(cur>best) best=cur });
@@ -3059,7 +3059,7 @@ function playerAsOf(p, upTo){
   q.hist=h;
   q.r=h.length?h[h.length-1][1]:p.seed;
   let pk=null, lo=null; h.forEach(x=>{ if(!pk||x[1]>pk[1]) pk=x; if(!lo||x[1]<lo[1]) lo=x });
-  q.peak=pk?[pk[1],DATES[pk[0]]]:null; q.low=lo?[lo[1],DATES[lo[0]]]:null;
+  q.peak=pk?[pk[1],DT[pk[0]]]:null; q.low=lo?[lo[1],DT[lo[0]]]:null;
   if(p.c){
     // the career, wound back by what the season did after this night
     const after=p.log.filter(l=>l.ni>upTo);
@@ -3091,7 +3091,7 @@ function achWhen(p){
   }
   nights.forEach(ni=>{
     const now=new Set(achFor(playerAsOf(p,ni)).filter(r=>r.got).map(r=>r.a.id));
-    now.forEach(id=>{ if(!prev||!prev.has(id)) when[id]=DATES[ni] });
+    now.forEach(id=>{ if(!prev||!prev.has(id)) when[id]=dsOf(p).dates[ni] });
     prev=now;
   });
   p._achWhen=when;
@@ -3166,13 +3166,13 @@ function achDetail(p,id){
     return {name:"Egg hunter", how:"Find the hidden jokes around the site. Kept in this browser only.", status:f>=n?"All "+n+" found.":f+" of "+n+" found so far.", got:f>=n} }
   const r=achFor(p).find(x=>x.a.id===id); if(!r) return null;
   let status="";
-  if(r.got){ const w=achWhen(p)[id]; status=w==="earlier"?"Earned before this season.":w?"Earned "+fd(w)+".":"Earned." }
+  if(r.got){ const w=achWhen(p)[id]; status=w==="earlier"?"Earned earlier.":w?"Earned "+fd(w)+".":"Earned." }
   else if(r.pr){ const cur=Math.min(r.pr[0],r.pr[1]); status=cur+" of "+r.pr[1]+" so far." }
   else status="Not yet.";
   return {name:r.a.name, how:r.a.how, status:status, got:r.got};
 }
 function achToggle(tile){
-  const p=CUR, box=$("#achInfo"); if(!p||!box) return;
+  const p=CUR&&achP(CUR), box=$("#achInfo"); if(!p||!box) return;
   const open=tile.classList.contains("open");
   document.querySelectorAll(".ach.open").forEach(x=>{ x.classList.remove("open"); x.setAttribute("aria-expanded","false") });
   if(open){ box.classList.add("hid"); box.innerHTML=""; return }
@@ -3185,7 +3185,7 @@ function achToggle(tile){
 /* ---------- fun facts: five, most unusual first ---------- */
 function pctile(arr,v){ var n=arr.length; if(!n) return .5; var below=0, eq=0; arr.forEach(function(x){ if(x<v) below++; else if(x===v) eq++ }); return (below+eq/2)/n }
 function facts(p){
-  var pool=P.filter(function(x){return x.games>=5}), wpc=cpct(p.wh), bpc=cpct(p.bl);
+  var S=dsOf(p), pool=S.list.filter(function(x){return x.games>=5}), wpc=cpct(p.wh), bpc=cpct(p.bl);
   var surprise=function(f,v){ return Math.abs(pctile(pool.map(f),v)-.5) };
   var bestNight=null; p.nightly.forEach(function(n){ if(!n.first&&(!bestNight||n.delta>bestNight.delta)) bestNight=n });
   var c=[];
@@ -3195,12 +3195,12 @@ function facts(p){
   if(p.vic&&p.vic[1]-p.vic[3]>=2) c.push([surprise(function(x){return x.vic?x.vic[1]-x.vic[3]:0},p.vic[1]-p.vic[3]),"🎯",p.vic[1]+"–"+p.vic[2]+"–"+p.vic[3],"Their best record against anyone — "+esc(anon(p.vic[0]))+"."]);
   if(p.nem&&p.nem[3]-p.nem[1]>=2) c.push([surprise(function(x){return x.nem?x.nem[3]-x.nem[1]:0},p.nem[3]-p.nem[1]),"🧱",p.nem[1]+"–"+p.nem[2]+"–"+p.nem[3],esc(anon(p.nem[0]))+" has their number."]);
   if(bestNight&&bestNight.delta>=15) c.push([surprise(function(x){return x.bigNight},bestNight.delta),"🚀","+"+bestNight.delta,"Biggest single night, on "+fd(bestNight.d)+"."]);
-  if(p.cons>=2) c.push([surprise(function(x){return x.cons},p.cons),"🪑",p.cons+" of "+DATES.length,"Club nights turned up to."]);
+  if(p.cons>=2) c.push([surprise(function(x){return x.cons},p.cons),"🪑",p.cons+" of "+S.dates.length,"Club nights turned up to."]);
   if(Math.abs(wpc-bpc)>=10&&p.games>=10) c.push([surprise(function(x){return Math.abs(cpct(x.wh)-cpct(x.bl))},Math.abs(wpc-bpc)),"♟️",(bpc>wpc?bpc:wpc)+"%","Better with "+(bpc>wpc?"Black":"White")+" — "+wpc+"% as White, "+bpc+"% as Black."]);
   if(p.avgOpp) c.push([surprise(function(x){return x.avgOpp||0},p.avgOpp)-.05,"📏",p.avgOpp,"Average rating of everyone they have faced."]);
   var oppsN=Object.keys(p.opp).length; if(oppsN>=2) c.push([surprise(function(x){return Object.keys(x.opp).length},oppsN)-.05,"🌍",oppsN,"Different opponents faced."]);
-  if(p.first) c.push([surprise(function(x){return x.first},p.first)-.1,"🌱",fshort(p.first),"First night on the board."]);
-  if(p.games>=2) c.push([surprise(function(x){return x.games},p.games)-.1,"♜",p.games,"Games played in "+seaLower+"."]);
+  if(p.first) c.push([surprise(function(x){return x.first},p.first)-.1,"🌱",(S===MAIN?fshort:fmid)(p.first),"First night on the board."]);
+  if(p.games>=2) c.push([surprise(function(x){return x.games},p.games)-.1,"♜",p.games,"Games played in "+S.lower+"."]);
   if(p.low&&p.peak&&p.peak[0]-p.low[0]>=150&&p.games>=10) c.push([surprise(function(x){return x.peak&&x.low?x.peak[0]-x.low[0]:0},p.peak[0]-p.low[0]),"🎢",(p.peak[0]-p.low[0])+" pts","Between their lowest and highest rating."]);
   c.sort(function(a,b){return b[0]-a[0]});
   return c.slice(0,5).map(function(f){return [f[1],f[2],f[3]]});
@@ -3209,7 +3209,11 @@ function facts(p){
 /* ---------- charts ---------- */
 function svgWrap(inner,w,h,label){ return '<svg viewBox="0 0 '+w+' '+h+'" width="100%" style="display:block" role="img" aria-label="'+esc(label)+'">'+inner+'</svg>' }
 function journey(p,rival){
-  var h=p.hist; if(!h||h.length<2) return '<p style="color:var(--ink-3)">Not enough nights yet.</p>';
+  var S=dsOf(p), DT=S.dates, h=p.hist;
+  if(S.rated===false){ var orr=S.oldR&&S.oldR[p.n];
+    return orr?'<p class="cap" style="margin-top:0">The old system kept one number, not a night-by-night line: '+esc(p.n)+' finished Seasons 1&ndash;7 rated <b style="color:var(--cream)">'+orr+'</b>. Not comparable with today&rsquo;s ratings.</p>':'<p style="color:var(--ink-3)">No ratings on record.</p>' }
+  if(!h||h.length<2) return '<p style="color:var(--ink-3)">Not enough nights yet.</p>';
+  var fdx=(DT[h[h.length-1][0]].slice(0,4)!==DT[h[0][0]].slice(0,4))?fmid:fshort;
   var W=620,H=250,L=48,R=16,T=18,B=30, lo=1e9,hi=-1e9;
   h.forEach(function(x){lo=Math.min(lo,x[1]-x[2]);hi=Math.max(hi,x[1]+x[2])});
   if(rival&&rival.hist) rival.hist.forEach(function(x){lo=Math.min(lo,x[1]);hi=Math.max(hi,x[1])});
@@ -3225,7 +3229,7 @@ function journey(p,rival){
     var pts=[]; h.forEach(function(x,i){ if(rmap[x[0]]!=null) pts.push((pts.length?"L":"M")+X(i)+","+Y(rmap[x[0]])) });
     if(pts.length>1) rv='<path d="'+pts.join(" ")+'" fill="none" stroke="#8A8276" stroke-width="2" stroke-dasharray="5 4"/>';
   }
-  var pk=""; if(p.peak){ var pi=h.findIndex(function(x){return DATES[x[0]]===p.peak[1]});
+  var pk=""; if(p.peak){ var pi=h.findIndex(function(x){return DT[x[0]]===p.peak[1]});
     if(pi>=0) pk='<circle cx="'+X(pi)+'" cy="'+Y(p.peak[0])+'" r="3.5" fill="none" stroke="#FFF6E8" stroke-width="1.5"/>'+
       '<text x="'+X(pi)+'" y="'+(Y(p.peak[0])-10)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#FFF6E8">peak</text>'; }
   var idx=[0,Math.floor((N-1)/3),Math.floor(2*(N-1)/3),N-1].filter(function(v,i,a){return a.indexOf(v)===i});
@@ -3234,13 +3238,13 @@ function journey(p,rival){
     '<polygon points="'+band+'" fill="rgba(254,39,58,.13)"/>'+rv+
     '<path d="'+path+'" fill="none" stroke="#FE273A" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'+pk+
     '<circle cx="'+X(N-1)+'" cy="'+Y(h[N-1][1])+'" r="4" fill="#FE273A" stroke="#0C0D0E" stroke-width="2"/>'+
-    idx.map(function(i){return '<text x="'+X(i)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fshort(DATES[h[i][0]])+'</text>'}).join(""),
+    idx.map(function(i){return '<text x="'+X(i)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fdx(DT[h[i][0]])+'</text>'}).join(""),
     W,H,p.n+" rating across "+N+" club nights, now "+p.r)+
     '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.7rem;color:var(--ink-3)">'+
     '<span><i style="display:inline-block;width:14px;border-top:2.6px solid #FE273A;vertical-align:.25em;margin-right:.3rem"></i>Rating</span>'+
     '<span><i style="display:inline-block;width:14px;height:9px;background:rgba(254,39,58,.13);vertical-align:-.1em;margin-right:.3rem"></i>Wiggle room</span>'+
     (rival?'<span><i style="display:inline-block;width:14px;border-top:2px dashed #8A8276;vertical-align:.25em;margin-right:.3rem"></i>'+esc(rival.n)+'</span>':'')+'</div>'+
-    '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fshort(p.peak[1]):'')+'.</p>';
+    '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fdx(p.peak[1]):'')+'.</p>';
 }
 /* the night that looks like a refutation of the whole rating system: won more
    than you lost, still went down. There is a deeper motif, and it is who you
@@ -3262,8 +3266,27 @@ function oddNightWhy(p,ni){
   bits.push("The system is not broken. It is just counting who, not how many.");
   return bits.join(" ");
 }
+function nightlyRecord(p){
+  var d=p.nightly.slice(-16); if(!d.length) return '<p style="color:var(--ink-3)">No nights recorded.</p>';
+  var W=620,H=190,L=40,R=12,T=14,B=34, mx=Math.max(1,Math.max.apply(null,d.map(function(x){return x.w+x.dr+x.l})));
+  var bw=(W-L-R)/d.length, Y0=H-B, k=(H-T-B)/mx;
+  return svgWrap(
+    '<line x1="'+L+'" y1="'+Y0+'" x2="'+(W-R)+'" y2="'+Y0+'" stroke="#343A40"/>'+
+    '<text x="'+(L-6)+'" y="'+(T+8)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+mx+'</text>'+
+    '<text x="'+(L-6)+'" y="'+(Y0+3)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">0</text>'+
+    d.map(function(x,i){
+      var x0=L+i*bw+bw*0.18, w=bw*0.64, y=Y0, out="";
+      [[x.w,"#3BC79A"],[x.dr,"#5B6067"],[x.l,"#F0883E"]].forEach(function(s){ if(!s[0]) return; var hgt=s[0]*k; y-=hgt;
+        out+='<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="'+hgt+'" fill="'+s[1]+'"><title>'+fmid(x.d)+": "+x.w+"W "+x.dr+"D "+x.l+"L</title></rect>" });
+      return out;
+    }).join("")+
+    d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fmid(x.d)+'</text>':""}).join(""),
+    W,H,"Games won, drawn and lost each night")+
+    '<p class="cap">Won, drawn and lost on each of the last '+d.length+' nights played. The old system kept one rating, not a night-by-night change, so this is the record instead.</p>';
+}
 function nightly(p){
-  var d=(p.nightly.length>1?p.nightly.filter(function(n){return !n.first}):p.nightly).slice(-16); if(!d.length) return '<p style="color:var(--ink-3)">No nights recorded.</p>';
+  var S=dsOf(p); if(S.rated===false) return nightlyRecord(p);
+  var d=(p.nightly.length>1?p.nightly.filter(function(n){return !n.first&&!n.nr}):p.nightly).slice(-16); if(!d.length) return '<p style="color:var(--ink-3)">No nights recorded.</p>';
   var W=620,H=190,L=40,R=12,T=14,B=34, mx=Math.max(20,Math.max.apply(null,d.map(function(x){return Math.abs(x.delta)})));
   var bw=(W-L-R)/d.length, Y0=T+(H-T-B)/2, k=(H-T-B)/2/mx;
   var ord=function(n){return n===1?"1st":n===2?"2nd":n===3?"3rd":n+"th"};
@@ -3287,6 +3310,7 @@ function formStrip(p){
    '<p class="cap">Last '+f.length+' games, oldest first. Longest run <b style="color:var(--gain)">'+p.streak[0]+'</b>'+(p.streak[1]>0?' &middot; on <b style="color:var(--gain)">'+p.streak[1]+'</b> right now':' &middot; not on a run')+'.</p>';
 }
 function bandsChart(p){
+  if(dsOf(p).rated===false) return '<p style="color:var(--ink-3)">No ratings on record for the old system.</p>';
   var rows=p.bands.filter(function(b){return b[1]+b[2]+b[3]>0});
   if(!rows.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var mx=Math.max.apply(null,rows.map(function(b){return b[1]+b[2]+b[3]}));
@@ -3319,16 +3343,17 @@ function rivalsChart(p){
     '<p class="cap">Most-played opponents. Bar shows how far ahead or behind. Tap one to compare.</p>';
 }
 function attendance(p){
-  return '<div class="att">'+DATES.map(function(d,i){return '<i class="'+(p.att[i]?"on":"")+'" title="'+fshort(d)+(p.att[i]?" — there":" — missed")+'"></i>'}).join("")+'</div>'+
-   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--scarlet)">'+p.cons+'</b> of '+DATES.length+'.</p>';
+  var DT=dsOf(p).dates;
+  return '<div class="att">'+DT.map(function(d,i){return '<i class="'+(p.att[i]?"on":"")+'" title="'+fmid(d)+(p.att[i]?" — there":" — missed")+'"></i>'}).join("")+'</div>'+
+   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--scarlet)">'+p.cons+'</b> of '+DT.length+'.</p>';
 }
 function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
-  var nd={}; p.nightly.forEach(function(n){nd[n.ni]=n});
+  var nd={}, DT=dsOf(p).dates, cur=dsOf(p)===MAIN; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
-      '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
-    '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
+    return '<tr><td class="d">'+(cur?fshort:fmid)(DT[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+(l.nr?'':'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span>')+'</td>'+
+      '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n&&!n.nr?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
+    '<p class="cap">Newest first. The block is the side they had'+(dsOf(p).rated===false?'.':'; the last column is the rating change for that whole night.')+'</p>';
 }
 /* the club's number one, caught losing */
 const WINNERS=[
@@ -3438,41 +3463,6 @@ function vsTable(p){
         [a[0],a[1],a[2]].map(function(v){ return '<td style="'+num+';color:'+k+'">'+v+'</td>' }).join("")+'</tr>' }).join("")+
     '</tbody></table>';
 }
-/* Everything the club knows about one player, in one place: this season, this
-   era before it, and Seasons 1-7 on the old system. */
-function careerPanel(p){
-  const c=p.c||{}, out=[];
-  const H=t=>out.push('<h4>'+t+'</h4>'), S=(k,v,n)=>out.push('<div><dt>'+k+'</dt><dd>'+v+(n?'<small>'+n+'</small>':'')+'</dd></div>');
-  const rec=c.rec||p.rec, games=c.games||p.games, wins=rec[0], dr=rec[1], loss=rec[2];
-  const pct=games?Math.round((wins+dr*0.5)/games*100):0;
-  H("Every night on record");
-  S("Games",games); S("Record",wins+"&ndash;"+dr+"&ndash;"+loss,"W&ndash;D&ndash;L"); S("Score",pct+"%","wins plus half the draws");
-  S("Nights",c.nights!=null?c.nights:p.cons); if(c.first) S("First night",fd(c.first)); if(c.last) S("Latest night",fd(c.last));
-  if(c.span) S("At the club",(c.span/365).toFixed(1)+" years",(c.months||0)+" different months");
-  H("As White and Black");
-  const wh=c.wh||p.wh, bl=c.bl||p.bl;
-  S("As White",wh[0]+"&ndash;"+wh[1]+"&ndash;"+wh[2],(wh[0]+wh[1]+wh[2])+" games"); S("As Black",bl[0]+"&ndash;"+bl[1]+"&ndash;"+bl[2],(bl[0]+bl[1]+bl[2])+" games");
-  H("Turning up");
-  if(c.bestRun) S("Nights in a row",c.bestRun,"best run"); if(c.full!=null) S("Five-game nights",c.full); if(c.sweeps!=null) S("Clean sweeps",c.sweeps,"won every game, four or more");
-  if(c.maxNight) S("Most games in a night",c.maxNight); if(c.share!=null) S("Nights made",Math.round(c.share*100)+"%","of the nights since your first");
-  H("People");
-  S("Different opponents",c.opps!=null?c.opps:Object.keys(p.opp).length); if(c.topRival) S("Most games with one person",c.topRival);
-  H("This season");
-  S("Rating",p.r,"&plusmn;"+p.rd); S("Record",p.rec[0]+"&ndash;"+p.rec[1]+"&ndash;"+p.rec[2],p.games+" games"); S("Nights",p.cons+" of "+DATES.length);
-  if(p.peak) S("Season high",p.peak[0],fshort(p.peak[1])); if(p.streak&&p.streak[0]) S("Best winning run",p.streak[0]+" straight");
-  S("Cups",p.trophies[0]+" &middot; "+p.trophies[1]+" &middot; "+p.trophies[2],"gold &middot; silver &middot; bronze");
-  if(p.v&&p.v[3]){ H("This era, before this season"); S("Games",p.v[3],VAULT?fshort(VAULT.from)+" &ndash; "+fshort(VAULT.to):""); S("Record",p.v[0]+"&ndash;"+p.v[1]+"&ndash;"+p.v[2]) }
-  const old=ARCBY[p.n]||(ARC&&ARC.link&&ARC.link[p.n]?ARCBY[ARC.link[p.n]]:null);   // the archive is keyed by the current name
-  if(old){ H("Seasons 1&ndash;7, the old system"); S("Games",old.g); S("Record",old.rec[0]+"&ndash;"+old.rec[1]+"&ndash;"+old.rec[2]); S("Old rating",old.r,"not comparable with today's") }
-  return '<dl class="career">'+out.join("")+'</dl>';
-}
-let careerOpener=null;
-function openCareer(p){ careerOpener=document.activeElement; $("#careerT").innerHTML=E(p.n)+' <span>career</span>'; $("#careerBody").innerHTML=careerPanel(p); $("#career").classList.add("open"); $("#careerX").focus() }
-function closeCareer(){ const was=$("#career").classList.contains("open"); $("#career").classList.remove("open"); if(was&&careerOpener){ careerOpener.focus(); careerOpener=null } }
-$("#careerX").onclick=closeCareer;
-$("#career").onclick=e=>{ if(e.target===$("#career")) closeCareer() };
-document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeCareer() });
-
 function suggestRivals(p){
   var out=[], seen={};
   // only people on the board: a visitor's chip opens nothing when tapped
@@ -3485,16 +3475,16 @@ function suggestRivals(p){
   if(close) add(close[0],"closest rating");
   return out.slice(0,3);
 }
-function comparePanel(p){
-  var opts=P.filter(function(x){return x.n!==p.n}).sort(function(a,b){return b.r-a.r});
+function comparePanel(p,R){
+  var opts=P.filter(function(x){return x.n!==p.n}).sort(function(a,b){return b.r-a.r}), DT=dsOf(p).dates;
   var sel='<div class="cmpsel"><label for="rivalSel">Compare with</label><select id="rivalSel"><option value="">Pick a player…</option>'+
     opts.map(function(o){return '<option value="'+esc(o.n)+'"'+(RIVAL&&RIVAL.n===o.n?" selected":"")+'>'+esc(o.n)+' — '+o.r+'</option>'}).join("")+'</select></div>';
-  if(!RIVAL) return sel+'<p style="margin:.2rem 0 0;color:var(--ink-3);font-size:.88rem;line-height:1.5">Their rating line drops onto the journey chart, with the head-to-head and every stat side by side.</p>';
-  var a=p.opp[RIVAL.n]||null, net=a?a[0]-a[2]:0;
-  var lastMeet=null; for(var i=p.log.length-1;i>=0;i--){ if(p.log[i].o===RIVAL.n){ lastMeet=p.log[i]; break } }
-  var groups=[["Strength",[["Rating",p.r,RIVAL.r],["Win rate",wr(p),wr(RIVAL),"%"],["Upsets",p.upsets,RIVAL.upsets],["Best run",p.streak[0],RIVAL.streak[0]]],true],
-              ["Activity",[["Games",p.games,RIVAL.games],["Nights",p.cons,RIVAL.cons]],false],
-              ["Style",[["As White",cpct(p.wh),cpct(RIVAL.wh),"%"],["As Black",cpct(p.bl),cpct(RIVAL.bl),"%"]],true]];
+  if(!R) return sel+'<p style="margin:.2rem 0 0;color:var(--ink-3);font-size:.88rem;line-height:1.5">Their rating line drops onto the journey chart, with the head-to-head and every stat side by side.</p>';
+  var a=p.opp[R.n]||null, net=a?a[0]-a[2]:0;
+  var lastMeet=null; for(var i=p.log.length-1;i>=0;i--){ if(p.log[i].o===R.n){ lastMeet=p.log[i]; break } }
+  var groups=[["Strength",[["Rating",p.r||0,R.r||0],["Win rate",wr(p),wr(R),"%"],["Upsets",p.upsets,R.upsets],["Best run",p.streak[0],R.streak[0]]],true],
+              ["Activity",[["Games",p.games,R.games],["Nights",p.cons,R.cons]],false],
+              ["Style",[["As White",cpct(p.wh),cpct(R.wh),"%"],["As Black",cpct(p.bl),cpct(R.bl),"%"]],true]];
   var body=groups.map(function(g){ return '<div class="cgrp">'+g[0]+'</div>'+g[1].map(function(r){
     var A=r[1], B=r[2], suf=r[3]||"", tot=(A+B)||1, pa=Math.round(A/tot*100), pb=100-pa, aw=g[2]&&A>B, bw=g[2]&&B>A;
     return '<div class="cmprow"><div class="lab">'+r[0]+'</div><div class="line"><span class="va'+(aw?" win":"")+'">'+A+suf+'</span>'+
@@ -3502,8 +3492,178 @@ function comparePanel(p){
       '<span class="vb'+(bw?" win":"")+'">'+B+suf+'</span></div></div>' }).join("") }).join("");
   return sel+'<div class="vsbar"><div class="side">'+av(p.n,"m")+'<b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
    '<div class="mid"><em>Head to head</em><div class="sc2">'+(a?('<span style="color:'+(net>0?"var(--gain)":"var(--ink-2)")+'">'+a[0]+'</span><span style="color:var(--ink-3)">–</span><span style="color:'+(net<0?"var(--gain)":"var(--ink-2)")+'">'+a[2]+'</span>'):'<span style="color:var(--ink-3);font-size:.9rem">never met</span>')+'</div></div>'+
-   '<div class="side">'+av(RIVAL.n,"m")+'<b>'+esc(RIVAL.n)+'</b><span>'+RIVAL.r+'</span></div></div>'+
-   (a?'<p style="text-align:center;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fshort(DATES[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+body;
+   '<div class="side">'+av(R.n,"m")+'<b>'+esc(R.n)+'</b><span>'+(R.r||"")+'</span></div></div>'+
+   (a?'<p style="text-align:center;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fmid(DT[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+body;
+}
+
+/* ---------- eras: the same derivation, over any run of nights ----------
+   The board is one season. A profile can be redrawn over Season 8, 9, 10,
+   the old system's Seasons 1-7, or everything: each is a dataset - dates,
+   games, ratings - derived exactly the way the season is, and every chart
+   reads the dataset its player came from. */
+const ERAS=D.eras||null;
+const MAIN={key:"cur",dates:DATES,night:NIGHT,byN:byN,list:P,rated:true,label:SEA,lower:seaLower,unrated:{},seasonOf:()=>SEASON?SEASON.no:0};
+function dsOf(p){ return (p&&p.S)||MAIN }
+const fmid=s=>s?new Date(s+"T12:00").toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"2-digit"}):"";
+const fmy=s=>s?new Date(s+"T12:00").toLocaleDateString("en-GB",{month:"short",year:"numeric"}):"";
+function bandAtNi(p,ni){ const S=dsOf(p); if(S===MAIN) return divAt(p.n,ni); return S.bandAt?(S.bandAt(p.n,ni,p.rb[ni]!=null?p.rb[ni]:p.seed)||p.d):p.d }
+// the biggest single-night gain anyone in the dataset made, per night
+function topDelta(S){ if(S.topD) return S.topD; const t={}; S.list.forEach(q=>q.nightly.forEach(n=>{ if(t[n.ni]==null||n.delta>t[n.ni]) t[n.ni]=n.delta })); return S.topD=t }
+function deriveSet(S){
+  const dates=S.dates, L=dates.length, pl={}, unr=S.unrated||{};
+  const get=n=>{ if(!pl[n]){ const m=byN[n];
+      const q=pl[n]={n:n, gh:!m||!!m.gh, d:m?m.d:"", c:m?m.c:null, imp:m?m.imp:null, S:S, aw:m?m.aw:0, ac:m?m.ac:0,
+        seed:(S.seed&&S.seed[n]!=null)?S.seed[n]:(m?m.seed:1000), hist:(S.hist&&S.hist[n])||[], log:[], opp:{}, rec:[0,0,0], wh:[0,0,0], bl:[0,0,0], games:0, att:{}, rb:{}};
+      let prev=q.seed; q.hist.forEach(h=>{ q.rb[h[0]]=prev; prev=h[1] });
+      q.r=q.hist.length?q.hist[q.hist.length-1][1]:(S.oldR&&S.oldR[n]!=null?S.oldR[n]:q.seed);
+      q.rd=q.hist.length?q.hist[q.hist.length-1][2]:(m?m.rd:RS) }
+    return pl[n] };
+  const rb=(p,ni)=>p.rb[ni]!=null?p.rb[ni]:p.seed;
+  S.games.forEach(g=>{ const ni=g[0], w=get(g[1]), b=get(g[2]), r=g[3], nr=!!unr[ni];
+    const sw=r==="w"?1:r==="b"?0:.5, k=sw===1?0:sw===.5?1:2;
+    w.log.push({ni,o:b.n,orat:nr?0:rb(b,ni),mrat:nr?0:rb(w,ni),s:sw,c:"w",nr:nr});
+    b.log.push({ni,o:w.n,orat:nr?0:rb(w,ni),mrat:nr?0:rb(b,ni),s:1-sw,c:"b",nr:nr});
+    w.games++; b.games++; w.att[ni]=1; b.att[ni]=1;
+    w.rec[k]++; b.rec[2-k]++; w.wh[k]++; b.bl[2-k]++;
+    (w.opp[b.n]=w.opp[b.n]||[0,0,0])[k]++; (b.opp[w.n]=b.opp[w.n]||[0,0,0])[2-k]++; });
+  const byeOf={};
+  (S.byes||[]).forEach(a=>{ const p=get(a[1]); p.att[a[0]]=1; const at=byeOf[a[0]]=byeOf[a[0]]||{}; at[p.n]=(at[p.n]||0)+(a[2]!=null?a[2]:0.5) });
+  const NT=dates.map((d,i)=>({pts:{},g:{},ni:i}));
+  Object.keys(pl).forEach(n=>pl[n].log.forEach(l=>{ const N=NT[l.ni]; N.pts[n]=(N.pts[n]||0)+l.s; N.g[n]=(N.g[n]||0)+1 }));
+  Object.keys(byeOf).forEach(ni=>{ const N=NT[ni]; Object.keys(byeOf[ni]).forEach(n=>{ N.pts[n]=(N.pts[n]||0)+byeOf[ni][n]; N.byes=(N.byes||0)+1 }) });
+  NT.forEach(N=>{
+    N.table=Object.keys(N.pts).map(n=>[n,N.pts[n],N.g[n]]).sort((a,b)=>b[1]-a[1]||a[2]-b[2]);
+    N.place={}; N.table.forEach((row,i)=>{ N.place[row[0]]=(i>0&&N.table[i-1][1]===row[1])?N.place[N.table[i-1][0]]:i+1 });
+    N.sec={}; N.secDiv={}; const byDiv={};
+    N.table.forEach(row=>{ const p=pl[row[0]]; if(!p||p.gh||row[2]<TROPHY_MIN) return;
+      const d=(S.bandAt&&S.bandAt(p.n,N.ni,rb(p,N.ni)))||"all";
+      N.secDiv[row[0]]=d; (byDiv[d]=byDiv[d]||[]).push(row) });
+    Object.keys(byDiv).forEach(d=>{ let place=0, prev=null;
+      byDiv[d].forEach((row,i)=>{ if(prev===null||row[1]!==prev){ place=i+1; prev=row[1] } N.sec[row[0]]=place }) });
+  });
+  const BANDS=[["Much stronger",150,9999],["Stronger",50,150],["Even",-50,50],["Weaker",-150,-50],["Much weaker",-9999,-150]];
+  const fin=p=>{
+    const lg=p.log;
+    const nightsIn=Object.keys(p.att).map(Number).sort((a,b)=>a-b);
+    p.cons=nightsIn.length; p.lastNi=nightsIn.length?nightsIn[nightsIn.length-1]:null;
+    p.last=p.lastNi!=null?dates[p.lastNi]:null; p.idle=null; p.played=!!(lg.length&&lg[lg.length-1].ni===L-1); p.delta=null;
+    p.form=lg.slice(-20).map(res).join("");
+    const all=lg.map(res); let best=0,cur=0; all.forEach(x=>{ cur=x==="W"?cur+1:0; if(cur>best) best=cur });
+    let tail=0; for(let i=all.length-1;i>=0&&all[i]==="W";i--) tail++;
+    p.streak=[best,tail];
+    const ni0=lg.length?lg[0].ni:-1; lg.forEach(l=>{ l.first=l.ni===ni0 });
+    const rated=lg.filter(l=>!l.nr);
+    p.bands=BANDS.map(b=>{ const o=[b[0],0,0,0]; rated.forEach(l=>{ if(l.first&&lg.length>4) return; const gap=l.orat-l.mrat; if(gap>=b[1]&&gap<b[2]) o[l.s===1?1:l.s===.5?2:3]++ }); return o });
+    const nn={}; lg.forEach(l=>{ const e=nn[l.ni]=nn[l.ni]||[0,0,0]; e[l.s===1?0:l.s===.5?1:2]++ });
+    const hmap={}; p.hist.forEach(h=>hmap[h[0]]=h[1]);
+    p.nightly=Object.keys(nn).map(Number).sort((a,b)=>a-b).map(ni=>{ const N=NT[ni];
+      return {ni, d:dates[ni], delta:unr[ni]?0:(hmap[ni]!=null?hmap[ni]:p.r)-rb(p,ni), w:nn[ni][0], dr:nn[ni][1], l:nn[ni][2],
+        pts:N.pts[p.n]||0, place:N.place[p.n]||0, of:N.table.length, first:ni===lg[0].ni, nr:!!unr[ni]} });
+    let pk=null, lo=null; p.hist.forEach(h=>{ if(!pk||h[1]>pk[1]) pk=h; if(!lo||h[1]<lo[1]) lo=h });
+    p.peak=pk?[pk[1],dates[pk[0]]]:null; p.low=lo?[lo[1],dates[lo[0]]]:null;
+    p.avgOpp=rated.length?Math.round(rated.reduce((s,l)=>s+l.orat,0)/rated.length):null;
+    p.upsets=rated.filter(l=>l.s===1&&!(l.first&&lg.length>4)&&l.orat-l.mrat>=UPSET).length;
+    p.nem=null; p.vic=null;
+    Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2]; if(g<3) return; const net=a[0]-a[2];
+      if(!p.nem||net<p.nem[4]) p.nem=[o,a[0],a[1],a[2],net]; if(!p.vic||net>p.vic[4]) p.vic=[o,a[0],a[1],a[2],net]; });
+    p.first=lg.length?dates[lg[0].ni]:null;
+    p.trophies=[0,0,0]; p.trophyNights=[]; p.byDiv={};
+    NT.forEach((N,ni)=>{ const pl_=N.sec[p.n];
+      if(pl_>=1&&pl_<=3){ const d=N.secDiv[p.n]||p.d; p.trophies[pl_-1]++; p.trophyNights.push([ni,pl_,d]); (p.byDiv[d]=p.byDiv[d]||[0,0,0])[pl_-1]++ } });
+    p.topDiv=Object.keys(p.byDiv).sort((a,b)=>divRank(a)-divRank(b))[0]||p.d;
+    p.recent=lg.slice(-10).reverse();
+    p.bigNight=0; p.nightly.forEach(n=>{ if(!n.first&&n.delta>p.bigNight) p.bigNight=n.delta });
+    return p;
+  };
+  Object.keys(pl).forEach(n=>fin(pl[n]));
+  S.night=NT; S.byN=pl; S.players=pl; S.list=Object.keys(pl).map(n=>pl[n]).filter(p=>!p.gh);
+  S.blank=n=>fin(get(n));
+  return S;
+}
+const SCOPES={};
+const oldRating=n=>{ const a=ARCBY[n]||(ARC&&ARC.link&&ARC.link[n]?ARCBY[ARC.link[n]]:null); return a?a.r:null };
+function scopeDefs(){
+  if(!ERAS) return [];
+  const seen={}, nos=[];
+  ERAS.season.forEach(no=>{ if(!seen[no]){ seen[no]=1; nos.push(no) } });
+  if(SEASON&&!seen[SEASON.no]) nos.push(SEASON.no);
+  nos.sort((a,b)=>b-a);
+  const defs=nos.map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
+    return {k:"s"+no, label:"Season "+no, sub:cur?(D.arch?"final":"now"):(ds.length?fmy(ds[0])+" \u2013 "+fmy(ds[ds.length-1]):"")} });
+  if(ERAS.old&&ERAS.old.dates.length) defs.push({k:"old",label:"Seasons 1\u20137",sub:"old system"});
+  defs.push({k:"all",label:"Whole career",sub:"everything on record"});
+  return defs;
+}
+function scopeOf(k){
+  if(SCOPES[k]) return SCOPES[k];
+  const O=ERAS.old?ERAS.old.dates.length:0, F=ERAS.dates, nm=i=>NAMES[i];
+  const snaps=(D.divhist||[]).slice().sort((a,b)=>a.date<b.date?-1:1);
+  // the bracket someone was in on a Glicko night: fixed for the season from the
+  // anchor on, the roster's sheet before that, the rating band failing both
+  const bandFull=(name,ni,rIn)=>{ const no=ERAS.season[ni], bm=ERAS.bands[name];
+    if(bm&&bm[no]) return bm[no];
+    let s=null; snaps.forEach(x=>{ if(x.date<=F[ni]&&x.div[name]) s=x.div[name] });
+    return s||bandOf(rIn) };
+  let S;
+  if(k==="old"){ const un={}; ERAS.old.dates.forEach((d,i)=>un[i]=1); const oR={}; P.forEach(p=>{ const r=oldRating(p.n); if(r!=null) oR[p.n]=r });
+    S={key:k,label:"Seasons 1\u20137",lower:"seasons 1\u20137",dates:ERAS.old.dates,games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]),byes:[],hist:{},seed:{},unrated:un,bandAt:null,oldR:oR,rated:false,seasonOf:()=>null} }
+  else if(k==="all"){ const un={}; for(let i=0;i<O;i++) un[i]=1;
+    const hist={}; Object.keys(ERAS.hist).forEach(n=>{ hist[n]=ERAS.hist[n].map(h=>[h[0]+O,h[1],h[2]]) });
+    S={key:k,label:"Whole career",lower:"their whole career",dates:ERAS.old.dates.concat(F),
+      games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]).concat(ERAS.games.map(g=>[g[0]+O,nm(g[1]),nm(g[2]),g[3]])),
+      byes:ERAS.byes.map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,
+      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
+  else { const no=+k.slice(1), idx=[]; ERAS.season.forEach((s,i)=>{ if(s===no) idx.push(i) });
+    const off=idx.length?idx[0]:F.length, inS=i=>i>=off&&i<off+idx.length;
+    const hist={}, seed={}; Object.keys(ERAS.hist).forEach(n=>{ const before=ERAS.hist[n].filter(h=>h[0]<off);
+      seed[n]=before.length?before[before.length-1][1]:ERAS.seed[n]; hist[n]=ERAS.hist[n].filter(h=>inS(h[0])).map(h=>[h[0]-off,h[1],h[2]]) });
+    S={key:k,label:"Season "+no,lower:"season "+no,dates:idx.map(i=>F[i]),games:ERAS.games.filter(g=>inS(g[0])).map(g=>[g[0]-off,nm(g[1]),nm(g[2]),g[3]]),
+      byes:ERAS.byes.filter(b=>inS(b[0])).map(b=>[b[0]-off,nm(b[1]),b[2]]),hist:hist,seed:seed,unrated:{},
+      bandAt:(name,ni,rIn)=>bandFull(name,ni+off,rIn),rated:true,seasonOf:()=>no} }
+  return SCOPES[k]=deriveSet(S);
+}
+let SCOPE=SEASON?"s"+SEASON.no:"cur";
+const isCurScope=k=>!ERAS||k==="cur"||(SEASON&&k==="s"+SEASON.no);
+function scoped(p,k){ if(!p||isCurScope(k)) return p; const S=scopeOf(k); return S.players[p.n]||S.blank(p.n) }
+const achP=p=>scoped(p,ERAS?"all":"cur");   // achievements read the whole career
+function kpiHTML(p){
+  const S=dsOf(p), cur=S===MAIN;
+  let rating;
+  if(S.rated===false) rating='<div><dt>Old rating</dt><dd>'+(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]:'&mdash;')+'<small>old system</small></dd></div>';
+  else if(cur||S.key==="all") rating='<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'&ndash;'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>';
+  else rating='<div><dt>Rating</dt><dd>'+(p.hist.length?p.r+'<small>at the end</small>':'&mdash;<small>no games</small>')+'</dd></div>';
+  return rating+
+    '<div><dt>Record</dt><dd>'+p.rec.join("\u2013")+'<small>W\u2013D\u2013L</small></dd></div>'+
+    '<div><dt>Win rate</dt><dd style="color:'+(wr(p)>=50?"var(--gain)":"var(--loss)")+'">'+wr(p)+'%<small>across '+p.games+' games</small></dd></div>'+
+    '<div><dt>Nights</dt><dd>'+p.cons+'<small>of '+S.dates.length+'</small></dd></div>'+
+    '<div class="hm"><dt>Peak</dt><dd>'+(p.peak?p.peak[0]+'<small>'+(cur?fshort:fmid)(p.peak[1])+'</small>':'&mdash;')+'</dd></div>';
+}
+function scopeBar(p){
+  const bar=$("#scope"); if(!ERAS){ bar.classList.add("hid"); return }
+  const defs=scopeDefs();
+  if(!defs.some(d=>d.k===SCOPE)) SCOPE=defs[0].k;
+  const show=defs.filter(d=>isCurScope(d.k)||d.k==="all"||d.k===SCOPE||scoped(p,d.k).games>0);
+  $("#scopeSel").innerHTML=show.map(d=>{ const sp=scoped(p,d.k);
+    return '<option value="'+d.k+'"'+(d.k===SCOPE?' selected':'')+'>'+d.label+(d.sub?' \u00b7 '+d.sub:'')+' \u00b7 '+sp.games+' games</option>' }).join("");
+  const sp=scoped(p,SCOPE), S=dsOf(sp);
+  $("#scopeNote").textContent=sp.games?(sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
+  bar.classList.remove("hid");
+  $("#scopeSel").onchange=function(){ SCOPE=this.value; renderScope(CUR); scopeBar(CUR) };
+}
+/* everything on the profile below the name that the era picker redraws */
+function renderScope(p){
+  const sp=scoped(p,SCOPE), S=dsOf(sp), cur=S===MAIN;
+  $("#ptro").outerHTML=trophyHead(sp);
+  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+sp.games+' games'+(cur?'':' \u00b7 '+esc(S.label))+'</span>'+(p.rd>RS?'<span class="pill set">still settling \u00b7 \u00b1'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away \u00b7 '+awayWhy(p)+'</span>':'');
+  if(!cur&&!sp.games){
+    $("#kpis").innerHTML=""; $("#facts").innerHTML=""; $("#factsH").textContent="";
+    $("#graphs").innerHTML='<p class="cap" style="margin:0 0 1rem">'+esc(p.n)+' has no games in '+S.lower+'.</p>'; $("#graphs2").innerHTML="";
+    $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements \u00b7 whole career", achBlock(achP(p)), "gwide")+'</div>';
+    return }
+  $("#kpis").innerHTML=kpiHTML(sp);
+  $("#factsH").textContent=(cur?SEA:S.key==="all"?"Career":S.label)+" highlights";
+  $("#facts").innerHTML=facts(sp).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><div class="ft"><b>'+f[1]+'</b><span>'+f[2]+'</span></div></div>'}).join("");
+  drawGraphs();
 }
 
 /* ---------- profile ---------- */
@@ -3523,21 +3683,12 @@ function showProfile(n,rival){
   var hinted=false; try{ hinted=sessionStorage.getItem("kv-hint")==="1" }catch(e){}
   if(!hinted){ el.classList.add("open"); setTimeout(function(){ el.classList.remove("open") },2600); try{ sessionStorage.setItem("kv-hint","1") }catch(e){} }
   $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
-  $("#ptro").outerHTML=trophyHead(p);
-  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
-  $("#pact").innerHTML='<button class="chip" id="careerBtn">Career stats</button><button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
+  $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
     '<button class="chip" id="meBtn" aria-pressed="'+(meName()===p.n)+'">'+(meName()===p.n?"Not me":"This is me")+'</button>';
   $("#meBtn").onclick=function(){ const on=meName()!==p.n; setMe(on?p.n:""); this.textContent=on?"Not me":"This is me"; this.setAttribute("aria-pressed",on); draw() };
-  $("#careerBtn").onclick=function(){ openCareer(p) };
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"instant",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
-  $("#kpis").innerHTML=
-    '<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'–'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>'+
-    '<div><dt>Record</dt><dd>'+p.rec.join("–")+'<small>W–D–L</small></dd></div>'+
-    '<div><dt>Win rate</dt><dd style="color:'+(wr(p)>=50?"var(--gain)":"var(--loss)")+'">'+wr(p)+'%<small>across '+p.games+' games</small></dd></div>'+
-    '<div><dt>Nights</dt><dd>'+p.cons+'<small>of '+DATES.length+'</small></dd></div>'+
-    '<div class="hm"><dt>Peak</dt><dd>'+(p.peak?p.peak[0]+'<small>'+fshort(p.peak[1])+'</small>':'—')+'</dd></div>';
-  $("#facts").innerHTML=facts(p).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><div class="ft"><b>'+f[1]+'</b><span>'+f[2]+'</span></div></div>'}).join("");
-  drawGraphs();
+  scopeBar(p);
+  renderScope(p);
   $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#rv").classList.add("hid"); $("#pv").classList.remove("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
@@ -3545,9 +3696,10 @@ function showProfile(n,rival){
 }
 function card(title,body,cls,id){ return '<div class="card'+(cls?" "+cls:"")+'"'+(id?' id="'+id+'"':'')+'><h3>'+title+'</h3>'+body+'</div>' }
 function drawGraphs(){
-  var p=CUR; if(!p) return;
+  if(!CUR) return;
+  var p=scoped(CUR,SCOPE), R=RIVAL?scoped(RIVAL,SCOPE):null;
   $("#graphs").innerHTML=
-    card("Rating journey"+(RIVAL?" vs "+esc(RIVAL.n):""), journey(p,RIVAL), "gwide")+
+    card("Rating journey"+(R?" vs "+esc(R.n):""), journey(p,R), "gwide")+
     card("Points won and lost each night", nightly(p), "gwide")+
     card("Recent form", formStrip(p), "half")+
     card("Recent games", recentGames(p));
@@ -3558,24 +3710,24 @@ function drawGraphs(){
     '<div class="gwrap">'+
     card("Record against everyone", vsTable(p))+
     card("Rivals", rivalsChart(p))+
-    card("Compare with a rival", comparePanel(p), "", "cmpCard")+
+    card("Compare with a rival", comparePanel(p,R), "", "cmpCard")+
     '</div><div class="gwrap">'+
     card("Against each level", bandsChart(p), "half")+
     card("Turnout", attendance(p), "half")+
     card("White and Black", colourChart(p))+
     '</div>';
-  $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements", achBlock(p), "gwide")+'</div>';
+  $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements"+(ERAS?" \u00b7 whole career":""), achBlock(achP(CUR)), "gwide")+'</div>';
   // a card with nothing in it yet is a box saying so: drop it until it has something
   document.querySelectorAll("#graphs .card, #graphs2 .card, #graphs3 .card").forEach(function(c){
     var body=[...c.children].filter(function(x){ return x.tagName!=="H3" });
-    if(body.length===1&&body[0].tagName==="P"&&/^(Not enough|No nights|No games)/.test(body[0].textContent.trim())) c.remove();
+    if(body.length===1&&body[0].tagName==="P"&&/^(Not enough|No nights|No games|No ratings|No opponents)/.test(body[0].textContent.trim())) c.remove();
   });
   var more=$("#achMore");
   if(more) more.onclick=function(){
     const rest=$("#achRest"), open=rest.classList.toggle("hid")===false;
     this.textContent=open?"Show fewer":"Show all "+ACH.length;
   };
-  var s=$("#rivalSel"); if(s) s.onchange=function(){ location.hash="#/p/"+encodeURIComponent(p.n)+(this.value?"/vs/"+encodeURIComponent(this.value):"") };
+  var s=$("#rivalSel"); if(s) s.onchange=function(){ location.hash="#/p/"+encodeURIComponent(CUR.n)+(this.value?"/vs/"+encodeURIComponent(this.value):"") };
 }
 $("#pv").onkeydown=function(e){
   if(e.key!=="Enter"&&e.key!==" ") return;
@@ -3594,7 +3746,7 @@ $("#rbk").onclick=function(){ go(boardHash||"") };
 document.addEventListener("click",function(e){
   const bh=e.target.closest("[data-bh]");
   if(bh&&CUR){
-    const why=oddNightWhy(CUR,parseInt(bh.dataset.bh,10));
+    const why=oddNightWhy(scoped(CUR,SCOPE),parseInt(bh.dataset.bh,10));
     const box=document.createElement("p"); box.className="bhx"; box.innerHTML=why;
     bh.replaceWith(box); eggFind("deeper-motif");
     egg("There is a deeper motif.",2600);
