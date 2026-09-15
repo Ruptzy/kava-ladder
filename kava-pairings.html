@@ -1047,6 +1047,11 @@ text-transform:uppercase;line-height:1.7;text-align:right}
 .howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);cursor:pointer;white-space:nowrap}
 .howbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
+.seasel{appearance:none;background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem 1.7rem .35rem .7rem;
+font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);cursor:pointer;white-space:nowrap;
+background-image:linear-gradient(45deg,transparent 50%,var(--ink-3) 50%),linear-gradient(135deg,var(--ink-3) 50%,transparent 50%);
+background-position:calc(100% - 15px) 52%,calc(100% - 10px) 52%;background-size:5px 5px;background-repeat:no-repeat}
+.seasel:hover{border-color:var(--scarlet)}.seasel option{background:var(--panel);color:var(--cream);text-transform:none;letter-spacing:0}
 .howbtn .sm{display:none}
 @media(max-width:560px){.howbtn .lg{display:none}.howbtn .sm{display:inline}}
 /* one red button per screen - the thing to tap - and the same quiet outline
@@ -1056,7 +1061,7 @@ a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
 #seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
 #seasonNote:empty{display:none}
 /* who won last season: one line, tap for the whole thing */
-#champs:empty,#firstNote:empty,#you:empty,#race:empty{display:none}
+#firstNote:empty,#you:empty,#race:empty{display:none}
 /* movement since last night, gap to the one above, last five results */
 .mv{font-family:var(--fm);font-size:.7rem;margin-left:.3rem;font-weight:700;white-space:nowrap}
 .mv.up{color:var(--gain)}.mv.dn{color:var(--loss)}.mv.nw{color:var(--ink-3);font-weight:400}
@@ -1083,12 +1088,8 @@ background:var(--scarlet-wash);border:1px solid var(--scarlet-dim);border-radius
 .rr:last-child{border-bottom:none}
 .rr i{font-style:normal;color:var(--scarlet)}.rr b{font-family:var(--fm);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
 .rr span{font-family:var(--fm);font-size:.72rem;color:var(--ink-3)}.rr em{font-style:normal;margin-left:auto;color:var(--cream)}
-#champs a{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;margin:0 0 .9rem;padding:.55rem .8rem;min-height:40px;
 border:1px solid var(--rule-2);border-radius:8px;background:var(--panel);color:var(--cream);text-decoration:none;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
-#champs a:hover{border-color:var(--scarlet)}
-#champs a b{color:var(--ink-3);font-weight:400}
-#champs a span i{font-style:normal;color:var(--scarlet);margin-right:.3rem}
 #firstNote{display:flex;align-items:center;gap:.6rem;margin:0 0 .9rem;padding:.35rem .35rem .35rem .8rem;
 border-left:3px solid var(--cream);border-radius:4px;background:rgba(22,23,25,.9);font-size:.9rem;color:var(--cream)}
 #firstNote span{flex:1}
@@ -1319,7 +1320,7 @@ font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;color:var(--scarlet);t
 border-radius:0 6px 6px 0;font-size:.84rem;line-height:1.5;color:var(--ink-2)}
 .cap{margin:.6rem 0 0;font-family:var(--fm);font-size:.75rem;color:var(--ink-3);line-height:1.6}
 .hid{display:none!important}
-body.sub .tools,body.sub #seasonNote,body.sub #champs,body.sub #firstNote,body.sub #tabs{display:none}
+body.sub .tools,body.sub #seasonNote,body.sub #firstNote,body.sub #tabs{display:none}
 body.sub .top{padding-bottom:0}
 .pnick{display:inline-flex;align-items:center;gap:.5rem;min-height:40px;background:var(--scarlet-wash);
 border:1px solid var(--scarlet-dim);border-radius:100px;padding:.45rem .7rem .45rem .8rem;
@@ -1625,6 +1626,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .tools{gap:.5rem;padding-bottom:.8rem}
   /* everything tappable gets a thumb-sized box */
   .howbtn{padding:.62rem .9rem;font-size:.72rem;min-height:40px;display:inline-flex;align-items:center}
+  .seasel{padding:.62rem 1.9rem .62rem .9rem;min-height:40px}
   .sorts button,.sortbtn{min-height:40px;display:inline-flex;align-items:center}
   .srch input{padding:.7rem .9rem .7rem 2.2rem;font-size:1rem}
   .sorts button,.sortbtn{padding:.62rem .95rem}
@@ -1644,7 +1646,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   p.l{margin-bottom:1rem}
   .upd{margin-left:0;text-align:left;flex:1 1 100%;order:5;line-height:1.5}
   .srch{flex:1 1 100%;max-width:none;order:4}
-  .howbtn{order:3}
+  .howbtn,.seasel{order:3}
   .tabs .lg{display:none}.tabs .sm{display:inline}
   .tabs button{padding:.6rem .6rem;font-size:.7rem}
   .tabs.art{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;width:100%;margin-left:0;transform:none}
@@ -1730,11 +1732,10 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sres"><div class="sres hid" id="sres" role="listbox" aria-label="Players"></div></div>
 <button class="howbtn red" id="jumpBtn">Standings &darr;</button>
 <button class="howbtn" id="histBtn"><span class="lg">Club history</span><span class="sm">History</span></button>
-<span id="pastBtns" style="display:contents"></span>
+<select class="seasel hid" id="seaSel" aria-label="Pick a season"></select>
 <button class="howbtn" id="howBtn">How ratings work</button>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
-<div id="champs"></div>
 <div id="firstNote"></div>
 <nav class="tabs" id="tabs" role="tablist" aria-label="Brackets"></nav></div></header>
 <div class="sr" id="live" aria-live="polite"></div>
@@ -2049,7 +2050,7 @@ window.addEventListener("hashchange",route);
      a hand-written "Season 10 up next" is right for exactly one season. */
   { const arch=D.arch||null, now=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);   // the club's date, not UTC's
     const over=!arch&&SEASON&&now>=SEASON.to;
-    const tag=$("#seasonTag"), note=$("#seasonNote"), past=$("#pastBtns");
+    const tag=$("#seasonTag"), note=$("#seasonNote"), past=$("#seaSel");
     // once a season is over by the calendar the header names the next one; only
     // the board keeps the old season's final standings until its first night
     if(over){ const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON.no+1)+"</b>"; }
@@ -2063,10 +2064,6 @@ window.addEventListener("hashchange",route);
             '. Ratings carry over from Season '+(SEASON.no-1)+', so this is where everyone starts.'
       :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
             '. Until the first results are in, this is how Season '+SEASON.no+' finished.':'';
-    // last season's champions, by the finale's own rule; the line opens that season
-    { const c=$("#champs"), ch=(D.champs||[])[0], PIECE=["&#9818;","&#9820;","&#9823;"];
-      if(c&&ch&&!arch&&ch.list.length) c.innerHTML='<a href="season-'+ch.no+'.html"><b>&#127942; Season '+ch.no+' champions</b>'+
-        ch.list.map(x=>'<span><i>'+(PIECE[D.divisions.indexOf(x.d)]||"")+'</i>'+E(x.n)+'</span>').join("")+'</a>'; }
     // one line for somebody's first visit, gone the first time they tap a name
     { const f=$("#firstNote"); let seen=false; try{ seen=localStorage.getItem("kv-first")==="1" }catch(e){}
       const done=()=>{ try{ localStorage.setItem("kv-first","1") }catch(e){} if(f) f.innerHTML="" };
@@ -2074,9 +2071,12 @@ window.addEventListener("hashchange",route);
         f.innerHTML='<span>First time here? Tap your name in the table, then <b>This is me</b>.</span><button id="firstX" aria-label="Got it">&times;</button>';
       document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
       addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
-    if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
-      .map(n=>'<a class="howbtn" href="season-'+n+'.html"><span class="lg">Season '+n+' standings</span><span class="sm">Season '+n+'</span></a>').join("")+
-      (arch?'<a class="howbtn red" href="./">Current season</a>':'');
+    // one picker for every season with standings: the current one, then each frozen season
+    if(past&&(D.past||[]).length){ const cur=SEASON?SEASON.no:0;
+      past.innerHTML='<option value="./"'+(arch?'':' selected')+'>'+(arch?'Current season':'Season '+cur+' \u00b7 current')+'</option>'+
+        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>Season '+n+(n===arch?' \u00b7 final':'')+'</option>').join("");
+      past.classList.remove("hid");
+      past.onchange=function(){ if(this.value) location.href=this.value } }
     if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
@@ -3813,7 +3813,7 @@ document.addEventListener("click",e=>{ const ic=e.target.closest("#pnick .ni"); 
 // pieces on the page: check, long castle, promotion, and the scream
 { let seq=[], pawnTaps=0, pawnAt=0;
   document.addEventListener("click",e=>{
-    const el=e.target.closest("#champs i, .rc h4 i, .rr i"); if(!el) return;
+    const el=e.target.closest(".rc h4 i, .rr i"); if(!el) return;
     const g=el.textContent.trim(); if(!/^[\u265A-\u265F\u2654-\u2659]$/.test(g)) return;
     if(el.closest("a")) e.preventDefault();   // the glyph is the toy; the words are the link
     const now=Date.now();
@@ -3833,7 +3833,7 @@ eggNightOwl(new Date().getHours());
 
 // the last week of October, some pieces are not themselves
 function eggHalloween(d){ if(d.getMonth()===9&&d.getDate()>=24){ eggFind("halloween");
-  const swap=()=>document.querySelectorAll("#champs i, .rc h4 i, .rr i").forEach(i=>{ if(Math.random()<0.3&&!i.dataset.k){ i.dataset.k=i.textContent; i.textContent="\uD83D\uDC80" } });
+  const swap=()=>document.querySelectorAll(".rc h4 i, .rr i").forEach(i=>{ if(Math.random()<0.3&&!i.dataset.k){ i.dataset.k=i.textContent; i.textContent="\uD83D\uDC80" } });
   swap(); setInterval(swap,20000); return true } return false }
 eggHalloween(new Date());
 
