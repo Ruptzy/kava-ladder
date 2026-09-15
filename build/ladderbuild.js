@@ -221,7 +221,7 @@ font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:.7rem .85
 background:transparent no-repeat center/100% 100%;container-type:inline-size;text-align:left;
 border-radius:10px;overflow:hidden}
 .pc.p1{background-image:url(podium/1.png)}
-.pcb{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet);margin:-.1rem 0 .15rem}
+.pc .rt .pcb{font-style:normal;font-size:.72em;font-weight:700;letter-spacing:.12em;color:var(--scarlet);margin-right:.7em;vertical-align:.08em}
 .pc.p2{background-image:url(podium/2.png)}
 .pc.p3{background-image:url(podium/3.png)}
 /* until the art loads, the card still stands up on its own */
@@ -1274,8 +1274,7 @@ function draw(){
     return '<button class="pc p'+(x.d?1:i+1)+'" data-n="'+E(p.n)+'" aria-label="'+E(p.n)+', '+E(lab)+'">'+
    '<span class="pcav">'+av(p.n,"m")+'</span>'+
    '<span class="pcw"><span class="nm">'+E(p.n)+'</span>'+
-   (x.d?'<span class="pcb">'+E(shortDiv(x.d))+'</span>':'')+
-   '<span class="rt">'+p.r+'<sub>±'+p.rd+'</sub></span></span></button>' }).join("");
+   '<span class="rt">'+(x.d?'<i class="pcb">'+E(shortDiv(x.d))+'</i>':'')+p.r+'<sub>±'+p.rd+'</sub></span></span></button>' }).join("");
   fitPodium();
   drawLastNight();
   drawYou(); drawRace();
