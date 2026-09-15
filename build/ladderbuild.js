@@ -112,6 +112,12 @@ text-transform:uppercase;line-height:1.7;text-align:right}
 .howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;white-space:nowrap}
 .howbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
+/* colour says what kind of place a button goes: outline = explainer, cream =
+   the club's story, scarlet = standings and records */
+.howbtn.cream{background:var(--cream);border-color:var(--cream);color:var(--void);font-weight:700}
+.howbtn.cream:hover{background:#fff;border-color:#fff;color:var(--void)}
+.howbtn.red{background:var(--scarlet);border-color:var(--scarlet);color:#fff;font-weight:700}
+.howbtn.red:hover{background:#ff4455;border-color:#ff4455;color:#fff}
 #seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
 #seasonNote:empty{display:none}
 #seasonNote a{color:var(--scarlet);font-weight:700;white-space:nowrap}
@@ -464,6 +470,10 @@ border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;backgroun
 .ach .pg{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.6rem;color:var(--ink-3)}
 .ach .pgb{display:block;height:3px;border-radius:2px;background:var(--panel-3);margin-top:.25rem;overflow:hidden}
 .ach .pgb i{display:block;height:100%;background:var(--ink-3)}
+.pmore{display:block;width:100%;min-height:48px;margin:.2rem 0 1rem;background:var(--panel);border:1px solid var(--rule-2);
+border-radius:10px;color:var(--cream);font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.95rem;cursor:pointer}
+.pmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
+#graphs2>#pRest>.gwrap{margin-bottom:.9rem}
 .achmore{margin-top:.6rem;width:100%;min-height:42px;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.6rem;
 color:var(--ink-3);font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
 .achmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
@@ -667,7 +677,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player"><div class="sres hid" id="sres"></div></div>
 <button class="howbtn" id="howBtn">How ratings work</button>
-<button class="howbtn" id="histBtn">Club history</button>
+<button class="howbtn cream" id="histBtn">Club history</button>
+<button class="howbtn red" id="recBtn">Club records</button>
 <span id="pastBtns" style="display:contents"></span>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
@@ -690,7 +701,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="box"><div class="sc"><table><thead><tr>
 <th style="padding-left:1rem">#</th><th>Player</th><th class="r">Rating</th><th class="r" id="thMetric">Last night</th><th class="hm">Trend</th><th class="hm">W&ndash;D&ndash;L</th>
 </tr></thead><tbody id="tb"></tbody></table></div></div>
-<button class="showaway" id="awayBtn"></button>
+<button class="showaway" id="awayBtn" aria-label="Show players who are away"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
 <div class="sh"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
@@ -753,7 +764,7 @@ the club is older than its paperwork.</p>
 <dl class="kpis" id="kpis"></dl>
 <div class="facts" id="facts"></div>
 <div class="gwrap" id="graphs"></div>
-<div class="gwrap" id="graphs2"></div>
+<div id="graphs2"></div>
 </main>
 <footer id="foot"></footer>
 </div>
@@ -761,14 +772,13 @@ the club is older than its paperwork.</p>
 <button class="x" id="howX" aria-label="Close">&times;</button>
 <h2 id="howT">How the <span>ratings</span> work</h2>
 <dl class="faq">
-<dt>Why did I lose points after a good night?</dt><dd>Points depend on who you played. Beating weaker players gains little; losing to one costs more. The number moves towards what your results say.</dd>
-<dt>What is the &plusmn;?</dt><dd>How sure the number is. New players swing more. It shrinks as you play.</dd>
-<dt>Why am I not on the ranked table?</dt><dd>You are ranked once the &plusmn; is 110 or less. That is usually about eight games.</dd>
-<dt>Why did I disappear?</dt><dd>No games in 90 days moves you to &ldquo;away&rdquo;. Play a night and you are back.</dd>
-<dt>Do games against other brackets count?</dt><dd>Yes. One rating pool, separate boards.</dd>
-<dt>Why is my number different from the old sheet?</dt><dd>New system (Glicko-2), replayed from every game since October 2025. Seasons 1&ndash;7 are kept separately.</dd>
-<dt>What are the trophies on my page?</dt><dd>Finish in the top three on a club night, counted against the others in your bracket that night, so a cup always names the bracket you won it in. Your bracket is set on your first night of the season and holds until the season ends, so nothing you do mid-season moves you. Break your section&rsquo;s ceiling and you still play for its prize, then move up for the next one. Falling out of a bracket takes two full seasons of playing below it. You need three games that night for it to count, and a tie shares the place.</dd>
-<dt>How is &ldquo;most improved&rdquo; worked out?</dt><dd>Change over the last 90 days, settled ratings only, at least twelve games. Under 1400 ELO and Under 1000 ELO only &mdash; above 1400 a three-month swing says more about who turned up than about anyone improving.</dd>
+<dt>How do I go up?</dt><dd>Win games. Beating someone rated above you gains a lot. Beating someone rated below you gains a little.</dd>
+<dt>I won most of my games. Why did I go down?</dt><dd>You lost to someone rated well below you, and that costs more than the wins gained. It evens out over a few nights.</dd>
+<dt>What is the &plusmn; next to my number?</dt><dd>How settled your rating is. New players move fast. It shrinks as you play more.</dd>
+<dt>Why am I not on the main table?</dt><dd>You need about eight games first. Until then you are listed as still settling in.</dd>
+<dt>Which bracket am I in?</dt><dd>The one you start the season in. It stays for the whole season. Pass the top of it and you still win its prize, then move up next season.</dd>
+<dt>Where did my name go?</dt><dd>No games for 90 days puts you on the away list. Play one night and you are back.</dd>
+<dt>What are the cups on my page?</dt><dd>Top three in your bracket on a club night. You need three games that night for it to count.</dd>
 </dl></div></div>
 <script>
 const D=${JSON.stringify(D)};
@@ -951,7 +961,7 @@ function derive(){
 derive();
 
 /* ---------- state + routing ---------- */
-let div="all", sortK="r", showAway=false, CUR=null, RIVAL=null, boardHash="", boardScroll=0, xtShown=false;
+let div="all", sortK="r", showAway=false, CUR=null, RIVAL=null, boardHash="", boardScroll=0, xtShown=false, profileMore=false;
 const shortDiv=d=>{ if(d==="all") return "Club"; const m=/^over ([0-9]+)$/i.exec(d); if(m) return m[1]+"+"; const u=/^under ([0-9]+)$/i.exec(d); if(u) return "U"+u[1]; return d };
 const DIVNAME={"over 1400":"Over 1400 ELO","U1400":"Under 1400 ELO","U1000":"Under 1000 ELO"};
 const longDiv=d=>d==="all"?"Whole Club":(DIVNAME[d]||d.charAt(0).toUpperCase()+d.slice(1));
@@ -988,7 +998,7 @@ window.addEventListener("hashchange",route);
     const first=D.next?(D.next===now?"tonight":fshort(D.next)):"soon";
     if(tag) tag.innerHTML=arch?'<b>Final</b><small>standings</small>'
       :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
-      :SEASON?'<b>Season '+(SEASON.no+1)+'</b><small>up next</small>':'';
+      :SEASON?'<b>Night '+D.dates.length+'</b><small>'+(D.next?'next '+fshort(D.next):'this season')+'</small>':'';
     if(note) note.innerHTML=arch
       ?'This is how Season '+arch+' finished. <a href="./">Back to the current season &rarr;</a>'
       :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
@@ -996,11 +1006,11 @@ window.addEventListener("hashchange",route);
       :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
             '. Until the first results are in, this is how Season '+SEASON.no+' finished.':'';
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
-      .map(n=>'<a class="howbtn" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
-      (arch?'<a class="howbtn" href="./">Current season</a>':'');
+      .map(n=>'<a class="howbtn red" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
+      (arch?'<a class="howbtn red" href="./">Current season</a>':'');
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
-  $("#foot").innerHTML='<button class="eggl" id="recLink">Club records</button> &middot; '+"KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
+  $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
 const TABART=D.tabart||[];
@@ -1908,7 +1918,7 @@ const WINNERS=[
 function openingEggs(p){
   const board=P.filter(x=>!away(x)&&x.rd<=RS), top=board[0], bottom=board[board.length-1];
   const lastN=p.nightly[p.nightly.length-1];
-  const say=(msg,id,ms)=>setTimeout(function(){ egg(msg,ms||3600,null,id) },1500);
+  const say=(msg,id,ms)=>setTimeout(function(){ if(CUR===p) egg(msg,ms||3600,null,id) },12000);
 
   // the top of the ladder, caught dropping one
   if(top&&top.n===p.n&&lastN&&lastN.l>0&&Math.random()<0.7){
@@ -2047,7 +2057,7 @@ function showProfile(n,rival){
   var same=CUR&&CUR.n===n; CUR=p; RIVAL=rival&&rival!==n?byN[rival]:null;
   document.title=p.n+" · "+CLUB;
   var tt=titleFor(p), el=$("#pnick");
-  if(Math.random()<0.12) setTimeout(function(){ egg(scoutLine(p),3600) },900);
+  if(Math.random()<0.12) setTimeout(function(){ if(CUR===p) egg(scoutLine(p),3600) },12000);
   try{ openingEggs(p) }catch(e){}
   el.setAttribute("tabindex","0");
   el.innerHTML='<span class="ni">'+tt.ic+'</span>'+tt.name+'<span class="q" aria-hidden="true">?</span><span class="tip"><b>Why this title</b>'+esc(tt.why||"Earned from their record.")+'</span>';
@@ -2079,15 +2089,28 @@ function drawGraphs(){
     card("Rating journey"+(RIVAL?" vs "+esc(RIVAL.n):""), journey(p,RIVAL), "gwide")+
     card("Points won and lost each night", nightly(p), "gwide")+
     card("Recent form", formStrip(p))+
+    card("Recent games", recentGames(p));
+  // the rest waits behind one button: five screens of charts is where people
+  // stopped reading. A rival in the address opens it, since that is where it lives.
+  const moreOpen=!!RIVAL||profileMore;
+  $("#graphs2").innerHTML=
+    '<button class="pmore" id="pMore" aria-expanded="'+moreOpen+'">'+(moreOpen?"Show less":"Show more about "+esc(p.n))+'</button>'+
+    '<div id="pRest"'+(moreOpen?'':' class="hid"')+'>'+
+    '<div class="gwrap">'+
     card("Against each level", bandsChart(p))+
     card("White and Black", colourChart(p))+
-    card("Recent games", recentGames(p))+
     card("Rivals", rivalsChart(p))+
-    card("Turnout", attendance(p));
-  $("#graphs2").innerHTML=
+    card("Turnout", attendance(p))+
+    '</div><div class="gwrap">'+
     card("Achievements", achBlock(p), "gwide")+
     card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
-    card("Record against everyone", vsTable(p));
+    card("Record against everyone", vsTable(p))+
+    '</div></div>';
+  $("#pMore").onclick=function(){
+    profileMore=$("#pRest").classList.toggle("hid")===false;
+    this.textContent=profileMore?"Show less":"Show more about "+p.n;
+    this.setAttribute("aria-expanded",profileMore);
+  };
   var more=$("#achMore");
   if(more) more.onclick=function(){
     const rest=$("#achRest"), open=rest.classList.toggle("hid")===false;
@@ -2115,6 +2138,7 @@ document.addEventListener("click",function(e){
   const l=e.target.closest("#recLink"); if(!l) return;
   boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records";
 });
+$("#recBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records" };
 $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/history" };
 
 /* ---------- easter eggs ----------
@@ -2252,7 +2276,10 @@ function profileEggs(p){
     if(eggFind("turnout")) egg("Every one of those is a Sunday you turned up.",2800);
   } }
   // 13-15: things true of this player alone
-  if(p.first&&p.first.slice(5)===todayMD()) egg("Today is "+p.n+"'s club anniversary. First game "+fd(p.first)+".",4000);
+  // the first game at the club, not the first this season - and never on the day itself
+  const first0=(p.c&&p.c.first)||p.first;
+  if(first0&&first0.slice(5)===todayMD()&&first0.slice(0,4)<String(new Date().getFullYear()))
+    setTimeout(function(){ if(CUR===p) egg("Today is "+p.n+"'s club anniversary. First game "+fd(first0)+".",4000) },12000);
   if(p.r===1337) egg("1337. Somebody had to.",3500);
   if(p.games===64) egg("Exactly 64 games. One for every square.",3500);
 }
@@ -2380,9 +2407,12 @@ function quip(){ const q=QUIPS[Math.floor(Math.random()*QUIPS.length)]; return t
    without asking anyone's browser to phone home.                              */
 (function goblinWatch(){
   const roll=Math.random();
-  if(roll<0.04){ setTimeout(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") },1400); return }
-  if(roll<0.06){ setTimeout(butHarold,1600); return }
-  if(roll<0.22) setTimeout(function(){ egg(quip(),4600) },1600);
+  // late, and only if the page is still being looked at: a joke over the
+  // podium while somebody is finding their name is a joke on them
+  const later=function(fn){ setTimeout(function(){ if(document.visibilityState==="visible") fn() },15000) };
+  if(roll<0.04){ later(function(){ egg('The chess goblin says "CHYEEEEEEECK"',5200,"goblin") }); return }
+  if(roll<0.06){ later(butHarold); return }
+  if(roll<0.22) later(function(){ egg(quip(),4600) });
 })();
 
 /* One hint per visit, from the dim dot in the footer. Always points at

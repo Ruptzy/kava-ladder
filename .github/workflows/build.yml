@@ -36,6 +36,11 @@ jobs:
           python buildsite.py
           python buildpairings.py
 
+      # a broken build fails here, before anything is pushed; the phone's Submit
+      # then reports a failed build instead of Discord linking to a broken page
+      - name: Refuse to publish a broken build
+        run: python build/check_site.py
+
       - name: Commit what changed
         run: |
           git config user.name "github-actions[bot]"

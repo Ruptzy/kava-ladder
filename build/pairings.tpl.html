@@ -886,7 +886,7 @@ let HISTORY=(DATA.history||[]).slice();
 const SEEDS=DATA.seeds||{};                                   // every night ever played
 function clubFile(){
   const seeds={}; R.forEach(p=>{if(!p.fresh||true) seeds[p.n]=p.r});
-  return {club:"KAVA Social Chess Club", format:1, updated:new Date().toISOString().slice(0,10),
+  return {club:"KAVA Social Chess Club", format:1, updated:clubDate(),
     divisions:DATA.divisions,
     roster:R.map(p=>({n:p.n,seed:p.r,d:p.d})),
     nights:HISTORY};
@@ -904,13 +904,21 @@ function loadClubFile(o){
   R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });
   refresh();
 }
+/* The club's date for a night: local time, and a night that runs past midnight
+   still belongs to the day it started - up to 6am counts as the night before.
+   UTC turns over at 8pm here, so a night submitted at 11:43pm was being filed
+   as the next day. */
+function clubDate(){
+  const d=new Date(Date.now()-6*3600000);
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
 function nightRecord(){
   const games=[], byes=[];
   rounds.forEach(rd=>{
     rd.boards.forEach(b=>{ if(b.res) games.push([byId[b.w].n, byId[b.b].n, b.res]) });
     if(rd.bye!=null) byes.push([byId[rd.bye].n, 1]);   // a bye is a whole point
   });
-  return {date:new Date().toISOString().slice(0,10), games, byes};
+  return {date:clubDate(), games, byes};
 }
 function download(name,data,type){
   let blob=new Blob([data],{type:type||"application/json"});
@@ -3273,14 +3281,41 @@ function snapshot(){
     pm:pairMsgs, po:pairOrphans,
     cfg:{...CFG}};
 }
+/* The phone keeps tonight, not the club. Roster, ratings, brackets and the
+   record come from the build this page was made with, so a correction, a new
+   season's brackets or a player added on the desktop reach the phone the next
+   time it opens. The saved copy used to replace all of them, and the phone
+   stayed on whatever it had first seen. What survives here is only what
+   happened on this phone: tonight's check-ins and rounds, walk-ins, and a night
+   filed here that the build has not caught up with. Players are matched by
+   name, because the build re-sorts the roster and the numbers move. */
 function restore(o){
   if(!o||!o.rounds) return false;
-  if(o.history) HISTORY=o.history;
-  if(o.roster&&o.roster.length){ R.length=0; Object.keys(byId).forEach(k=>delete byId[k]);
-    o.roster.forEach(p=>{const q={n:p.n,r:p.r,d:p.d,idle:0,id:p.id,fresh:p.fresh};R.push(q);byId[q.id]=q}) }
-  (o.added||[]).forEach(a=>{ if(a.seed!=null&&SEEDS[a.n]==null) SEEDS[a.n]=a.seed; if(!byId[a.pid]){const p={n:a.n,r:a.r,d:a.d,idle:0,id:a.pid,fresh:true};R.push(p);byId[p.id]=p} });
-  playing=new Set(o.playing||[]); gone=new Set(o.gone||[]);
-  rounds=(o.rounds||[]).map(rd=>({bye:rd.bye,boards:(rd.boards||[]).map(b=>({...b}))}));
+  const nameOf={};
+  (o.roster||[]).forEach(p=>{ nameOf[p.id]=p.n });
+  (o.added||[]).forEach(a=>{ nameOf[a.pid]=a.n });
+  // walk-ins the build does not know about yet
+  (o.added||[]).forEach(a=>{
+    if(a.seed!=null&&SEEDS[a.n]==null) SEEDS[a.n]=a.seed;
+    if(!R.some(p=>p.n===a.n)){ const p={n:a.n,r:a.r,d:a.d,idle:0,id:R.length,fresh:true}; R.push(p); byId[p.id]=p }
+  });
+  const idOf={}; R.forEach(p=>{ idOf[p.n]=p.id });
+  const map=id=>{ const n=nameOf[id]; return n!=null&&idOf[n]!=null?idOf[n]:null };
+  // a night filed on this phone that the build does not have yet; the same date
+  // or the same games means the build has it (a corrected date, for one)
+  if(Array.isArray(o.history)){
+    const dates=new Set(HISTORY.map(n=>n.date)), games=new Set(HISTORY.map(n=>JSON.stringify(n.games)));
+    const extra=o.history.filter(n=>!dates.has(n.date)&&!games.has(JSON.stringify(n.games)));
+    if(extra.length){
+      HISTORY=HISTORY.concat(extra).sort((a,b)=>a.date<b.date?-1:1);
+      const P=runRatings(HISTORY,{...SEEDS}); R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });
+    }
+  }
+  playing=new Set((o.playing||[]).map(map).filter(x=>x!=null));
+  gone=new Set((o.gone||[]).map(map).filter(x=>x!=null));
+  rounds=(o.rounds||[]).map(rd=>({bye:rd.bye==null?null:map(rd.bye),
+    boards:(rd.boards||[]).map(b=>({...b,w:map(b.w),b:map(b.b)}))}))
+    .filter(rd=>rd.boards.every(b=>b.w!=null&&b.b!=null));
   pairMsgs=Array.isArray(o.pm)?o.pm:[]; pairOrphans=Array.isArray(o.po)?o.po:[];
   Object.assign(CFG,o.cfg||{});
   cur=Math.max(0,rounds.length-1); refresh(); return rounds.length>0||playing.size>0;
@@ -3762,16 +3797,20 @@ async function publishNight(rec,status){
   if(!c.owner||!c.repo||!c.token) throw new Error("Set up the website in settings first.");
   const branch=c.branch||"main";
   const url="https://api.github.com/repos/"+c.owner+"/"+c.repo+"/contents/"+NIGHT_DIR+rec.date+".json";
-  // a walk-in starts where they were typed in, on the site as on this phone
-  const seeds={};
-  rec.games.forEach(g=>[g[0],g[1]].forEach(n=>{
-    const p=R.find(x=>x.n===n); if(p&&p.fresh&&SEEDS[n]!=null) seeds[n]=SEEDS[n] }));
+  // a walk-in joins the ladder, starting where they were typed in, on the site
+  // as on this phone; without "new" the site filed them as a visitor
+  const fresh={};
+  const note=n=>{ const p=R.find(x=>x.n===n); if(p&&p.fresh) fresh[n]=p };
+  rec.games.forEach(g=>{ note(g[0]); note(g[1]) });
+  (rec.byes||[]).forEach(b=>note(Array.isArray(b)?b[0]:b));
+  const seeds={}, joined=[];
+  Object.values(fresh).forEach(p=>{ if(SEEDS[p.n]!=null) seeds[p.n]=SEEDS[p.n]; joined.push({n:p.n,d:p.d}) });
   status&&status("saving the night");
   let sha=null;
   try{ const g=await fetch(url+"?ref="+encodeURIComponent(branch),{headers:ghHeaders(c)});
        if(g.ok) sha=(await g.json()).sha; }catch(e){}
   const body={message:"Night of "+rec.date, branch,
-    content:b64(JSON.stringify({date:rec.date, games:rec.games, byes:rec.byes||[], seeds},null,1))};
+    content:b64(JSON.stringify({date:rec.date, games:rec.games, byes:rec.byes||[], seeds, new:joined},null,1))};
   if(sha) body.sha=sha;
   const r=await fetch(url,{method:"PUT",headers:ghHeaders(c),body:JSON.stringify(body)});
   if(!r.ok){
@@ -4625,7 +4664,7 @@ async function postNight(status){
     status&&status("drawing the leaderboard…");
     const blob=await canvasBlob(await nightCanvas());
     status&&status("posting the picture…");
-    await dscSendFile(c.hook,blob,"kava-"+new Date().toISOString().slice(0,10)+".png",head,true);
+    await dscSendFile(c.hook,blob,"kava-"+clubDate()+".png",head,true);
   }catch(e){
     // a picture is nicer, a missing result is not acceptable
     status&&status("posting the leaderboard…");

@@ -57,6 +57,9 @@ rated = buildsite.run(history, seeds)
 _season, _vault, _nights = buildsite.split_season(history, buildsite.datetime.date.today().isoformat())
 _peaks = buildsite.window_level(rated, buildsite.lookback_start(_season["from"]), _season["from"])
 BANDS = buildsite.season_bands(rated, _nights, _peaks, roster["divisions"])
+# walk-ins the phone added on a night are members now, here as on the site
+_have = {q["n"] for q in roster["roster"]}
+roster["roster"] += [q for q in buildsite.night_roster() if q["n"] not in _have]
 board = []
 for p in roster["roster"]:
     if p["n"] in hidden:

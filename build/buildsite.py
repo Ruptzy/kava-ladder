@@ -426,6 +426,17 @@ def night_seeds():
     return out
 
 
+def night_roster():
+    """Players the phone added on a night. A walk-in typed into the phone is a
+    new member; without this the site filed them as a visitor, off the ladder."""
+    out=[]; seen=set()
+    for path in _night_files():
+        for q in (json.load(open(path,encoding='utf-8')).get("new") or []):
+            if q.get("n") and q["n"] not in seen:
+                seen.add(q["n"]); out.append({"n":q["n"],"d":q.get("d") or ""})
+    return out
+
+
 def season_bounds(no):
     """The calendar window of season number no."""
     ano,anchor=SEASON_ANCHOR
@@ -530,6 +541,8 @@ if __name__=="__main__":
     HISTORY=load_history(); SEEDS=json.load(open(here('seeds.json')))
     for n,r in night_seeds().items(): SEEDS.setdefault(n,r)
     ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
+    _have={q["n"] for q in roster["roster"]}
+    roster["roster"]+=[q for q in night_roster() if q["n"] not in _have]   # walk-ins join
     try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
     except Exception: DIVH=[]
     try: HIDDEN=json.load(open(here('hidden.json')))
