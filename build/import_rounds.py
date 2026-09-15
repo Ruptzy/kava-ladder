@@ -12,7 +12,7 @@ Names follow Harold's readings of the exports (Sept 2026): Benjamin, Ben and
 Benny are Benji; Briwn is Brian; every spelling of Jonathan is Johnathon;
 Andrys is Andres; Schmerick is Derek; David is Dave Kecthum; Haleugh is
 Haleigh; plain Omar is Omar Cruz (Omar Azab only arrives in 2026); Dan is a
-different person from Daniel; plain Sam is Sam, "Sam j" is Sam J.; Myles is
+different person from Daniel; "Sam j" and Sam are the same Sam (Harold, later that day); Myles is
 the same Myles as 2022-23. Kandee, Tanner, Juan, Isa, Ayeh and Shawn stay
 visitors: their games count, they are not put on the ladder. A blank result
 is an unplayed game and is skipped; "Bye" is a half-point bye, the club's
@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ALIAS = {'benjamin': 'Benji', 'ben': 'Benji', 'benny': 'Benji', 'briwn': 'Brian',
          'jona': 'Johnathon', 'jonathan': 'Johnathon', 'jonathon': 'Johnathon', 'johnathan': 'Johnathon',
          'andrys': 'Andres', 'schmerick': 'Derek', 'david': 'Dave Kecthum', 'dave': 'Dave Kecthum',
-         'haleugh': 'Haleigh', 'omar': 'Omar Cruz', 'omar new': 'Omar Azab', 'sam j': 'Sam J.'}
+         'haleugh': 'Haleigh', 'omar': 'Omar Cruz', 'omar new': 'Omar Azab', 'sam j': 'Sam'}
 
 
 def norm(n):
