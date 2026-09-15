@@ -923,8 +923,11 @@ const SEASON=D.season||null, VAULT=D.vault||null;
    board is then last season's players at the rating they carry, in the
    bracket they will start in. Up here, not by pool(): the header needs it first. */
 const PRESEASON=!!SEASON&&!D.dates.length&&!D.arch;
-const SEA=SEASON?("Season "+SEASON.no):"This season";
-const seaLower=SEASON?("season "+SEASON.no):"this season";
+// the numbered seasons by number; everything before them is one block, Seasons 1-8
+const FIRST_NO=(D.eras&&D.eras.first)||9;
+const seasonName=n=>n<FIRST_NO?"Seasons 1\u2013"+n:"Season "+n;
+const SEA=SEASON?seasonName(SEASON.no):"This season";
+const seaLower=SEASON?seasonName(SEASON.no).toLowerCase():"this season";
 /* ALL includes the one-off visitors, so their games still count towards the
    regulars' records and ratings. P is who the site actually shows. */
 const ALL=D.players, P=ALL.filter(p=>!p.gh);
@@ -1111,7 +1114,7 @@ window.addEventListener("hashchange",route);
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; last night <b>'+fshort(D.date)+'</b>'+
     (D.next&&!D.arch?'<br>Next night <b>'+new Date(D.next+"T12:00").toLocaleDateString("en-GB",{weekday:"short"})+' '+fshort(D.next)+'</b> &middot; '+NIGHT_TIME+
       ' &middot; <a href="'+CLUB_SITE+'">'+VENUE+'</a>':'');
-  { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
+  { const w=$("#wmSeason"); if(w) w.innerHTML=SEASON&&SEASON.no<FIRST_NO?"Seasons <b>1\u2013"+SEASON.no+"</b>":"Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
   /* Which season this page is, worked out rather than typed into the masthead:
      a hand-written "Season 10 up next" is right for exactly one season. */
   { const arch=D.arch||null, now=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);   // the club's date, not UTC's
@@ -1125,7 +1128,7 @@ window.addEventListener("hashchange",route);
       :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
       :SEASON?'<b>Night '+D.dates.length+'</b><small>of about '+seasonExpected()+'</small>':'';
     if(note) note.innerHTML=arch
-      ?'This is how Season '+arch+' finished. <a href="./">Back to the current season &rarr;</a>'
+      ?'This is how '+seasonName(arch)+' finished. <a href="./">Back to the current season &rarr;</a>'
       :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
             '. Ratings carry over from Season '+(SEASON.no-1)+', so this is where everyone starts.'
       :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
@@ -1140,15 +1143,14 @@ window.addEventListener("hashchange",route);
     // one picker for every season with standings: the current one, then each frozen season
     if(past&&(D.past||[]).length){ const cur=SEASON?SEASON.no:0;
       past.innerHTML='<option value="./"'+(arch?'':' selected')+'>'+(arch?'Current season':'Season '+cur+' \u00b7 current')+'</option>'+
-        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>Season '+n+(n===arch?' \u00b7 final':'')+'</option>').join("")+
-        '<option value="'+(arch?'./':'')+'#/history">Seasons 1\u2013'+(((D.eras&&D.eras.first)||9)-1)+' \u00b7 club history</option>';   // before the numbered seasons: the history page (D.eras, not ERAS - that const does not exist yet here)
+        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>'+seasonName(n)+(n===arch?' \u00b7 final':'')+'</option>').join("");
       past.classList.remove("hid");
-      past.onchange=function(){ const v=this.value; if(!v) return; if(v.charAt(0)==="#"){ location.hash=v; this.value=arch?"season-"+arch+".html":"./" } else location.href=v } }
+      past.onchange=function(){ if(this.value) location.href=this.value } }
     if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
   $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club night"+(DATES.length===1?"":"s")+
-    ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().map(n=>'<a href="season-'+n+'.html">Season '+n+'</a>').join(", "):"")+
+    ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().map(n=>'<a href="season-'+n+'.html">'+seasonName(n)+'</a>').join(", "):"")+
     " &middot; ratings recalculated from every game &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
@@ -2646,11 +2648,11 @@ function scopeDefs(){
   if(SEASON&&!seen[SEASON.no]) nos.push(SEASON.no);
   nos.sort((a,b)=>b-a);
   const first=ERAS.first||nos[nos.length-1];
-  const defs=nos.filter(no=>no>=first).map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
-    return {k:"s"+no, label:cur&&!D.arch?"Current season":"Season "+no, sub:cur?(D.arch?"final":"Season "+no):(ds.length?fmy(ds[0]).slice(0,3)+" \u2013 "+fmy(ds[ds.length-1]):"")} });
+  const defs=nos.filter(no=>no>=first||(SEASON&&no===SEASON.no)).map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
+    return {k:"s"+no, label:cur&&!D.arch?"Current season":seasonName(no), sub:cur?(D.arch?"final":"Season "+no):(ds.length?fmy(ds[0]).slice(0,3)+" \u2013 "+fmy(ds[ds.length-1]):"")} });
   // everything before the numbered seasons is one era: the old workbook and the first ladder era together
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
-  if(preEnd) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
+  if(preEnd&&!(SEASON&&SEASON.no<first)) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
   if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
   defs.push({k:"all",label:"Whole career",sub:""});
   return defs;

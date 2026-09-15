@@ -249,6 +249,19 @@ def season_bands(P, season_nights, peaks, divisions):
     return out
 
 
+def final_bands(P, frm, to, divisions):
+    """Each player's bracket for a long era: the band of the rating they
+    finished it on. The seasons proper fix a bracket on night one; an era of
+    eighteen months cannot, or somebody who started at 900 and finished at
+    1550 is counted among the under-1000s all the way."""
+    out={}
+    for n,p in P.items():
+        if p["n"]<=0: continue
+        inside=[h for h in p["hist"] if frm<=h[0]<to]
+        if inside: out[n]=band_of(inside[-1][1], divisions)
+    return out
+
+
 def batch_dates():
     """Old-workbook dates that hold a backlog of games, not one night's play."""
     try: return set(json.load(open(here('batch_dates.json'),encoding='utf-8')).get("dates",[]))
@@ -356,6 +369,8 @@ def era_data(P, full, arc_matches, link, hidden, seeds, id_, divisions):
     ano,anchor=SEASON_ANCHOR
     season=[season_of(d)[0] if d>=anchor else ano-1 for d in dates]
     bands={}
+    if dates and dates[0]<anchor:
+        for n,b in final_bands(P, dates[0], anchor, divisions).items(): bands.setdefault(n,{})[ano-1]=b
     for no in sorted({s for s in season if s>=ano}):
         frm,to=season_bounds(no)
         nights=[h for h in full if frm<=h["date"]<to]
@@ -533,14 +548,23 @@ def next_night(dates, built):
     return d.isoformat()
 
 
-def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True):
+def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True,window=None):
     """Everything the page ships, from one history. The replay reads all of it;
-    only the page narrows to the season of the last night."""
+    only the page narrows to the season of the last night - or, with `window`
+    (no, from, to), to that span: the era before the numbered seasons is one
+    page, whatever the calendar would have called its months."""
     P=run(HISTORY,SEEDS)
-    SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY, built if calendar else None)
+    if window:
+        no,frm,to=window
+        SEASON={"no":no,"from":frm,"to":to}
+        VAULTED=[h for h in HISTORY if h["date"]<frm]
+        SEASON_NIGHTS=[h for h in HISTORY if frm<=h["date"]<to]
+    else:
+        SEASON,VAULTED,SEASON_NIGHTS=split_season(HISTORY, built if calendar else None)
     PEAKS=window_level(P, lookback_start(SEASON["from"]), SEASON["from"])
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
-    BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
+    BANDS=(final_bands(P, SEASON["from"], SEASON["to"], roster["divisions"]) if window and SEASON["no"]<SEASON_ANCHOR[0]
+           else season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"]))
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
                   HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS,HISTORY,ARCM)
     D["pics"]=photo_slugs()
@@ -592,12 +616,18 @@ def champions(Da):
     return out
 
 
+def season_label(no):
+    """How the club names a season: the numbered ones by number, and everything
+    before them - the old workbook and the first ladder era - as one block."""
+    return "Season %d"%no if no>=SEASON_ANCHOR[0] else "Seasons 1\u2013%d"%no
+
+
 def archive_head(html,no):
     """A frozen season is its own page: its own title, description and address,
     so a search result for it says what it is."""
-    t="Season %d final standings &mdash; Kava Social Chess Club"%no
-    d=("Season %d final standings, ratings and every game played, for the Kava Social "
-       "Chess Club in Bradenton, Florida.")%no
+    t="%s final standings &mdash; Kava Social Chess Club"%season_label(no)
+    d=("%s final standings, ratings and every game played, for the Kava Social "
+       "Chess Club in Bradenton, Florida.")%season_label(no)
     u=SITE_URL+"season-%d.html"%no
     for a,b,n in [("<title>%s</title>"%HEAD_TITLE,"<title>%s</title>"%t,1),
                   ('og:title" content="%s"'%HEAD_TITLE,'og:title" content="%s"'%t,1),
@@ -626,6 +656,11 @@ if __name__=="__main__":
     HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
     # every season over by the calendar gets a frozen page of its own
     PAST=completed_seasons(HISTORY, built)
+    # and the era before them: every ladder night up to the first numbered
+    # season, as one page - Seasons 1-8 in the club's numbering
+    pre_to=season_bounds(SEASON_ANCHOR[0])[0]
+    if HISTORY and HISTORY[0]["date"]<pre_to:
+        PAST.insert(0,(SEASON_ANCHOR[0]-1, HISTORY[0]["date"][:7]+"-01", pre_to))
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
     D["past"]=[no for no,_,_ in PAST]
     print('season %d: %s .. %s | vault %d nights, %d games'
@@ -635,7 +670,7 @@ if __name__=="__main__":
     for no,frm,to in PAST:
         cut=[h for h in HISTORY if h["date"]<to]
         Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
-                            HIDDEN,ARCM,built,calendar=False)
+                            HIDDEN,ARCM,built,calendar=False,window=(no,frm,to) if no<SEASON_ANCHOR[0] else None)
         Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
         name='season-%d.html'%no
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
