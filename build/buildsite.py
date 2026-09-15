@@ -519,6 +519,25 @@ HEAD_DESC=("Live ratings, player profiles and full game history for the Kava Soc
            "in Bradenton, Florida. Meets Sundays and Tuesdays, 8PM to midnight.")
 
 
+def champions(Da):
+    """Who won each bracket of a finished season, by the same rule the Discord
+    finale uses: settled rating (RD <= 110), at least half the season's nights,
+    highest rating in the bracket they were fixed in."""
+    names=Da["names"]; need=-(-len(Da["dates"])//2)
+    nights={}
+    for ni,w,b,r in Da["games"]:
+        for i in (w,b): nights.setdefault(names[i],set()).add(ni)
+    out=[]
+    for d in Da["divisions"]:
+        best=None
+        for q in Da["players"]:
+            if q.get("gh") or q.get("bd")!=d or q["rd"]>110: continue
+            if len(nights.get(q["n"],()))<need: continue
+            if best is None or q["r"]>best["r"]: best=q
+        if best: out.append({"d":d,"n":best["n"],"r":best["r"]})
+    return out
+
+
 def archive_head(html,no):
     """A frozen season is its own page: its own title, description and address,
     so a search result for it says what it is."""
@@ -555,20 +574,11 @@ if __name__=="__main__":
     PAST=completed_seasons(HISTORY, built)
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
     D["past"]=[no for no,_,_ in PAST]
-    html=page(D)
-    out=os.path.join(ROOT,'index.html')
-    open(out,'w',encoding='utf-8').write(html)
+    D["champs"]=[]
     print('season %d: %s .. %s | vault %d nights, %d games'
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
              sum(len(n["games"]) for n in VAULTED)))
-    print('players',len([p for p in D["players"] if not p.get("gh")]),
-          '(+%d visitors)'%len([p for p in D["players"] if p.get("gh")]),
-          '| games',len(D["games"]),'| nights',len(D["dates"]),
-          '| photos',len(D["pics"]),'| ->',out)
-    print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
-    vis=[p for p in D["players"] if not p.get("gh")][:5]
-    print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in vis))
     for no,frm,to in PAST:
         cut=[h for h in HISTORY if h["date"]<to]
         Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
@@ -578,3 +588,16 @@ if __name__=="__main__":
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
         print('%s: season %d frozen | %d nights, %d games, %s .. %s'
               % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
+        D["champs"].insert(0,{"no":no,"list":champions(Da)})   # newest first
+    html=page(D)
+    out=os.path.join(ROOT,'index.html')
+    open(out,'w',encoding='utf-8').write(html)
+    print('players',len([p for p in D["players"] if not p.get("gh")]),
+          '(+%d visitors)'%len([p for p in D["players"] if p.get("gh")]),
+          '| games',len(D["games"]),'| nights',len(D["dates"]),
+          '| photos',len(D["pics"]),'| ->',out)
+    print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
+    vis=[p for p in D["players"] if not p.get("gh")][:5]
+    print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in vis))
+    for c in D["champs"]:
+        print('season %d champions: %s' % (c["no"], ', '.join('%s %s %d'%(x["d"],x["n"],x["r"]) for x in c["list"])))

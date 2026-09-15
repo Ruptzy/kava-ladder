@@ -36,6 +36,29 @@ def parses(html, name):
         os.remove(tmp)
 
 
+# the replay, against the snapshot: a rating that moved without a new night
+# is a bug, not a result
+sys.path.insert(0, os.path.join(ROOT, 'build'))
+import buildsite as B
+snap_path = os.path.join(ROOT, 'build', 'ratings.snapshot.json')
+if os.path.exists(snap_path):
+    snap = json.load(open(snap_path, encoding='utf-8'))
+    HISTORY = B.load_history(); SEEDS = json.load(open(B.here('seeds.json')))
+    for n, r in B.night_seeds().items(): SEEDS.setdefault(n, r)
+    try: HIDDEN = json.load(open(B.here('hidden.json')))
+    except Exception: HIDDEN = []
+    HISTORY, SEEDS = B.anonymise(HISTORY, SEEDS, HIDDEN)
+    cut = [h for h in HISTORY if h["date"] <= snap["through"]]
+    P = B.run(cut, SEEDS)
+    now = {n: round(p["r"]) for n, p in P.items() if p["n"] > 0}
+    moved = [(n, snap["ratings"][n], now.get(n)) for n in snap["ratings"] if now.get(n) != snap["ratings"][n]]
+    if moved:
+        fail.append('ratings replay differs from build/ratings.snapshot.json for %d player(s), e.g. %s: %s -> %s. '
+                    'If the change is intended, run python build/snap_ratings.py and commit it.'
+                    % (len(moved), moved[0][0], moved[0][1], moved[0][2]))
+    else:
+        print('ratings replay matches the snapshot (%d players through %s)' % (len(now), snap["through"]))
+
 # the ladder
 h = read('index.html')
 parses(h, 'index.html')
