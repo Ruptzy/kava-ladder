@@ -718,7 +718,15 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .riv{grid-template-columns:5.5rem 1fr 2.4rem}
   .bandrow{grid-template-columns:5.6rem 1fr 3.2rem}
 }
+@media(min-width:901px){
+  /* the head is two columns: the name, then the cups, centred on each other.
+     A wrapped cup block landed on its own row far to the right and left a hole. */
+  .ph2row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:1.2rem 1.8rem}
+  .ptro{max-width:380px;margin-left:0;justify-self:end}
+}
 @media(min-width:641px) and (max-width:900px){
+  .ph2row{flex-wrap:wrap}.ptro{flex:1 1 100%;border-left:none;border-top:1px solid var(--rule-2);padding:.6rem 0 0;margin:.2rem 0 0}
+  .ptro .tset{justify-content:center}.tprev,.ptro .cap2{text-align:center}
   .gwrap{grid-template-columns:1fr 1fr}
   .facts{grid-template-columns:repeat(3,1fr)}
   .kpis{grid-template-columns:repeat(3,1fr)}
