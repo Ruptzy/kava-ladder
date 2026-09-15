@@ -52,7 +52,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html kava-pairings.html
-          git add -A build/nights build/history.json build/roster.json build/seeds.json
+          git add build/history.json build/roster.json build/seeds.json
+          if [ -d build/nights ]; then git add -A build/nights; fi   # gone once folded in
           for f in season-*.html; do
             if [ -e "$f" ]; then git add "$f"; fi
           done
