@@ -3388,23 +3388,25 @@ function scoutLine(p){
   if(w>=60) return "Scouting report: wins more than they lose. Annoying.";
   return "Scouting report: dangerous when underestimated.";
 }
+/* The cups are the era's totals, every bracket counted - the top bracket alone
+   read as wrong against eighty nights. The split by bracket goes underneath
+   when there is more than one; the old system had no brackets. */
 function trophyHead(p){
-  const L=["First","Second","Third"];
-  const top=p.topDiv||p.d, counts=p.byDiv[top]||[0,0,0];
+  const L=["First","Second","Third"], counts=p.trophies||[0,0,0];
   const any=counts[0]+counts[1]+counts[2];
-  const tip=any ? "Top-three finishes on a club night in "+longDiv(top)
-                : "No top-three finish yet in "+longDiv(p.d);
+  const divs=Object.keys(p.byDiv).filter(d=>p.byDiv[d][0]+p.byDiv[d][1]+p.byDiv[d][2]>0).sort((a,b)=>divRank(a)-divRank(b));
+  const dn=d=>d==="all"?"old system":shortDiv(d);
+  const under=divs.length===1?dn(divs[0]):divs.length>1?"all brackets":shortDiv(p.d);
+  const tip=any ? "Top-three finishes on a club night, in "+dsOf(p).lower : "No top-three finish yet in "+dsOf(p).lower;
   const cups='<div class="tset">'+L.map(function(lab,i){
     return '<div class="it'+(counts[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
       '<span class="n">\u00d7'+counts[i]+'</span>'+
-      '<span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i><em>'+esc(shortDiv(any?top:p.d))+'</em></span></div>';
+      '<span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i><em>'+esc(under)+'</em></span></div>';
   }).join("")+'</div>';
-  // anything won in a lower bracket, before they climbed
-  const rest=Object.keys(p.byDiv).filter(d=>d!==top).sort((a,b)=>divRank(a)-divRank(b))
-    .map(d=>{ const c=p.byDiv[d];
-      return esc(shortDiv(d))+" "+[0,1,2].filter(i=>c[i]).map(i=>c[i]+"\u00d7"+["1st","2nd","3rd"][i]).join(", ") });
+  const split=divs.length>1?divs.map(d=>{ const c=p.byDiv[d];
+      return esc(dn(d))+" "+[0,1,2].filter(i=>c[i]).map(i=>c[i]+"\u00d7"+["1st","2nd","3rd"][i]).join(", ") }):[];
   return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+cups+
-    (rest.length?'<p class="tprev">Before that: '+rest.join(" \u00b7 ")+'</p>':'')+'</div>';
+    (split.length?'<p class="tprev">'+split.join(" \u00b7 ")+'</p>':'')+'</div>';
 }
 function trophyLine(p){
   const T=p.trophies;
@@ -3572,6 +3574,7 @@ function scopeDefs(){
   // everything before the numbered seasons is one era: the old workbook and the first ladder era together
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
   if(preEnd) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
+  if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
   defs.push({k:"all",label:"Whole career",sub:"everything on record"});
   return defs;
 }
@@ -3631,13 +3634,15 @@ function scopeBar(p){
   const bar=$("#scope"); if(!ERAS){ bar.classList.add("hid"); return }
   const defs=scopeDefs();
   if(!defs.some(d=>d.k===SCOPE)) SCOPE=defs[0].k;
-  const show=defs.filter(d=>isCurScope(d.k)||d.k==="all"||d.k===SCOPE||scoped(p,d.k).games>0);
+  const show=defs.filter(d=>d.k==="live"||isCurScope(d.k)||d.k==="all"||d.k===SCOPE||scoped(p,d.k).games>0);
   $("#scopeSel").innerHTML=show.map(d=>{ const sp=scoped(p,d.k);
     return '<option value="'+d.k+'"'+(d.k===SCOPE?' selected':'')+'>'+d.label+(d.sub?' \u00b7 '+d.sub:'')+'</option>' }).join("");
   const sp=scoped(p,SCOPE), S=dsOf(sp);
   $("#scopeNote").textContent=sp.games?(sp.games+" games \u00b7 "+sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
   bar.classList.remove("hid");
-  $("#scopeSel").onchange=function(){ SCOPE=this.value; renderScope(CUR); scopeBar(CUR) };
+  $("#scopeSel").onchange=function(){
+    if(this.value==="live"){ location.href="./#/p/"+encodeURIComponent(CUR.n)+(RIVAL?"/vs/"+encodeURIComponent(RIVAL.n):""); return }
+    SCOPE=this.value; renderScope(CUR); scopeBar(CUR) };
 }
 /* everything on the profile below the name that the era picker redraws */
 function renderScope(p){
