@@ -1140,9 +1140,10 @@ window.addEventListener("hashchange",route);
     // one picker for every season with standings: the current one, then each frozen season
     if(past&&(D.past||[]).length){ const cur=SEASON?SEASON.no:0;
       past.innerHTML='<option value="./"'+(arch?'':' selected')+'>'+(arch?'Current season':'Season '+cur+' \u00b7 current')+'</option>'+
-        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>Season '+n+(n===arch?' \u00b7 final':'')+'</option>').join("");
+        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>Season '+n+(n===arch?' \u00b7 final':'')+'</option>').join("")+
+        '<option value="'+(arch?'./':'')+'#/history">Seasons 1\u2013'+(((D.eras&&D.eras.first)||9)-1)+' \u00b7 club history</option>';   // before the numbered seasons: the history page (D.eras, not ERAS - that const does not exist yet here)
       past.classList.remove("hid");
-      past.onchange=function(){ if(this.value) location.href=this.value } }
+      past.onchange=function(){ const v=this.value; if(!v) return; if(v.charAt(0)==="#"){ location.hash=v; this.value=arch?"season-"+arch+".html":"./" } else location.href=v } }
     if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
