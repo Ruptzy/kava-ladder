@@ -1447,6 +1447,12 @@ border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;backgroun
 .ach:not(.got){opacity:.55}
 .ach:not(.got) .ic{filter:grayscale(1)}
 .ach .tx{min-width:0}
+.ach{cursor:pointer}.ach.open{outline:2px solid var(--scarlet);outline-offset:1px}
+.achinfo{margin:.5rem 0 .2rem;padding:.7rem .85rem;background:var(--panel-2);border-left:3px solid var(--scarlet);border-radius:6px}
+.achinfo b{display:block;font-size:.95rem;margin-bottom:.2rem}
+.achinfo span{display:block;color:var(--ink-2);font-size:.88rem;line-height:1.45}
+.achinfo em{display:block;font-style:normal;font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);margin-top:.4rem}
+.achinfo em.got{color:var(--gain)}
 .ach .nm2{display:block;font-weight:600;font-size:.82rem;line-height:1.2}
 .ach.got .nm2{color:var(--cream)}
 .ach .hw{display:block;font-size:.72rem;color:var(--ink-2);line-height:1.35;margin-top:.15rem}
@@ -2847,7 +2853,7 @@ function achFor(p){
 }
 function huntTile(){
   const f=eggsFound().size, n=EGG_IDS.length, done=f>=n;
-  return '<div class="ach hunt'+(f?' got':'')+'" title="Kept in this browser, not on anyone\'s record">'+
+  return '<div class="ach hunt'+(f?' got':'')+'" data-ach="hunt" tabindex="0" role="button" aria-expanded="false" title="Kept in this browser, not on anyone\'s record">'+
     '<span class="ic">'+(done?"\uD83E\uDD5A":"\uD83D\uDD0D")+'</span>'+
     '<span class="tx"><b class="nm2">Egg hunter</b>'+
     '<span class="hw">Found '+f+' of '+n+' easter eggs. Yours, on this device.</span>'+
@@ -2882,7 +2888,7 @@ function achBlock(p){
       const cur=Math.min(r.pr[0],r.pr[1]);
       pg='<span class="pg">'+cur+' of '+r.pr[1]+'</span><span class="pgb"><i style="width:'+Math.round(cur/r.pr[1]*100)+'%"></i></span>';
     }
-    return '<div class="ach'+(r.got?' got':'')+(hasImg?' img':'')+'" title="'+esc(a.how)+'">'+ic+
+    return '<div class="ach'+(r.got?' got':'')+(hasImg?' img':'')+'" data-ach="'+esc(a.id)+'" tabindex="0" role="button" aria-expanded="false" title="'+esc(a.how)+'">'+ic+
       '<span class="tx"><b class="nm2">'+esc(a.name)+'</b><span class="hw">'+esc(a.how)+'</span>'+pg+'</span></div>';
   };
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
@@ -2890,7 +2896,32 @@ function achBlock(p){
     achFeed(p)+
     '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,8).map(tile).join("")+'</div>'+
     '<div class="achs hid" id="achRest">'+order.slice(8).map(tile).join("")+'</div>'+
+    '<div class="achinfo hid" id="achInfo"></div>'+
     '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
+}
+
+/* Tap a tile and it says what the achievement is, how it is earned, and where
+   this player stands with it. On a phone the tile has no room for that and a
+   hover tooltip never opens. */
+function achDetail(p,id){
+  if(id==="hunt"){ const f=eggsFound().size, n=EGG_IDS.length;
+    return {name:"Egg hunter", how:"Find the hidden jokes around the site. Kept in this browser only.", status:f>=n?"All "+n+" found.":f+" of "+n+" found so far.", got:f>=n} }
+  const r=achFor(p).find(x=>x.a.id===id); if(!r) return null;
+  let status="";
+  if(r.got){ const w=achWhen(p)[id]; status=w==="earlier"?"Earned before this season.":w?"Earned "+fd(w)+".":"Earned." }
+  else if(r.pr){ const cur=Math.min(r.pr[0],r.pr[1]); status=cur+" of "+r.pr[1]+" so far." }
+  else status="Not yet.";
+  return {name:r.a.name, how:r.a.how, status:status, got:r.got};
+}
+function achToggle(tile){
+  const p=CUR, box=$("#achInfo"); if(!p||!box) return;
+  const open=tile.classList.contains("open");
+  document.querySelectorAll(".ach.open").forEach(x=>{ x.classList.remove("open"); x.setAttribute("aria-expanded","false") });
+  if(open){ box.classList.add("hid"); box.innerHTML=""; return }
+  const d=achDetail(p,tile.dataset.ach); if(!d) return;
+  tile.classList.add("open"); tile.setAttribute("aria-expanded","true");
+  box.innerHTML='<b>'+esc(d.name)+'</b><span>'+esc(d.how)+'</span><em class="'+(d.got?"got":"")+'">'+esc(d.status)+'</em>';
+  tile.parentNode.after(box); box.classList.remove("hid");   // under the grid the tile is in
 }
 
 /* ---------- fun facts: five, most unusual first ---------- */
@@ -3252,10 +3283,12 @@ function drawGraphs(){
 }
 $("#pv").onkeydown=function(e){
   if(e.key!=="Enter"&&e.key!==" ") return;
+  const at=e.target.closest(".ach[data-ach]"); if(at){ e.preventDefault(); achToggle(at); return }
   const o=e.target.closest("[data-o]"); if(!o||!CUR) return;
   e.preventDefault(); if(e.target.closest(".riv,.rg")) openProfile(CUR.n,o.dataset.o); else openProfile(o.dataset.o);
 };
 $("#pv").onclick=function(e){
+  const at=e.target.closest(".ach[data-ach]"); if(at){ achToggle(at); return }
   var chip=e.target.closest("[data-r]"); if(chip&&CUR){ openProfile(CUR.n, chip.dataset.r); return }
   var o=e.target.closest("[data-o]"); if(o&&CUR){ if(e.target.closest(".riv,.rg")) openProfile(CUR.n, o.dataset.o); else openProfile(o.dataset.o) }
 };
