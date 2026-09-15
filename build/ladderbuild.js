@@ -408,6 +408,7 @@ border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;margin:0 0 1.1r
 .kpis dd{margin:0;font-family:var(--fm);font-size:1.45rem;font-weight:700;line-height:1}
 .kpis dd small{display:block;font-size:.52em;font-weight:400;color:var(--ink-3);margin-top:.35rem;letter-spacing:.04em}
 .facts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem;margin-bottom:.7rem}
+.factsH{margin:.2rem 0 .5rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
 .fact{background:linear-gradient(160deg,var(--panel-2),var(--panel) 70%);border:1px solid var(--rule-2);
 border-radius:4px;padding:.8rem .85rem;position:relative;overflow:hidden;min-width:0}
 .fact .ic{font-size:1.1rem;line-height:1;margin-bottom:.4rem}
@@ -803,9 +804,11 @@ the club is older than its paperwork.</p>
 <div class="phead2"><div class="pnick" id="pnick"></div><div class="ph2row"><div id="pav"></div><div style="min-width:0"><h1 id="pname"></h1><div class="psub" id="psub"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
 <h2 class="sr" id="pvH2">Player details</h2>
 <dl class="kpis" id="kpis"></dl>
-<div class="facts" id="facts"></div>
 <div class="gwrap" id="graphs"></div>
 <div id="graphs2"></div>
+<h3 class="factsH">Career highlights</h3>
+<div class="facts" id="facts"></div>
+<div id="graphs3"></div>
 </main>
 <footer id="foot"></footer>
 </div>
@@ -2207,7 +2210,7 @@ function showProfile(n,rival){
   $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
     '<button class="chip" id="meBtn" aria-pressed="'+(meName()===p.n)+'">'+(meName()===p.n?"Not me":"This is me")+'</button>';
   $("#meBtn").onclick=function(){ const on=meName()!==p.n; setMe(on?p.n:""); this.textContent=on?"Not me":"This is me"; this.setAttribute("aria-pressed",on); draw() };
-  $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"smooth",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
+  $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"instant",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   $("#kpis").innerHTML=
     '<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'–'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>'+
     '<div><dt>Record</dt><dd>'+p.rec.join("–")+'<small>W–D–L</small></dd></div>'+
@@ -2229,21 +2232,22 @@ function drawGraphs(){
     card("Points won and lost each night", nightly(p), "gwide")+
     card("Recent form", formStrip(p))+
     card("Recent games", recentGames(p));
+  // who they beat and who beats them, then the breakdowns, then the long feed last
   // the rest waits behind one button: five screens of charts is where people
   // stopped reading. A rival in the address opens it, since that is where it lives.
   $("#graphs2").innerHTML=
     '<div class="gwrap">'+
+    card("Record against everyone", vsTable(p))+
+    card("Rivals", rivalsChart(p))+
+    card("Compare with a rival", comparePanel(p), "", "cmpCard")+
+    '</div><div class="gwrap">'+
     card("Against each level", bandsChart(p))+
     card("White and Black", colourChart(p))+
-    card("Rivals", rivalsChart(p))+
     card("Turnout", attendance(p))+
-    '</div><div class="gwrap">'+
-    card("Achievements", achBlock(p), "gwide")+
-    card("Compare with a rival", comparePanel(p), "gwide", "cmpCard")+
-    card("Record against everyone", vsTable(p))+
     '</div>';
+  $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements", achBlock(p), "gwide")+'</div>';
   // a card with nothing in it yet is a box saying so: drop it until it has something
-  document.querySelectorAll("#graphs .card, #graphs2 .card").forEach(function(c){
+  document.querySelectorAll("#graphs .card, #graphs2 .card, #graphs3 .card").forEach(function(c){
     var body=[...c.children].filter(function(x){ return x.tagName!=="H3" });
     if(body.length===1&&body[0].tagName==="P"&&/^(Not enough|No nights|No games)/.test(body[0].textContent.trim())) c.remove();
   });
