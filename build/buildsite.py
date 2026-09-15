@@ -333,7 +333,48 @@ def career_stats(history, arc_matches, link, names):
     return final
 
 
-def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None,bands=None):
+def era_data(P, full, arc_matches, link, hidden, seeds, id_, divisions):
+    """Every era the page can redraw a profile over, in one block: the Glicko
+    nights with each player's rating after each of them, which season each
+    night belongs to (everything before the anchor is Season 8 in the club's
+    numbering), the bracket each player was fixed in for each numbered season,
+    and the old system's matches under the names the club uses now. The page
+    derives the rest, the same way it does for the season on the board."""
+    dates=[h["date"] for h in full]
+    games=[]; byes=[]
+    for i,h in enumerate(full):
+        for w,b,r in h["games"]: games.append([i,id_(w),id_(b),r])
+        for x in h.get("byes") or []:
+            who,pts=(x,0.5) if isinstance(x,str) else (x[0],x[1])
+            byes.append([i,id_(who),pts])
+    di={d:i for i,d in enumerate(dates)}
+    hist={}; seed={}
+    for n,q in P.items():
+        if q["n"]<=0: continue
+        hist[n]=[[di[d],round(r),round(rd)] for d,r,rd in q["hist"] if d in di]
+        seed[n]=round(seeds.get(n,1000))
+    ano,anchor=SEASON_ANCHOR
+    season=[season_of(d)[0] if d>=anchor else ano-1 for d in dates]
+    bands={}
+    for no in sorted({s for s in season if s>=ano}):
+        frm,to=season_bounds(no)
+        nights=[h for h in full if frm<=h["date"]<to]
+        pk=window_level(P, lookback_start(frm), frm)
+        for n,b in season_bands(P,nights,pk,divisions).items(): bands.setdefault(n,{})[no]=b
+    # the old workbook: its names mapped to today's, people who asked to be
+    # unlisted relabelled the same way the replay relabels them
+    a=anon_map(hidden); back={old:cur for cur,old in (link or {}).items()}
+    def cur(n):
+        n=back.get(n,n); return a.get(n,n)
+    onights=sorted({m[0] for m in arc_matches or []})
+    oi={d:i for i,d in enumerate(onights)}
+    ogames=[[oi[d],id_(cur(w)),id_(cur(b)),r] for d,w,b,r in arc_matches or []
+            if w.strip().lower()!="null" and b.strip().lower()!="null"]
+    return {"dates":dates,"games":games,"byes":byes,"hist":hist,"seed":seed,"season":season,"bands":bands,
+            "old":{"dates":onights,"games":ogames}}
+
+
+def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None,bands=None,full=None,arcm=None):
     PEAKS=peaks or {}
     VAULT=vault_totals(vault)
     VAULT_SUM={"nights":len(vault),"games":sum(len(n["games"]) for n in vault),
@@ -391,9 +432,10 @@ def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(
         guard=0
         while built and d.isoformat()<built and guard<12: d+=datetime.timedelta(days=med); guard+=1
         nxt=d.isoformat()
+    eras=era_data(P, full if full is not None else history, arcm, (archive or {}).get('link'), hidden, seeds, id_, divisions)
     return {"club":"KAVA Social Chess Club","built":built,"date":last,"next":nxt,"divisions":divisions,
             "dates":dates,"names":names,"games":games,"byes":byes,"players":players,"archive":archive,
-            "season":season,"vault":VAULT_SUM}
+            "season":season,"vault":VAULT_SUM,"eras":eras}
 
 NIGHTS_DIR='nights'   # build/nights/<date>.json: one file per night the phone submits
 
@@ -500,7 +542,7 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
     BANDS=season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"])
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
-                  HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS)
+                  HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS,HISTORY,ARCM)
     D["pics"]=photo_slugs()
     # the bracket snapshots name everyone the club had on a sheet, so the people
     # who have left have to come out of those too
