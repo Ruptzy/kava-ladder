@@ -548,6 +548,49 @@ box-shadow:0 16px 40px -14px rgba(0,0,0,.9);opacity:0;transition:transform .25s,
 #eggToast.on{transform:translate(-50%,0);opacity:1}
 #eggToast .eggn{display:block;margin-top:.35rem;font-family:var(--fm);font-style:normal;
 font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--scarlet)}
+/* round two of the eggs: everything here is a fixed overlay that removes itself */
+.fx{position:fixed;z-index:85;pointer-events:none;font-family:var(--fd);color:var(--cream)}
+.fx.gallop{left:-80px;top:38%;font-size:64px;animation:gallop 1.8s linear forwards}
+@keyframes gallop{0%{transform:translateX(0) scaleX(-1)}25%{transform:translate(25vw,-40px) scaleX(-1)}50%{transform:translate(50vw,0) scaleX(-1)}75%{transform:translate(75vw,-40px) scaleX(-1)}100%{transform:translate(110vw,0) scaleX(-1)}}
+.fx.kboard{left:50%;top:50%;transform:translate(-50%,-50%);display:grid;grid-template-columns:repeat(8,1fr);width:min(80vw,320px);aspect-ratio:1;border:2px solid var(--scarlet);background:var(--void);animation:kfade 4s forwards}
+.fx.kboard i{display:block}.fx.kboard i.d{background:#3A3F45}.fx.kboard i.l{background:#B3ABA0}
+.fx.kboard b{position:absolute;font-size:calc(min(80vw,320px)/8);line-height:1;animation:kwalk 3.2s ease-in-out forwards}
+@keyframes kfade{0%{opacity:0}10%{opacity:1}85%{opacity:1}100%{opacity:0}}
+@keyframes kwalk{0%{transform:translate(0,0)}50%{transform:translate(var(--dx),var(--dy))}100%{transform:translate(var(--dx2),var(--dy2))}}
+.glitch{animation:glitch .35s steps(2) 5}
+@keyframes glitch{0%{transform:translate(0)}25%{transform:translate(-3px,1px);color:var(--scarlet)}50%{transform:translate(2px,-1px)}75%{transform:translate(-1px,2px);color:var(--gain)}100%{transform:translate(0)}}
+.crownfall{display:inline-block;animation:crownfall 1.6s cubic-bezier(.3,1.4,.5,1) forwards}
+@keyframes crownfall{0%{transform:translate(0,0) rotate(0)}40%{transform:translate(6px,40px) rotate(60deg)}60%{transform:translate(9px,28px) rotate(80deg)}80%{transform:translate(12px,44px) rotate(95deg)}100%{transform:translate(14px,42px) rotate(100deg);opacity:.6}}
+.fx.banner{left:50%;top:40%;transform:translate(-50%,-50%);font-size:clamp(2.4rem,12vw,6rem);font-variation-settings:"wdth" 118,"wght" 900;color:var(--scarlet);text-shadow:0 8px 40px rgba(0,0,0,.9);animation:bannerpop 1.4s ease-out forwards;white-space:nowrap}
+@keyframes bannerpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.6)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+.fx.holyhell{right:.6rem;bottom:.5rem;font-family:var(--fm);font-size:9px;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase;animation:kfade 10s forwards}
+.moon{margin-left:.5rem;font-style:normal}
+.fx.voidpawn{left:50%;bottom:1rem;transform:translateX(-50%);font-size:2.2rem;opacity:0;animation:voidin 6s ease-in-out forwards;text-align:center}
+.fx.voidpawn small{display:block;font-family:var(--fm);font-size:.6rem;letter-spacing:.2em;color:var(--ink-3);text-transform:uppercase}
+@keyframes voidin{0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}}
+.fx.swords{left:50%;top:30%;transform:translateX(-50%);font-size:4rem;animation:swords 1.6s ease-out forwards}
+@keyframes swords{0%{opacity:0;transform:translateX(-50%) scale(.4) rotate(-20deg)}30%{opacity:1;transform:translateX(-50%) scale(1.2) rotate(8deg)}100%{opacity:0;transform:translateX(-50%) scale(1) rotate(0)}}
+.zap{font-style:normal;font-size:.7rem;margin-left:.3rem;color:#E8C047;animation:zap 1.2s ease-out 2}
+@keyframes zap{0%{opacity:.2}50%{opacity:1;text-shadow:0 0 8px #E8C047}100%{opacity:.6}}
+.fx.wilhelm{left:50%;top:-2rem;transform:translateX(-50%);font-size:1.2rem;font-family:var(--fm);letter-spacing:.3em;animation:wilhelm 1.6s ease-in forwards}
+@keyframes wilhelm{0%{top:-2rem;opacity:1}100%{top:110vh;opacity:.8;transform:translateX(-50%) rotate(180deg)}}
+.promoted{animation:promote .6s ease-out}
+@keyframes promote{0%{transform:scale(1)}50%{transform:scale(1.8) rotate(10deg);color:#E8C047}100%{transform:scale(1)}}
+.fx.racer{left:-60px;bottom:18%;font-size:44px;animation:racer 1.4s cubic-bezier(.2,.8,.4,1) forwards}
+@keyframes racer{0%{transform:translateX(0) scaleX(-1)}100%{transform:translateX(120vw) scaleX(-1)}}
+.sparkle{position:relative}.sparkle::after{content:"✨";position:absolute;right:-.2rem;top:-.4rem;animation:sparkle 1.2s ease-out 3}
+@keyframes sparkle{0%{transform:scale(.4);opacity:0}50%{transform:scale(1.3);opacity:1}100%{transform:scale(.6);opacity:0}}
+.flipped{animation:flip 1.2s ease-in-out}
+@keyframes flip{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}
+.fx.tourhop{font-size:28px;transition:left .5s ease-in-out,top .5s ease-in-out;opacity:.95}
+.fx.cup{left:.8rem;bottom:.8rem;font-size:2rem;pointer-events:auto;cursor:pointer;animation:kfade 3s forwards paused;animation:none}
+.fx.cup small{display:block;font-family:var(--fm);font-size:.6rem;letter-spacing:.14em;color:var(--ink-3);text-transform:uppercase}
+.fx.cup i{position:absolute;left:.9rem;top:-.6rem;font-style:normal;font-size:.9rem;color:var(--ink-3);animation:steam 2s ease-in-out infinite}
+@keyframes steam{0%{opacity:0;transform:translateY(4px)}50%{opacity:.8}100%{opacity:0;transform:translateY(-10px)}}
+.fx.gg{left:50%;top:40%;transform:translateX(-50%);font-size:3rem;white-space:nowrap;animation:kfade 3s forwards}
+.fx.gg b{display:inline-block;animation:shake .6s ease-in-out 3}
+@keyframes shake{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+#spectator{margin-left:.4rem;font-style:normal}
 #eggToast.goblin{font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 900;font-size:1.15rem;
 letter-spacing:.02em;color:var(--scarlet);border-color:var(--scarlet);background:rgba(26,14,16,.98);
 box-shadow:0 0 40px -8px var(--scarlet),0 16px 40px -14px rgba(0,0,0,.9)}
@@ -718,7 +761,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <button class="showaway" id="awayBtn"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
 <div id="race"></div>
-<div class="sh"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
+<div class="sh" id="xtHead"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
 <button class="xbtn" id="xtBtn">Show the crosstable</button>
 <div id="xtWrap" class="hid">
@@ -751,7 +794,7 @@ ratings grew out of the club, not the other way round.</p>
 play chess, and nobody is turned away for being new or rusty.</p>
 </div>
 <div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
-<p class="l">Every game the club has a record of. These records begin in September 2022 &mdash;
+<p class="l">Every game the club has a record of. These records begin in <span class="oldkava" role="button" tabindex="0">September 2022</span> &mdash;
 the club is older than its paperwork.</p>
 <dl class="kpis" id="clubKpis"></dl>
 <div class="gwrap" id="clubCharts"></div>
@@ -2268,7 +2311,7 @@ function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var nd={}; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
+    return '<tr><td class="d">'+fshort(DATES[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span></td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had; the last column is the rating change for that whole night.</p>';
 }
@@ -2419,6 +2462,8 @@ function showProfile(n,rival){
   var p=byN[n]; if(!p) return;
   var same=CUR&&CUR.n===n; CUR=p; RIVAL=rival&&rival!==n?byN[rival]:null;
   document.title=p.n+" · "+CLUB;
+  try{ if(window.eggProfile) eggProfile(p) }catch(e){}
+  setTimeout(function(){ if(CUR===p&&document.querySelector(".rg .zap")) eggFind("upset-alert") },50);
   var tt=titleFor(p), el=$("#pnick");
   if(Math.random()<0.12) setTimeout(function(){ if(CUR===p) egg(scoutLine(p),3600) },12000);
   try{ openingEggs(p) }catch(e){}
@@ -2517,6 +2562,139 @@ $("#jumpBtn").onclick=function(){
   setTimeout(function(){ if(scrollToMe()) return; const l=$("#ladder"); if(l) window.scrollTo({top:l.getBoundingClientRect().top+scrollY-8,behavior:"instant"}) },60);
 };
 
+/* ---------- round two of the eggs ---------- */
+function fx(cls,html,ms){
+  const el=document.createElement("div"); el.className="fx "+cls; el.innerHTML=html; document.body.appendChild(el);
+  setTimeout(function(){ if(el.parentNode) el.remove() },ms||2000); return el;
+}
+function eggFx(kind){
+  if(kind==="bong"){ fx("banner","&#9818; Ke2?!",1400) }
+  if(kind==="holyhell"){ fx("holyhell","holy hell",10000) }
+  if(kind==="gg"){ fx("gg","<b>&#9812;</b> &#129309; <b>&#9818;</b>",3000) }
+  if(kind==="check"){ fx("banner","CHECK!",1400) }
+  if(kind==="castle"){ fx("banner","0-0-0",1400) }
+  if(kind==="gallop"){ fx("gallop","&#9822;",1900) }
+  if(kind==="racer"){ fx("racer","&#9822;&#128168;",1500) }
+  if(kind==="swords"){ fx("swords","&#9876;&#65039;",1700) }
+  if(kind==="wilhelm"){ fx("wilhelm","AAAAAAAAAAH",1700) }
+}
+// the typing-into-a-field guard the whole set shares
+const typing=e=>e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="SELECT"||e.target.tagName==="TEXTAREA");
+
+// Konami: a chessboard appears and a knight goes for a walk on it
+{ const SEQ=["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight"]; let at=0;
+  document.addEventListener("keydown",e=>{ if(typing(e)) return;
+    at=e.key===SEQ[at]?at+1:(e.key===SEQ[0]?1:0);
+    if(at===SEQ.length){ at=0; eggFind("konami"); egg("Cheat code accepted. There are no cheats in chess.",3200);
+      let cells=""; for(let i=0;i<64;i++){ const r=Math.floor(i/8), c=i%8; cells+='<i class="'+((r+c)%2?"d":"l")+'"></i>' }
+      const s="calc(min(80vw,320px)/8)";
+      fx("kboard",cells+'<b style="left:calc('+s+' * 1);top:calc('+s+' * 7);--dx:calc('+s+' * 1);--dy:calc('+s+' * -2);--dx2:calc('+s+' * 3);--dy2:calc('+s+' * -3)">&#9822;</b>'+
+        '<b style="left:calc('+s+' * 6);top:calc('+s+' * 0);--dx:calc('+s+' * -1);--dy:calc('+s+' * 2);--dx2:calc('+s+' * -3);--dy2:calc('+s+' * 3)">&#9816;</b>',4000) } }); }
+
+// the badge, tapped seven times, gallops
+{ let taps=0, t0=0; document.addEventListener("click",e=>{ const img=e.target.closest(".tb img"); if(!img) return;
+    const now=Date.now(); taps=now-t0<4000?taps+1:1; t0=now;
+    if(taps===7){ taps=0; eggFind("gallop"); eggFx("gallop") } }); }
+
+// your rating, tapped until it is not sure
+{ let taps=0, t0=0; document.addEventListener("click",e=>{ const dd=e.target.closest("#kpis>div:first-child dd"); if(!dd) return;
+    const now=Date.now(); taps=now-t0<3000?taps+1:1; t0=now;
+    if(taps===5){ taps=0; eggFind("glitch"); const keep=dd.innerHTML; dd.classList.add("glitch"); dd.innerHTML="??? ELO";
+      setTimeout(function(){ dd.classList.remove("glitch"); dd.innerHTML=keep },2000) } }); }
+
+// the crown on the top player's title comes off
+document.addEventListener("click",e=>{ const ic=e.target.closest("#pnick .ni"); if(!ic||ic.textContent.trim()!=="\uD83D\uDC51"||ic.classList.contains("crownfall")) return;
+  e.stopPropagation(); eggFind("crown"); ic.classList.add("crownfall"); egg("Heavy is the head.",2200);
+  setTimeout(function(){ ic.classList.remove("crownfall") },2400) },true);
+
+// pieces on the page: check, long castle, promotion, and the scream
+{ let seq=[], pawnTaps=0, pawnAt=0;
+  document.addEventListener("click",e=>{
+    const el=e.target.closest("#champs i, .rc h4 i, .rr i"); if(!el) return;
+    const g=el.textContent.trim(); if(!/^[\u265A-\u265F\u2654-\u2659]$/.test(g)) return;
+    if(el.closest("a")) e.preventDefault();   // the glyph is the toy; the words are the link
+    const now=Date.now();
+    if(g==="\u265F"||g==="\u2659"){ pawnTaps=now-pawnAt<10000?pawnTaps+1:1; pawnAt=now;
+      if(Math.random()<0.05){ eggFind("wilhelm"); eggFx("wilhelm") }
+      if(pawnTaps===8){ pawnTaps=0; eggFind("promotion"); const keep=el.textContent; el.textContent="\u265B"; el.classList.add("promoted"); egg("Promoted. Every pawn's dream.",2400);
+        setTimeout(function(){ el.textContent=keep; el.classList.remove("promoted") },3000) } }
+    seq.push(g); seq=seq.slice(-3);
+    const K=/[\u265A\u2654]/, R=/[\u265C\u2656]/;
+    if(seq.length>=3&&K.test(seq[0])&&R.test(seq[1])&&K.test(seq[2])){ seq=[]; eggFind("castle-long"); egg("Long castle. The king hops.",2400); eggFx("castle"); return }
+    if(seq.length>=2&&K.test(seq[seq.length-2])&&R.test(seq[seq.length-1])){ eggFind("check"); eggFx("check") }
+  }); }
+
+// after midnight, a moon
+function eggNightOwl(h){ if(h>=0&&h<5&&!$(".moon")){ const w=$(".wm small"); if(w){ w.insertAdjacentHTML("beforeend",'<i class="moon" title="Night owl">&#127769;</i>'); eggFind("nightowl") } } }
+eggNightOwl(new Date().getHours());
+
+// the last week of October, some pieces are not themselves
+function eggHalloween(d){ if(d.getMonth()===9&&d.getDate()>=24){ eggFind("halloween");
+  const swap=()=>document.querySelectorAll("#champs i, .rc h4 i, .rr i").forEach(i=>{ if(Math.random()<0.3&&!i.dataset.k){ i.dataset.k=i.textContent; i.textContent="\uD83D\uDC80" } });
+  swap(); setInterval(swap,20000); return true } return false }
+eggHalloween(new Date());
+
+// the first of April, a tapped rating is over nine thousand
+let eggToday=new Date();   // the real date; swapped in tests
+document.addEventListener("click",e=>{ const d=eggToday; if(!(d.getMonth()===3&&d.getDate()===1)) return;
+  const r=e.target.closest(".rat, #kpis>div:first-child dd, .pc .rt"); if(!r||r.dataset.fool) return;
+  eggFind("aprilfools"); r.dataset.fool="1"; const keep=r.innerHTML; r.innerHTML="9001"; setTimeout(function(){ r.innerHTML=keep; delete r.dataset.fool },1500) });
+
+// old Kava: the month the records begin opens the oldest standings
+document.addEventListener("click",e=>{ const o=e.target.closest(".oldkava"); if(!o) return; eggFind("oldkava");
+  const more=$("#arcMore"), rest=$("#arcRest"); if(rest&&rest.classList.contains("hid")&&more) more.click();
+  const arc=$("#arc"); if(arc){ arc.scrollIntoView({block:"start",behavior:"instant"}); egg("Where it started: September 2022, 28 games, 20 players.",3200) } });
+document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.closest&&e.target.closest(".oldkava")){ e.preventDefault(); e.target.click() } });
+
+// the void: at the very bottom, keep going
+{ let pushes=0, shown=false;
+  const atBottom=()=>scrollY+innerHeight>=document.documentElement.scrollHeight-6;
+  const push=()=>{ if(!atBottom()){ pushes=0; return } pushes++;
+    if(pushes>=3&&!shown){ shown=true; eggFind("void"); fx("voidpawn","&#9823;<small>one pawn, alone</small>",6000); setTimeout(function(){ shown=false; pushes=0 },8000) } };
+  addEventListener("wheel",e=>{ if(e.deltaY>0) push() },{passive:true});
+  let ty=null; addEventListener("touchstart",e=>{ ty=e.touches[0].clientY },{passive:true});
+  addEventListener("touchmove",e=>{ if(ty!=null&&ty-e.touches[0].clientY>20){ push(); ty=e.touches[0].clientY } },{passive:true}); }
+
+// profiles opened this sitting: rematch, speedrun, spectator, rival
+{ const seen=(()=>{ try{ return JSON.parse(sessionStorage.getItem("kv-seen")||"[]") }catch(e){ return [] } })();
+  const times=[];
+  window.eggProfile=function(p){
+    if(!p) return;
+    const now=Date.now(); times.push({n:p.n,t:now}); while(times.length&&now-times[0].t>30000) times.shift();
+    const inWindow=new Set(times.map(x=>x.n));
+    if(inWindow.size>=5&&!eggsFound().has("speedrun")){ eggFind("speedrun"); egg("Speedrun. Any%.",2400); eggFx("racer") }
+    if(seen.indexOf(p.n)>=0){ if(eggFind("rematch")) egg("Run it back?",2400) }
+    else{ seen.push(p.n); try{ sessionStorage.setItem("kv-seen",JSON.stringify(seen)) }catch(e){} }
+    if(seen.length>=10&&!$("#spectator")){ eggFind("spectator"); const w=$(".wm small"); if(w) w.insertAdjacentHTML("beforeend",'<i id="spectator" title="The spectator">&#128301;</i>') }
+    const me=meName(); if(me&&me!==p.n&&byN[me]){ let most=null, mg=0; Object.keys(byN[me].opp).forEach(o=>{ const a=byN[me].opp[o], g=a[0]+a[1]+a[2]; if(g>mg){ mg=g; most=o } });
+      if(most===p.n){ eggFind("rival"); eggFx("swords") } }
+  }; }
+
+// one achievement, tapped seven times
+{ let last=null, taps=0; document.addEventListener("click",e=>{ const a=e.target.closest(".ach[data-ach]"); if(!a) return;
+    taps=a===last?taps+1:1; last=a; if(taps===7){ taps=0; eggFind("lucky7"); a.classList.add("sparkle"); egg("Lucky seven.",2000); setTimeout(function(){ a.classList.remove("sparkle") },3800) } }); }
+
+// the crosstable, flipped
+document.addEventListener("dblclick",e=>{ if(!e.target.closest("#xtHead")) return; const x=$("#xt"); if(!x||!x.firstChild) return;
+  eggFind("flip"); x.classList.add("flipped"); egg("Board flipped. Black to play.",2200); setTimeout(function(){ x.classList.remove("flipped") },1300) });
+
+// the knight's tour: the badge and the three podium cards
+{ const got=new Set(), keys=[".tb img","#pod .pc:nth-child(1)","#pod .pc:nth-child(2)","#pod .pc:nth-child(3)"];
+  const touch=e=>{ keys.forEach((k,i)=>{ if(e.target.closest(k)) got.add(div==="all"?k:k+div) });
+    const need=keys.filter(k=>document.querySelector(k)).length;
+    if(need>=4&&[...got].filter(k=>keys.some(b=>k.indexOf(b)===0)).length>=4&&!eggsFound().has("tour")){
+      eggFind("tour"); egg("A knight's tour.",2400);
+      const hop=fx("tourhop","&#9822;",3400); const stops=keys.map(k=>document.querySelector(k)).filter(Boolean);
+      let i=0; const go=()=>{ const r=stops[i%stops.length].getBoundingClientRect(); hop.style.left=(r.left+r.width/2-14)+"px"; hop.style.top=(r.top+r.height/2-14)+"px"; i++; if(i<=stops.length) setTimeout(go,550) }; go(); } };
+  document.addEventListener("mouseover",touch,{passive:true}); document.addEventListener("touchstart",touch,{passive:true}); document.addEventListener("click",touch); }
+
+// five minutes without a touch and there is a kava on the table
+{ let timer=null, cup=null, COFFEE_MS=300000;
+  const arm=()=>{ clearTimeout(timer); if(cup){ cup.remove(); cup=null } timer=setTimeout(function(){ if(document.visibilityState!=="visible") return; eggFind("coffee");
+      cup=fx("cup",'&#9749;<i>~</i><small>still here?</small>',3600000); cup.onclick=function(){ cup.remove(); cup=null } },COFFEE_MS) };
+  window.eggCoffee=function(ms){ COFFEE_MS=ms; arm() };
+  ["pointerdown","keydown","scroll","touchstart","mousemove"].forEach(ev=>addEventListener(ev,arm,{passive:true})); arm(); }
+
 /* ---------- easter eggs ----------
    All of them hang off something people already touch. None of them block a tap
    that was meant for navigation, and none change any number on the page.      */
@@ -2532,7 +2710,11 @@ const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes"
  "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
  "sunday","elo","glicko","beginner","magnus","engine","brilliant","tilt",
  "lastnight","footer","searchicon","earned","but-harold","deeper-motif","mighty-fall","winning-record",
- "bottom-rung","newest","most-travelled","twin"];
+ "bottom-rung","newest","most-travelled","twin",
+ // round two
+ "konami","gallop","glitch","crown","castle-long","bongcloud","enpassant","nightowl","halloween","aprilfools",
+ "oldkava","void","rival","upset-alert","wilhelm","promotion","check","speedrun","rematch","lucky7",
+ "flip","tour","coffee","gg","spectator"];
 function eggsFound(){
   try{ return new Set((localStorage.getItem("kv-eggs")||"").split(",").filter(Boolean)) }
   catch(e){ return new Set() }
@@ -2668,6 +2850,9 @@ const LENNY=[
  'Lenny thayth: "Interethting move. Wrong, but interethting."'];
 function searchEgg(v){
   const k=v.trim().toLowerCase();
+  if(k==="ke2"||k==="2.ke2"||k==="bongcloud"){ egg("The Bongcloud. Bold. Wrong. Beautiful.",3200,null,"bongcloud"); eggFx("bong"); return true }
+  if(k==="en passant"||k==="enpassant"){ egg("Holy hell.",2600,null,"enpassant"); eggFx("holyhell"); return true }
+  if(k==="gg"){ egg("Good game.",2600,null,"gg"); eggFx("gg"); return true }
   if(k==="e4"){ egg("Best by test. Lenny disagrees, at length.",2800,null,"e4"); return true }
   if(k==="e5"){ egg("Straight back at it. Bold. Symmetrical. Lenny has notes.",2800,null,"e5"); return true }
   if(k==="d4"){ egg("The slow squeeze. Bring a flask.",2600,null,"d4"); return true }
@@ -2863,7 +3048,32 @@ const HINTS={
  "bottom-rung":"Open the last ranked name on a board. It has something kind to say.",
  "newest":"Open whoever arrived at the club most recently.",
  "most-travelled":"Open whoever has faced the most different people.",
- "twin":"Two players are almost level on rating. Open either of them."
+ "twin":"Two players are almost level on rating. Open either of them.",
+ "konami":"Up, up, down, down. You know the rest.",
+ "gallop":"The badge does not mind being tapped. Seven times, say.",
+ "glitch":"Tap your own rating enough and it stops being sure.",
+ "crown":"The crown on the top player's title is not glued on.",
+ "castle-long":"King, rook, king. The pieces on the page can castle.",
+ "bongcloud":"Search for the worst second move in chess.",
+ "enpassant":"Search for the rule nobody believes at first.",
+ "nightowl":"Open the ladder after midnight.",
+ "halloween":"Come back in the last week of October.",
+ "aprilfools":"Tap a rating on the first of April.",
+ "oldkava":"In the club history, the month the records begin is a link.",
+ "void":"Scroll to the very bottom, then keep going.",
+ "rival":"Mark yourself, then open the page of the person you have played most.",
+ "upset-alert":"A big enough upset gets a flash in someone's recent games.",
+ "wilhelm":"Very rarely, tapping a pawn hurts.",
+ "promotion":"Tap a pawn eight times.",
+ "check":"Tap a king, then a rook.",
+ "speedrun":"Five player pages in thirty seconds.",
+ "rematch":"Open the same player's page twice.",
+ "lucky7":"Tap one achievement seven times.",
+ "flip":"Double-tap the crosstable's heading.",
+ "tour":"Touch the badge and all three podium cards.",
+ "coffee":"Leave the page alone for five minutes.",
+ "gg":"Search for two letters that end a game politely.",
+ "spectator":"Ten player pages in one sitting."
 };
 function hintUsed(){ try{ return sessionStorage.getItem("kv-hint-used")==="1" }catch(e){ return false } }
 function giveHint(){
