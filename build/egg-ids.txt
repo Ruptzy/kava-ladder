@@ -29,7 +29,6 @@ update
 kava
 leet
 checkmate
-records
 castle
 stalemate
 fork

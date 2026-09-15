@@ -371,7 +371,7 @@ def era_data(P, full, arc_matches, link, hidden, seeds, id_, divisions):
     ogames=[[oi[d],id_(cur(w)),id_(cur(b)),r] for d,w,b,r in arc_matches or []
             if w.strip().lower()!="null" and b.strip().lower()!="null"]
     return {"dates":dates,"games":games,"byes":byes,"hist":hist,"seed":seed,"season":season,"bands":bands,
-            "old":{"dates":onights,"games":ogames}}
+            "first":ano,"old":{"dates":onights,"games":ogames}}
 
 
 def ladder_data(P,history,roster,divisions,archive,seeds,built,hidden=(),vault=(),season=None,peaks=None,career=None,bands=None,full=None,arcm=None):
@@ -592,16 +592,6 @@ def champions(Da):
     return out
 
 
-def season_summary(no,frm,to,Da):
-    """One card's worth: who won each bracket, and the size of the season."""
-    names=Da["names"]; played=set()
-    for ni,w,b,r in Da["games"]: played.add(names[w]); played.add(names[b])
-    members=[q for q in Da["players"] if not q.get("gh") and q["n"] in played]
-    top=sorted([q for q in members if q["rd"]<=110], key=lambda q:-q["r"])[:3]
-    return {"no":no,"from":frm,"to":to,"nights":len(Da["dates"]),"games":len(Da["games"]),
-            "players":len(members),"champs":champions(Da),"top":[{"n":q["n"],"r":q["r"]} for q in top]}
-
-
 def archive_head(html,no):
     """A frozen season is its own page: its own title, description and address,
     so a search result for it says what it is."""
@@ -639,7 +629,6 @@ if __name__=="__main__":
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
     D["past"]=[no for no,_,_ in PAST]
     D["champs"]=[]
-    D["seasons"]=[]
     print('season %d: %s .. %s | vault %d nights, %d games'
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
@@ -654,7 +643,6 @@ if __name__=="__main__":
         print('%s: season %d frozen | %d nights, %d games, %s .. %s'
               % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
         D["champs"].insert(0,{"no":no,"list":champions(Da)})   # newest first
-        D["seasons"].insert(0,season_summary(no,frm,Da["dates"][-1],Da))
     html=page(D)
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
