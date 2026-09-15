@@ -1578,6 +1578,8 @@ font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--scarle
 .fx.gg b{display:inline-block;animation:shake .6s ease-in-out 3}
 @keyframes shake{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
 #spectator{margin-left:.4rem;font-style:normal}
+#eggToast.hint{border-color:var(--cream);text-align:left}
+#eggToast.hint::before{content:"Hint";display:block;font-family:var(--fm);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--scarlet);margin-bottom:.2rem}
 #eggToast.goblin{font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 900;font-size:1.15rem;
 letter-spacing:.02em;color:var(--scarlet);border-color:var(--scarlet);background:rgba(26,14,16,.98);
 box-shadow:0 0 40px -8px var(--scarlet),0 16px 40px -14px rgba(0,0,0,.9)}
@@ -3652,6 +3654,7 @@ document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.ta
     if(inWindow.size>=5&&!eggsFound().has("speedrun")){ eggFind("speedrun"); egg("Speedrun. Any%.",2400); eggFx("racer") }
     if(seen.indexOf(p.n)>=0){ if(eggFind("rematch")) egg("Run it back?",2400) }
     else{ seen.push(p.n); try{ sessionStorage.setItem("kv-seen",JSON.stringify(seen)) }catch(e){} }
+    if(Math.random()<0.125) setTimeout(function(){ dropHint() },1200);
     if(seen.length>=10&&!$("#spectator")){ eggFind("spectator"); const w=$(".wm small"); if(w) w.insertAdjacentHTML("beforeend",'<i id="spectator" title="The spectator">&#128301;</i>') }
     const me=meName(); if(me&&me!==p.n&&byN[me]){ let most=null, mg=0; Object.keys(byN[me].opp).forEach(o=>{ const a=byN[me].opp[o], g=a[0]+a[1]+a[2]; if(g>mg){ mg=g; most=o } });
       if(most===p.n){ eggFind("rival"); eggFx("swords") } }
@@ -4071,6 +4074,24 @@ function giveHint(){
   const id=left[Math.floor(Math.random()*left.length)];
   egg((HINTS[id]||"Keep poking about.")+"  ("+found.size+" of "+EGG_IDS.length+" found)",5200);
 }
+
+/* A hint that comes to you. Rare but not too rare: about one visit in three,
+   twenty seconds in - never over the page while somebody is arriving - or one
+   time in eight when a player's page opens. Once a visit, always for an egg
+   this browser has not found, and quiet once they are all found. */
+function dropHint(force){
+  if(document.visibilityState!=="visible"&&!force) return false;
+  let done=false; try{ done=sessionStorage.getItem("kv-hint-auto")==="1" }catch(e){}
+  if(done&&!force) return false;
+  const found=eggsFound(), left=EGG_IDS.filter(id=>!found.has(id)&&HINTS[id]);
+  if(!left.length) return false;
+  try{ sessionStorage.setItem("kv-hint-auto","1") }catch(e){}
+  const id=left[Math.floor(Math.random()*left.length)];
+  egg(HINTS[id],5600,"hint");
+  return true;
+}
+window.eggHint=dropHint;
+setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
 
 /* ---------- club records, reachable from the footer or by typing it ---------- */
 function drawRecords(){
