@@ -628,7 +628,6 @@ if __name__=="__main__":
     PAST=completed_seasons(HISTORY, built)
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
     D["past"]=[no for no,_,_ in PAST]
-    D["champs"]=[]
     print('season %d: %s .. %s | vault %d nights, %d games'
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
@@ -642,7 +641,6 @@ if __name__=="__main__":
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
         print('%s: season %d frozen | %d nights, %d games, %s .. %s'
               % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
-        D["champs"].insert(0,{"no":no,"list":champions(Da)})   # newest first
     html=page(D)
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
@@ -653,5 +651,3 @@ if __name__=="__main__":
     print('index.html',len(html.encode('utf-8')),'bytes | data',len(json.dumps(D,separators=(',',':'))),'bytes')
     vis=[p for p in D["players"] if not p.get("gh")][:5]
     print('top:', ', '.join('%s %d'%(p['n'],p['r']) for p in vis))
-    for c in D["champs"]:
-        print('season %d champions: %s' % (c["no"], ', '.join('%s %s %d'%(x["d"],x["n"],x["r"]) for x in c["list"])))
