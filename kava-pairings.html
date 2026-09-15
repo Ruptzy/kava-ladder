@@ -1054,6 +1054,18 @@ a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
 .howbtn.red:hover{background:var(--scarlet);border-color:var(--scarlet);color:#fff}
 #seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
 #seasonNote:empty{display:none}
+/* who won last season: one line, tap for the whole thing */
+#champs:empty,#firstNote:empty{display:none}
+#champs a{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;margin:0 0 .9rem;padding:.55rem .8rem;min-height:40px;
+border:1px solid var(--rule-2);border-radius:8px;background:var(--panel);color:var(--cream);text-decoration:none;
+font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
+#champs a:hover{border-color:var(--scarlet)}
+#champs a b{color:var(--ink-3);font-weight:400}
+#champs a span i{font-style:normal;color:var(--scarlet);margin-right:.3rem}
+#firstNote{display:flex;align-items:center;gap:.6rem;margin:0 0 .9rem;padding:.35rem .35rem .35rem .8rem;
+border-left:3px solid var(--cream);border-radius:4px;background:rgba(22,23,25,.9);font-size:.9rem;color:var(--cream)}
+#firstNote span{flex:1}
+#firstNote button{background:none;border:none;color:var(--ink-2);font-size:1.3rem;min-width:40px;min-height:40px;cursor:pointer}
 #seasonNote a{color:var(--scarlet);font-weight:700;white-space:nowrap}
 .srch{position:relative;flex:1 1 220px;max-width:340px}
 .srch input{width:100%;background:var(--panel);border:1px solid var(--rule-2);border-radius:8px;color:var(--cream);font:inherit;font-size:.95rem;padding:.55rem .8rem .55rem 2.1rem}
@@ -1621,6 +1633,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <span id="pastBtns" style="display:contents"></span>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
+<div id="champs"></div>
+<div id="firstNote"></div>
 <nav class="tabs" id="tabs" role="tablist" aria-label="Brackets"></nav></div></header>
 <div class="sr" id="live" aria-live="polite"></div>
 <div class="w">
@@ -1948,6 +1962,17 @@ window.addEventListener("hashchange",route);
             '. Ratings carry over from Season '+(SEASON.no-1)+', so this is where everyone starts.'
       :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
             '. Until the first results are in, this is how Season '+SEASON.no+' finished.':'';
+    // last season's champions, by the finale's own rule; the line opens that season
+    { const c=$("#champs"), ch=(D.champs||[])[0], PIECE=["&#9818;","&#9820;","&#9823;"];
+      if(c&&ch&&!arch&&ch.list.length) c.innerHTML='<a href="season-'+ch.no+'.html"><b>&#127942; Season '+ch.no+' champions</b>'+
+        ch.list.map(x=>'<span><i>'+(PIECE[D.divisions.indexOf(x.d)]||"")+'</i>'+E(x.n)+'</span>').join("")+'</a>'; }
+    // one line for somebody's first visit, gone the first time they tap a name
+    { const f=$("#firstNote"); let seen=false; try{ seen=localStorage.getItem("kv-first")==="1" }catch(e){}
+      const done=()=>{ try{ localStorage.setItem("kv-first","1") }catch(e){} if(f) f.innerHTML="" };
+      if(f&&!seen&&!arch&&!location.hash)
+        f.innerHTML='<span>First time here? Tap your name in the table to see your page.</span><button id="firstX" aria-label="Got it">&times;</button>';
+      document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
+      addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
       .map(n=>'<a class="howbtn red" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
       (arch?'<a class="howbtn red" href="./">Current season</a>':'');
