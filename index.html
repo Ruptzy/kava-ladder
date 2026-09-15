@@ -66,7 +66,28 @@ a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
 #seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
 #seasonNote:empty{display:none}
 /* who won last season: one line, tap for the whole thing */
-#champs:empty,#firstNote:empty{display:none}
+#champs:empty,#firstNote:empty,#you:empty,#race:empty{display:none}
+/* movement since last night, gap to the one above, last five results */
+.mv{font-family:var(--fm);font-size:.7rem;margin-left:.3rem;font-weight:700;white-space:nowrap}
+.mv.up{color:var(--gain)}.mv.dn{color:var(--loss)}.mv.nw{color:var(--ink-3);font-weight:400}
+.gap{display:block;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);white-space:nowrap}
+.fs5{display:inline-flex;gap:2px;margin-left:.5rem;vertical-align:middle}
+.fs5 i{width:7px;height:10px;border-radius:1px;background:var(--panel-3)}
+.fs5 i.W{background:var(--gain)}.fs5 i.L{background:var(--loss)}.fs5 i.D{background:var(--ink-3)}
+/* the row this phone calls you */
+tbody tr.me{background:var(--scarlet-wash)}tbody tr.me td.nmc2{box-shadow:inset 3px 0 0 var(--scarlet)}
+#you button{display:flex;align-items:center;gap:.5rem;width:100%;min-height:44px;margin:0 0 .8rem;padding:.6rem .9rem;
+background:var(--scarlet-wash);border:1px solid var(--scarlet-dim);border-radius:10px;color:var(--cream);font:inherit;font-size:.9rem;text-align:left;cursor:pointer}
+#you button b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet)}
+#you button .chev{margin-left:auto;color:var(--ink-3);font-size:1.2rem}
+/* the season prize race */
+.rcs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem}
+.rc{background:var(--panel);border:1px solid var(--rule-2);border-radius:3px;padding:.8rem .9rem}
+.rc h4{margin:0 0 .4rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap}
+.rc h4 i{font-style:normal;color:var(--scarlet)}
+.rc h4 span{margin-left:auto;color:var(--cream);text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:.8rem}
+.rc p{margin:0 0 .3rem;font-size:.92rem}.rc small{display:block;color:var(--ink-3);font-size:.78rem;line-height:1.5}
+@media(max-width:700px){.rcs{grid-template-columns:1fr}}
 #champs a{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;margin:0 0 .9rem;padding:.55rem .8rem;min-height:40px;
 border:1px solid var(--rule-2);border-radius:8px;background:var(--panel);color:var(--cream);text-decoration:none;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
@@ -652,6 +673,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <main id="board">
 <section class="ln" id="ln"></section>
 <div class="pod" id="pod"></div>
+<div id="you"></div>
 <div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p id="ladSub">&nbsp;</p></div>
 <p class="l">Beat someone better, gain more. The <b>&plusmn;</b> is wiggle room &mdash; it shrinks as you play.</p>
 <div class="sortbar" id="sortbar" tabindex="0" aria-label="Sort the table">
@@ -667,6 +689,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 </tr></thead><tbody id="tb"></tbody></table></div></div>
 <button class="showaway" id="awayBtn"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
+<div id="race"></div>
 <div class="sh"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
 <button class="xbtn" id="xtBtn">Show the crosstable</button>
@@ -981,7 +1004,7 @@ window.addEventListener("hashchange",route);
     { const f=$("#firstNote"); let seen=false; try{ seen=localStorage.getItem("kv-first")==="1" }catch(e){}
       const done=()=>{ try{ localStorage.setItem("kv-first","1") }catch(e){} if(f) f.innerHTML="" };
       if(f&&!seen&&!arch&&!location.hash)
-        f.innerHTML='<span>First time here? Tap your name in the table to see your page.</span><button id="firstX" aria-label="Got it">&times;</button>';
+        f.innerHTML='<span>First time here? Tap your name in the table, then <b>This is me</b>.</span><button id="firstX" aria-label="Got it">&times;</button>';
       document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
       addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
@@ -1099,8 +1122,10 @@ function form3(p){
   return g?{v:Math.round(s/g*100),g:g}:{v:-1,g:0};
 }
 const SORT=()=>SORTS.find(s=>s.k===sortK);
+/* ties on rating: the player with more games, then the name */
+function byRating(a,b){ return b.r-a.r||b.games-a.games||a.n.localeCompare(b.n) }
 function orderOf(list){
-  const s=SORT(); if(s.k==="r") return list;
+  const s=SORT(); if(s.k==="r") return [...list].sort(byRating);
   const enough=p=>!s.min||p.games>=s.min;
   return [...list].sort((a,b)=>{ const ea=enough(a), eb=enough(b); if(ea!==eb) return ea?-1:1; return s.val(b)-s.val(a)||b.r-a.r });
 }
@@ -1118,11 +1143,12 @@ function metricCell(p){
   if(s.sign){ const v=s.sign(p); cls=v>0?"u":v<0?"d":"f" }
   return '<span class="dl '+cls+'">'+s.show(p)+'</span>';
 }
-function row(p,i,kind){
-  return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+'">'+
-   '<td class="k">'+(kind==="r"?i+1:"·")+'</td>'+
-   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span><span class="chev">›</span></td>'+
-   '<td class="r"><span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span></td>'+
+function row(p,i,kind,ctx){
+  ctx=ctx||{};
+  return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+(p.n===meName()?" me":"")+'">'+
+   '<td class="k">'+(kind==="r"?(i+1)+(ctx.prev?moveMark(p,i,ctx.prev):""):"·")+'</td>'+
+   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span>'+form5(p)+'<span class="chev">›</span></td>'+
+   '<td class="r"><span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span>'+(ctx.gap>0?'<span class="gap">'+ctx.gap+' behind</span>':'')+'</td>'+
    '<td class="r">'+metricCell(p)+'</td>'+
    '<td class="hm">'+spark(p)+'</td>'+
    '<td class="wdl hm">'+p.rec[0]+'<i>–</i>'+p.rec[1]+'<i>–</i>'+p.rec[2]+'</td></tr>';
@@ -1141,22 +1167,96 @@ function draw(){
   $("#sortMenu").innerHTML='<h4>Anyone can win these</h4>'+SORTS.filter(s=>s.fun).map(s=>
     '<button role="menuitemradio" data-s="'+s.k+'" aria-checked="'+(s.k===sortK)+'">'
     +'<span class="ic" aria-hidden="true">'+s.ic+'</span><span><b>'+s.t+'</b><small>'+s.note+'</small></span></button>').join("");
-  $("#thMetric").textContent=SORT().col; $("#sortNote").textContent=SORT().note||"";
+  $("#thMetric").textContent=SORT().col;
+  $("#sortNote").textContent=(SORT().note||"")+(SORT().k==="r"?" Ties on rating: more games played, then the name.":"");
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
   $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
-  $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r")).join("")
+  const prev=prevRanks(div), byR=SORT().k==="r";
+  $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r",{prev, gap:byR&&i>0?rk[i-1].r-p.r:0})).join("")
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
-  $("#pod").innerHTML=rank().slice(0,3).map((p,i)=>'<button class="pc p'+(i+1)+'" data-n="'+E(p.n)+
+  $("#pod").innerHTML=[...rank()].sort(byRating).slice(0,3).map((p,i)=>'<button class="pc p'+(i+1)+'" data-n="'+E(p.n)+
    '" aria-label="'+E(p.n)+', number '+(i+1)+' in '+E(longDiv(div))+'">'+
    '<span class="pcav">'+av(p.n,"m")+'</span>'+
    '<span class="pcw"><span class="nm">'+E(p.n)+'</span>'+
    '<span class="rt">'+p.r+'<sub>±'+p.rd+'</sub></span></span></button>').join("");
   fitPodium();
   drawLastNight();
+  drawYou(); drawRace();
   if(xtShown) cross();
+}
+
+/* ---------- you, movement, form, the race ---------- */
+const ME_KEY="kv-me";
+function ordinal(n){ const s=["th","st","nd","rd"], v=n%100; return n+(s[(v-20)%10]||s[v]||s[0]) }
+function meName(){ try{ const n=localStorage.getItem(ME_KEY); return n&&byN[n]&&!byN[n].gh?n:"" }catch(e){ return "" } }
+function setMe(n){ try{ if(n) localStorage.setItem(ME_KEY,n); else localStorage.removeItem(ME_KEY) }catch(e){} }
+function rankedIn(d){ return P.filter(p=>p.games>0&&!p.gh&&(d==="all"||p.d===d)&&!away(p)&&p.rd<=RS).sort(byRating) }
+/* where everyone stood before the latest night: their rating and ± as of the night before it */
+function prevRanks(d){
+  if(DATES.length<2) return null;
+  // the same table as tonight's, one night earlier: on the board (a game by
+  // then), not away, settled - or everyone looks like they climbed past the
+  // people who never played this season
+  const was=[]; P.forEach(p=>{ if(p.gh||away(p)||(d!=="all"&&p.d!==d)||!p.log.some(l=>l.ni<LASTI)) return;
+    let h=null; p.hist.forEach(x=>{ if(x[0]<LASTI) h=x }); if(h&&h[2]<=RS) was.push({n:p.n,r:h[1],g:p.log.filter(l=>l.ni<LASTI).length}) });
+  const out={}; was.sort((a,b)=>b.r-a.r||b.g-a.g||a.n.localeCompare(b.n)).forEach((x,i)=>out[x.n]=i+1); return out;
+}
+function moveMark(p,i,prev){
+  const was=prev[p.n]; if(!was) return '<i class="mv nw">new</i>';
+  const d=was-(i+1); return d>0?'<i class="mv up">&#8593;'+d+'</i>':d<0?'<i class="mv dn">&#8595;'+(-d)+'</i>':'';
+}
+function form5(p){
+  const l=p.log.slice(-5); if(!l.length) return "";
+  return '<span class="fs5" role="img" aria-label="Last '+l.length+': '+l.map(x=>x.s===1?"win":x.s===.5?"draw":"loss").join(", ")+'">'+
+    l.map(x=>'<i class="'+(x.s===1?"W":x.s===.5?"D":"L")+'"></i>').join("")+'</span>';
+}
+function drawYou(){
+  const box=$("#you"); if(!box) return; const n=meName(); if(!n||D.arch){ box.innerHTML=""; return }
+  const p=byN[n], list=rankedIn(p.d), i=list.findIndex(x=>x.n===n);
+  const prev=prevRanks(p.d), mv=(i>=0&&prev)?moveMark(p,i,prev).replace('class="mv nw"','class="mv nw" hidden'):"";
+  const where=i>=0?ordinal(i+1)+" in "+longDiv(p.d):p.games>0?"still settling in":"no games yet this season";
+  box.innerHTML='<button id="youGo"><b>You</b>'+E(n)+' &middot; '+where+' &middot; '+p.r+mv+'<span class="chev">&#8250;</span></button>';
+  $("#youGo").onclick=()=>{ if(!scrollToMe()) openProfile(n) };
+}
+function scrollToMe(){
+  const n=meName(); if(!n) return false;
+  let r=document.querySelector("#tb tr.me, #tbAway tr.me");
+  if(!r&&div!=="all"){ div="all"; draw(); r=document.querySelector("#tb tr.me, #tbAway tr.me") }
+  if(!r) return false;
+  r.scrollIntoView({block:"center",behavior:"instant"}); return true;
+}
+/* The club's prizes, strongest bracket first. Change them here and in the
+   phone tool together. */
+const PRIZES={"over 1400":"$100 Kava Social gift card","U1400":"$75 gift card","U1000":"$50 gift card"};
+function seasonExpected(){
+  if(!SEASON||!DATES.length) return 0;
+  let n=DATES.length; const d=new Date(DATES[LASTI]+"T12:00");
+  for(let g=0;g<20;g++){ d.setDate(d.getDate()+14); if(d.toISOString().slice(0,10)>=SEASON.to) break; n++ }
+  return n;
+}
+function drawRace(){
+  const box=$("#race"); if(!box) return;
+  if(D.arch||!SEASON||!DATES.length){ box.innerHTML=""; return }
+  const exp=seasonExpected(), need=Math.ceil(exp/2), left=exp-DATES.length, PIECE=["&#9818;","&#9820;","&#9823;"];
+  const cards=D.divisions.map((d,k)=>{
+    const all=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p));
+    const elig=all.filter(p=>p.rd<=RS&&p.cons>=need).sort(byRating), top=elig[0], second=elig[1];
+    const short=all.filter(p=>p.cons<need).sort(byRating);
+    const early=DATES.length<need;   // nobody can have qualified yet
+    const sofar=all.filter(p=>p.rd<=RS).sort(byRating)[0];
+    const lead=top?'<b>'+E(top.n)+'</b> leads on '+top.r+(second?', '+(top.r-second.r)+' clear of '+E(second.n):'')+'.'
+                  :sofar?'<b>'+E(sofar.n)+'</b> top so far on '+sofar.r+'. Nobody has '+need+' nights yet.'
+                  :'Nobody has '+need+' nights yet.';
+    const sh=early?'<small>'+all.length+' playing. Everyone needs '+(need-DATES.length)+' more night'+(need-DATES.length===1?'':'s')+' to qualify.</small>'
+             :short.length?'<small>Needs '+need+' nights: '+short.map(p=>E(p.n)+' '+p.cons).join(' &middot; ')+'</small>':'';
+    return '<div class="rc"><h4><i>'+PIECE[k]+'</i>'+E(longDiv(d))+'<span>'+(PRIZES[d]||"")+'</span></h4><p>'+lead+'</p>'+sh+'</div>';
+  }).join("");
+  box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
+    '<p class="l">Top settled rating in each bracket wins it, among everyone who plays at least <b>'+need+' of the '+exp+' nights</b>. '+
+    DATES.length+' played'+(left>0?', '+left+' to go':'')+'.</p><div class="rcs">'+cards+'</div>';
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
@@ -2054,7 +2154,9 @@ function showProfile(n,rival){
   $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
   $("#ptro").outerHTML=trophyHead(p);
   $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
-  $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("");
+  $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
+    '<button class="chip" id="meBtn" aria-pressed="'+(meName()===p.n)+'">'+(meName()===p.n?"Not me":"This is me")+'</button>';
+  $("#meBtn").onclick=function(){ const on=meName()!==p.n; setMe(on?p.n:""); this.textContent=on?"Not me":"This is me"; this.setAttribute("aria-pressed",on); draw() };
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"smooth",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   $("#kpis").innerHTML=
     '<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'–'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>'+
@@ -2136,7 +2238,7 @@ $("#arcMore").onclick=function(){ const open=$("#arcRest").classList.toggle("hid
   this.setAttribute("aria-expanded",open); this.textContent=open?"Hide Seasons 1\u20137 and the all-time table":"Show Seasons 1\u20137 and the all-time table" };
 $("#jumpBtn").onclick=function(){
   if($("#board").classList.contains("hid")){ location.hash=boardHash||""; }
-  setTimeout(function(){ const l=$("#ladder"); if(l) window.scrollTo({top:l.getBoundingClientRect().top+scrollY-8,behavior:"instant"}) },60);
+  setTimeout(function(){ if(scrollToMe()) return; const l=$("#ladder"); if(l) window.scrollTo({top:l.getBoundingClientRect().top+scrollY-8,behavior:"instant"}) },60);
 };
 
 /* ---------- easter eggs ----------
