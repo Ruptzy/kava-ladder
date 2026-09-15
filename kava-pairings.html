@@ -1345,7 +1345,11 @@ border:1px solid var(--rule-2);border-radius:4px;overflow:hidden;margin:0 0 1.1r
 .factsH{margin:.2rem 0 .5rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
 .fact{background:linear-gradient(160deg,var(--panel-2),var(--panel) 70%);border:1px solid var(--rule-2);
 border-radius:4px;padding:.8rem .85rem;position:relative;overflow:hidden;min-width:0}
-.fact .ic{font-size:1.1rem;line-height:1;margin-bottom:.4rem}
+.fact{display:flex;align-items:center;gap:.7rem}
+.fact .ic{font-size:1.3rem;line-height:1;flex:none}
+.fact .ft{min-width:0}
+.wb2{display:grid;grid-template-columns:1fr 1fr;gap:.9rem}
+.wb2>div{margin-bottom:.3rem!important}
 .fact b{display:block;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;
 font-size:1.3rem;line-height:1.05;margin-bottom:.2rem;overflow-wrap:anywhere}
 .fact span{font-size:.8rem;color:var(--ink-2);line-height:1.4;display:block}
@@ -1586,12 +1590,12 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .pod{grid-template-columns:1fr;gap:.3rem;margin:.9rem 0}
   .pc .pcw{right:29%}
   .av.l{width:72px;height:72px;font-size:1.7rem}.ph2row{gap:.8rem;flex-wrap:wrap}
-  .ptro{margin:.6rem 0 0;padding:.6rem 0 0;border-left:none;border-top:1px solid var(--rule-2);flex:1 1 100%}
+  .ptro{margin:.4rem 0 0;padding:.4rem 0 0;border-left:none;border-top:1px solid var(--rule-2);flex:1 1 100%}
   .ptro .tset{justify-content:space-around;gap:.3rem}
   .tprev{text-align:center}
   .ptro .it{min-width:0}
-  .ptro .pic{width:60px;height:60px}
-  .ptro .n{font-size:1.25rem}
+  .ptro .pic{width:46px;height:46px}
+  .ptro .n{font-size:1.05rem}
   .pc .rk{font-size:2.6rem;top:-.3rem;right:.2rem}
   .pc .nm{font-size:.86rem;padding-right:1.3rem;margin-bottom:.2rem}
   .pc .rt{font-size:1.2rem}.pc .rt sub{display:none}
@@ -1623,8 +1627,19 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .recap>div+div{border-left:none;border-top:1px solid var(--rule)}
   .xt{display:none}.xlist{display:block}.key{display:none}
   .kpis{grid-template-columns:1fr 1fr}
-  .facts{grid-template-columns:1fr 1fr}
-  .gwrap{grid-template-columns:1fr}
+  .facts{grid-template-columns:1fr}
+  .gwrap{grid-template-columns:1fr 1fr;gap:.5rem}
+  .gwrap>.card{grid-column:span 2}.gwrap>.card.half{grid-column:span 1}
+  .facts{gap:.4rem}.fact{padding:.5rem .65rem}
+  .achs{grid-template-columns:repeat(3,1fr);gap:.4rem}
+  .ach{flex-direction:column;align-items:center;text-align:center;padding:.5rem .3rem;gap:.3rem}
+  .ach .hw{display:none}.ach .nm2{font-size:.72rem;line-height:1.2}.ach .tx{min-width:0}
+  .ptro .pic{width:46px;height:46px}.ptro .n{font-size:1.05rem}
+  .ptro{margin:.4rem 0 0;padding:.4rem 0 0}
+  .chip{padding:.35rem .6rem;font-size:.78rem;min-height:40px}
+  .strip i{width:16px;height:22px}
+  .fact b{font-size:1rem}.fact span{font-size:.75rem;line-height:1.3}.fact{padding:.4rem .6rem}
+  .ach .ic{width:26px;height:26px;font-size:.95rem}
   .riv{grid-template-columns:5.5rem 1fr 2.4rem}
   .bandrow{grid-template-columns:5.6rem 1fr 3.2rem}
 }
@@ -2830,8 +2845,8 @@ function achBlock(p){
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
     '<small>earned</small></div>'+
     achFeed(p)+
-    '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,11).map(tile).join("")+'</div>'+
-    '<div class="achs hid" id="achRest">'+order.slice(12).map(tile).join("")+'</div>'+
+    '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,8).map(tile).join("")+'</div>'+
+    '<div class="achs hid" id="achRest">'+order.slice(8).map(tile).join("")+'</div>'+
     '<button class="achmore" id="achMore">Show all '+rows.length+'</button>';
 }
 
@@ -2957,7 +2972,7 @@ function colourChart(p){
       '<div class="bar"><i class="bw" style="width:'+(tot?a[0]/tot*100:0)+'%"></i><i class="bd" style="width:'+(tot?a[1]/tot*100:0)+'%"></i><i class="bl" style="width:'+(tot?a[2]/tot*100:0)+'%"></i></div>'+
       '<div style="font-family:var(--fm);font-size:.7rem;color:var(--ink-2);margin-top:.25rem">'+a[0]+' won &middot; '+a[1]+' drawn &middot; '+a[2]+' lost</div></div>';
   }
-  return block("As White",p.wh,wp,tw)+block("As Black",p.bl,bp,tb)+'<p class="cap">'+(Math.abs(wp-bp)>=10?("Clearly stronger with "+(bp>wp?"Black":"White")+"."):"About the same either way.")+'</p>';
+  return '<div class="wb2">'+block("As White",p.wh,wp,tw)+block("As Black",p.bl,bp,tb)+'</div><p class="cap">'+(Math.abs(wp-bp)>=10?("Clearly stronger with "+(bp>wp?"Black":"White")+"."):"About the same either way.")+'</p>';
 }
 function rivalsChart(p){
   var rec=oppRows(p);
@@ -3151,7 +3166,7 @@ function showProfile(n,rival){
     '<div><dt>Win rate</dt><dd style="color:'+(wr(p)>=50?"var(--gain)":"var(--loss)")+'">'+wr(p)+'%<small>across '+p.games+' games</small></dd></div>'+
     '<div><dt>Nights</dt><dd>'+p.cons+'<small>of '+DATES.length+'</small></dd></div>'+
     '<div class="hm"><dt>Peak</dt><dd>'+(p.peak?p.peak[0]+'<small>'+fshort(p.peak[1])+'</small>':'—')+'</dd></div>';
-  $("#facts").innerHTML=facts(p).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><b>'+f[1]+'</b><span>'+f[2]+'</span></div>'}).join("");
+  $("#facts").innerHTML=facts(p).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><div class="ft"><b>'+f[1]+'</b><span>'+f[2]+'</span></div></div>'}).join("");
   drawGraphs();
   $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#rv").classList.add("hid"); $("#pv").classList.remove("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
@@ -3164,7 +3179,7 @@ function drawGraphs(){
   $("#graphs").innerHTML=
     card("Rating journey"+(RIVAL?" vs "+esc(RIVAL.n):""), journey(p,RIVAL), "gwide")+
     card("Points won and lost each night", nightly(p), "gwide")+
-    card("Recent form", formStrip(p))+
+    card("Recent form", formStrip(p), "half")+
     card("Recent games", recentGames(p));
   // who they beat and who beats them, then the breakdowns, then the long feed last
   // the rest waits behind one button: five screens of charts is where people
@@ -3175,9 +3190,9 @@ function drawGraphs(){
     card("Rivals", rivalsChart(p))+
     card("Compare with a rival", comparePanel(p), "", "cmpCard")+
     '</div><div class="gwrap">'+
-    card("Against each level", bandsChart(p))+
+    card("Against each level", bandsChart(p), "half")+
+    card("Turnout", attendance(p), "half")+
     card("White and Black", colourChart(p))+
-    card("Turnout", attendance(p))+
     '</div>';
   $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements", achBlock(p), "gwide")+'</div>';
   // a card with nothing in it yet is a box saying so: drop it until it has something
