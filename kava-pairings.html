@@ -2803,7 +2803,7 @@ function achX(p){
       lossRun=r===0?lossRun+1:0;
       if(w-l<0) wasNeg=true; if(wasNeg&&w-l>0) x.turned=true;
     });
-    if(w+d+l>=5&&w===l) x.deadEven=true;
+    if(w+d+l>=4&&w===l) x.deadEven=true;
     if(w-l>x.lead) x.lead=w-l;
     if(w>0) x.beatUnique++;
     if(d>=2) x.drewTwice=true;
@@ -2845,6 +2845,7 @@ function achX(p){
   x.plotArmor=false;
   if(p.low&&p.hist.length){ const lowNi=(p.hist.find(h=>h[1]===p.low[0])||[])[0];
     const next=nis.find(ni=>ni>lowNi); if(next!=null&&byNi[next][0].s===1) x.plotArmor=true }
+  x.nightGames=nis.map(ni=>byNi[ni].length);   // this season, in order, for the exact-number secrets
   x.seasonWins=p.rec[0]; x.seasonGain=p.hist.length?p.r-p.hist[0][1]:0;
   x.positive=p.games>=10&&p.rec[0]>p.rec[2];
   x.archives=!!(ARC&&ARC.link&&ARC.link[p.n]);
@@ -2852,6 +2853,8 @@ function achX(p){
 }
 {
   const X=(id,ic,name,how,test,prog)=>ACH.push(A(id,ic,name,how,test,prog));
+  // career total at the end of each night this season, counted back from now
+  const endedOn=(p,c,n)=>{ let total=c.games; if(total===n) return true; const g=achX(p).nightGames; for(let k=g.length-1;k>=0;k--){ total-=g[k]; if(total===n) return true } return false };
   const nightsOf=(p,c)=>c.nights;
   // firsts
   X("first-move","\u265F\uFE0F","First Move","Play your first recorded game.",(p,c)=>c.games>=1);
@@ -2899,16 +2902,15 @@ function achX(p){
   X("dragon","\uD83D\uDC09","Dragon Slayer","Beat the highest-rated player in the room that night.",(p,c)=>achX(p).dragon);
   X("higher-5","\uD83C\uDFF9","Serial Giant Killer","Five wins over players rated above you.",(p,c)=>achX(p).winsHigher>=5,(p,c)=>[achX(p).winsHigher,5]);
   X("higher-10","\uD83D\uDC51","Hunter of Kings","Ten wins over players rated above you.",(p,c)=>achX(p).winsHigher>=10,(p,c)=>[achX(p).winsHigher,10]);
-  X("higher-25","\uD83D\uDC06","Predator","Twenty-five wins over players rated above you.",(p,c)=>achX(p).winsHigher>=25,(p,c)=>[achX(p).winsHigher,25]);
+  X("higher-15","\uD83D\uDC06","Predator","Fifteen wins over players rated above you in one season.",(p,c)=>achX(p).winsHigher>=15,(p,c)=>[achX(p).winsHigher,15]);
   // rivalries
-  X("rivalry-2","\uD83D\uDC4B","Hello Again","Play the same person twice.",(p,c)=>achX(p).maxWith>=2);
-  X("rivalry-20","\u2694\uFE0F","Archrivals","Play the same person twenty times.",(p,c)=>achX(p).maxWith>=20,(p,c)=>[achX(p).maxWith,20]);
+  X("rivalry-2","\uD83D\uDC4B","Hello Again","Play the same person twice.",(p,c)=>c.topRival>=2);
+  X("rivalry-20","\u2694\uFE0F","Archrivals","Play the same person twenty times, over your whole time at the club.",(p,c)=>c.topRival>=20,(p,c)=>[c.topRival,20]);
   X("settled-score","\uD83E\uDDFE","Settling the Score","Beat someone who had beaten you before.",(p,c)=>achX(p).settled);
   X("revenge-arc","\uD83C\uDFAC","Revenge Arc","Lose twice running to someone, then beat them.",(p,c)=>achX(p).revenge);
   X("tables-turned","\uD83D\uDD04","Tables Turned","Go from behind to ahead against the same person.",(p,c)=>achX(p).turned);
-  X("dead-even","\u2696\uFE0F","Dead Even","A rivalry of five or more games, exactly level.",(p,c)=>achX(p).deadEven);
-  X("dominance","\uD83E\uDDB8","Dominance","Lead someone by five wins head to head.",(p,c)=>achX(p).lead>=5,(p,c)=>[achX(p).lead,5]);
-  X("boogeyman","\uD83D\uDC7B","Boogeyman","Lead someone by ten wins head to head.",(p,c)=>achX(p).lead>=10,(p,c)=>[achX(p).lead,10]);
+  X("dead-even","\u2696\uFE0F","Dead Even","Four or more games against someone this season, exactly level.",(p,c)=>achX(p).deadEven);
+  X("dominance","\uD83E\uDDB8","Dominance","Lead someone by three wins head to head this season.",(p,c)=>achX(p).lead>=3,(p,c)=>[achX(p).lead,3]);
   // the room
   X("opps-5","\uD83E\uDD1D","Making Friends","Play five different people.",(p,c)=>c.opps>=5,(p,c)=>[c.opps,5]);
   X("opps-15","\uD83E\uDD8B","Around the Room","Play fifteen different people.",(p,c)=>c.opps>=15,(p,c)=>[c.opps,15]);
@@ -2919,18 +2921,12 @@ function achX(p){
   // cups
   X("cup-1","\uD83C\uDFC6","First Cup","Finish top three on a night.",(p,c)=>c.podium>=1);
   X("cup-5","\uD83C\uDFC6","Trophy Shelf","Five top-three finishes.",(p,c)=>c.podium>=5,(p,c)=>[c.podium,5]);
-  X("cup-10","\uD83C\uDFC6","Cabinet Needed","Ten top-three finishes.",(p,c)=>c.podium>=10,(p,c)=>[c.podium,10]);
-  X("cup-20","\uD83C\uDFC6","Cup Hoarder","Twenty top-three finishes.",(p,c)=>c.podium>=20,(p,c)=>[c.podium,20]);
-  X("cup-30","\uD83C\uDFC6","Silverware Dynasty","Thirty top-three finishes.",(p,c)=>c.podium>=30,(p,c)=>[c.podium,30]);
   // a night
   X("untouched","\uD83E\uDDE4","Untouched","Finish a night of four or more games without losing.",(p,c)=>achX(p).untouched);
-  X("marathon","\uD83C\uDFC3","Marathon Man","Play seven or more games in one night.",(p,c)=>achX(p).marathon);
-  X("personal","\uD83D\uDE24","Tonight Was Personal","Beat the same person twice in one night.",(p,c)=>achX(p).personal);
   X("gauntlet","\uD83E\uDDE8","Gauntlet","Beat three different people in one night.",(p,c)=>achX(p).gauntlet);
   X("boss-rush","\uD83D\uDC7E","Boss Rush","Beat three players rated above you in one night.",(p,c)=>achX(p).bossRush);
   X("survivor","\uD83E\uDE79","Survivor","Lose the first two games of a night and still finish with more wins than losses.",(p,c)=>achX(p).survivor);
   X("reverse-sweep","\uD83E\uDD38","Reverse Sweep","Lose the first two games of a night, then win the next three.",(p,c)=>achX(p).reverseSweep);
-  X("redemption","\uD83C\uDF05","The Redemption Arc","Lose to someone and beat them later the same night.",(p,c)=>achX(p).redemption);
   X("chaos","\uD83C\uDF00","Chaos Theory","Beat someone above you and lose to someone below you on the same night.",(p,c)=>achX(p).chaos);
   X("imperfect","\uD83C\uDFAD","Perfectly Imperfect","A night of exactly one win, one draw and one loss.",(p,c)=>achX(p).imperfect);
   X("main-character","\uD83C\uDF1F","Main Character Night","Gain more rating than anyone else that night.",(p,c)=>achX(p).mainCharacter);
@@ -2950,14 +2946,11 @@ function achX(p){
   X("balanced","\u2696\uFE0F","Perfectly Balanced","Exactly as many wins as losses, after twenty or more games.",(p,c)=>c.games>=20&&c.wins===c.games-c.wins-c.draws);
   X("rollercoaster","\uD83C\uDFA2","Rollercoaster","Win, lose, win, lose, win - five games running.",(p,c)=>achX(p).rollercoaster);
   // secrets
-  X("nice","\uD83D\uDE0F","Nice.","Sit on exactly 69 recorded games.",(p,c)=>c.games===69);
-  X("average","\uD83D\uDE10","Perfectly Average","Land on a rating of exactly 1500.",(p,c)=>p.r===1500);
-  X("the-answer","\uD83E\uDDE0","The Answer","Sit on exactly 42 recorded games.",(p,c)=>c.games===42);
+  X("nice","\uD83D\uDE0F","Nice.","End a night on exactly 69 recorded games.",(p,c)=>endedOn(p,c,69));
+  X("average","\uD83D\uDE10","Perfectly Average","End a night on a rating of exactly 1500.",(p,c)=>p.r===1500||p.hist.some(h=>h[1]===1500));
+  X("the-answer","\uD83E\uDDE0","The Answer","End a night on exactly 42 recorded games.",(p,c)=>endedOn(p,c,42));
   X("deja-vu","\uD83D\uDC08\u200D\u2B1B","D\u00E9j\u00E0 Vu","The same win-draw-loss line two nights running.",(p,c)=>achX(p).dejaVu);
-  X("groundhog","\uD83E\uDDAB","Groundhog Day","The same opponents two nights running.",(p,c)=>achX(p).groundhog);
   X("uno-reverse","\uD83D\uDD03","Uno Reverse Card","Beat someone in the very next game after they beat you.",(p,c)=>achX(p).uno);
-  X("you-again","\uD83D\uDE11","You Again?!","Three games in a row against the same person.",(p,c)=>achX(p).youAgain);
-  X("immovable","\uD83E\uDEA8","The Immovable Object","Draw with the same person twice.",(p,c)=>achX(p).drewTwice);
   X("plot-armor","\uD83E\uDDBE","Plot Armor","Win the first game after your lowest rating.",(p,c)=>achX(p).plotArmor);
   X("after-dark","\uD83C\uDF03","Kava After Dark","Earn 25 other achievements.",(p,c)=>false,(p,c)=>[0,25]);
 }
