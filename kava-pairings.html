@@ -1306,7 +1306,7 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .ph2row{display:flex;gap:1.1rem;align-items:center}
 .pc{display:flex;gap:.8rem;align-items:center}.pc .av.m{margin:0}.pc>div{min-width:0}
 /* profile */
-.back{background:none;border:1px solid var(--rule-2);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin-bottom:1.2rem}
+.back{background:none;border:1px solid var(--rule-2);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin:.9rem 0 1.5rem}
 .back:hover{border-color:var(--scarlet);color:var(--scarlet)}
 .back:hover{color:var(--scarlet)}
 .card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:3px;padding:1rem;min-width:0}
@@ -1318,6 +1318,8 @@ font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;color:var(--scarlet);t
 border-radius:0 6px 6px 0;font-size:.84rem;line-height:1.5;color:var(--ink-2)}
 .cap{margin:.6rem 0 0;font-family:var(--fm);font-size:.75rem;color:var(--ink-3);line-height:1.6}
 .hid{display:none!important}
+body.sub .tools,body.sub #seasonNote,body.sub #champs,body.sub #firstNote,body.sub #tabs{display:none}
+body.sub .top{padding-bottom:0}
 .pnick{display:inline-flex;align-items:center;gap:.5rem;min-height:40px;background:var(--scarlet-wash);
 border:1px solid var(--scarlet-dim);border-radius:100px;padding:.45rem .7rem .45rem .8rem;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
@@ -1604,21 +1606,7 @@ html.gold-mode,html.dim-mode{transition:filter .4s}
 color:var(--rule-2);font-size:1.15rem;transition:color .2s;min-height:40px;vertical-align:middle}
 #hintDot:hover,#hintDot:focus-visible{color:var(--scarlet)}
 .eggl:hover{color:var(--scarlet)}
-.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem;margin-bottom:1.2rem}
 /* a season a card: champions, then its size */
-.seasons{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.7rem;margin-bottom:1.2rem}
-.season-card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem 1rem}
-.season-card h3{margin:0 0 .5rem;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;font-size:1.15rem}
-.season-card h3 small{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:400;margin-top:.15rem}
-.season-card .ch{display:flex;gap:.6rem;align-items:baseline;padding:.3rem 0;border-bottom:1px solid var(--rule);font-size:.92rem}
-.season-card .ch i{font-style:normal;color:var(--scarlet)}.season-card .ch b{flex:1}.season-card .ch span{font-family:var(--fm);font-size:.8rem;color:var(--ink-3)}
-.season-card .sz{font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;color:var(--ink-3);margin:.6rem 0 0;text-transform:uppercase}
-.season-card a.howbtn{margin-top:.7rem}
-.season-card.now{border-color:var(--scarlet-dim)}
-.rec{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem}
-.rec dt{font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
-.rec dd{margin:.35rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.35rem;line-height:1.1}
-.rec dd small{display:block;font-family:var(--fb);font-weight:400;font-size:.8rem;color:var(--ink-2);margin-top:.3rem;line-height:1.4}
 footer a{color:var(--ink-2)}
 footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);font-family:var(--fm);font-size:.75rem;color:var(--ink-3);line-height:1.9}
 /* phones */
@@ -1733,7 +1721,6 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sres"><div class="sres hid" id="sres" role="listbox" aria-label="Players"></div></div>
 <button class="howbtn red" id="jumpBtn">Standings &darr;</button>
 <button class="howbtn" id="histBtn"><span class="lg">Club history</span><span class="sm">History</span></button>
-<button class="howbtn" id="recBtn"><span class="lg">Club records</span><span class="sm">Records</span></button>
 <span id="pastBtns" style="display:contents"></span>
 <button class="howbtn" id="howBtn">How ratings work</button>
 <div class="upd" id="upd"></div></div>
@@ -1812,15 +1799,6 @@ the club is older than its paperwork.</p>
 <th style="padding-left:1rem">Player</th><th class="r">Games</th><th class="hm">Seasons 1&ndash;7</th><th class="hm">Since then</th><th>All time</th>
 </tr></thead><tbody id="alltime"></tbody></table></div></div>
 </div>
-</main>
-<main id="rv" class="hid">
-<button class="back" id="rbk">&larr; Back to the ladder</button>
-<div class="sh"><h2>Past <span>seasons</span></h2><p>Who won what</p></div>
-<div class="seasons" id="seasons"></div>
-<div class="sh"><h2>All-time <span>records</span></h2><p>Every night on record</p></div>
-<dl class="recs" id="recsAll"></dl>
-<div class="sh"><h2 id="recsNowH">This <span>season</span></h2><p>So far</p></div>
-<dl class="recs" id="recs"></dl>
 </main>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
@@ -2041,7 +2019,6 @@ function route(){
   const parts=location.hash.replace(/^#[/]?/,"").split("/").map(s=>{ try{return decodeURIComponent(s)}catch(e){return s} }).filter(Boolean);
   if(parts[0]==="p"&&byN[parts[1]]&&!byN[parts[1]].gh){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]&&!byN[parts[3]].gh?parts[3]:null); return }
   if(parts[0]==="history"){ showHistory(); return }
-  if(parts[0]==="records"){ showRecords(); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
     else if(parts[i]==="sort"&&SORTS.some(s=>s.k===parts[i+1])){ ns=parts[i+1]; i+=2 } else i++; }
@@ -2366,7 +2343,7 @@ function drawRace(){
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
-  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#hv").classList.remove("hid");
+  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.remove("hid"); document.body.classList.add("sub");
   scrollTo({top:0,behavior:"instant"});
 }
 function fitPodium(){
@@ -2381,7 +2358,7 @@ if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitPodium);
 addEventListener("resize",()=>{ document.querySelectorAll("#pod .nm").forEach(e=>e.style.fontSize=""); fitPodium() });
 function showBoard(){
   if(CUR){ CUR=null; RIVAL=null; document.title=PAGE_TITLE; }
-  $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#rv").classList.add("hid"); $("#board").classList.remove("hid");
+  $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#board").classList.remove("hid"); document.body.classList.remove("sub");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
 }
@@ -3212,6 +3189,7 @@ function journey(p,rival){
   var S=dsOf(p), DT=S.dates, h=p.hist;
   if(S.rated===false){ var orr=S.oldR&&S.oldR[p.n];
     return orr?'<p class="cap" style="margin-top:0">The old system kept one number, not a night-by-night line: '+esc(p.n)+' finished Seasons 1&ndash;7 rated <b style="color:var(--cream)">'+orr+'</b>. Not comparable with today&rsquo;s ratings.</p>':'<p style="color:var(--ink-3)">No ratings on record.</p>' }
+  if((!h||h.length<2)&&S.oldR&&S.oldR[p.n]!=null&&!(h&&h.length)) return '<p class="cap" style="margin-top:0">The old system kept one number, not a night-by-night line: '+esc(p.n)+' finished it rated <b style="color:var(--cream)">'+S.oldR[p.n]+'</b>. Not comparable with today&rsquo;s ratings.</p>';
   if(!h||h.length<2) return '<p style="color:var(--ink-3)">Not enough nights yet.</p>';
   var fdx=(DT[h[h.length-1][0]].slice(0,4)!==DT[h[0][0]].slice(0,4))?fmid:fshort;
   var W=620,H=250,L=48,R=16,T=18,B=30, lo=1e9,hi=-1e9;
@@ -3588,9 +3566,12 @@ function scopeDefs(){
   ERAS.season.forEach(no=>{ if(!seen[no]){ seen[no]=1; nos.push(no) } });
   if(SEASON&&!seen[SEASON.no]) nos.push(SEASON.no);
   nos.sort((a,b)=>b-a);
-  const defs=nos.map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
-    return {k:"s"+no, label:"Season "+no, sub:cur?(D.arch?"final":"now"):(ds.length?fmy(ds[0])+" \u2013 "+fmy(ds[ds.length-1]):"")} });
-  if(ERAS.old&&ERAS.old.dates.length) defs.push({k:"old",label:"Seasons 1\u20137",sub:"old system"});
+  const first=ERAS.first||nos[nos.length-1];
+  const defs=nos.filter(no=>no>=first).map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
+    return {k:"s"+no, label:cur&&!D.arch?"Current season":"Season "+no, sub:cur?(D.arch?"final":"Season "+no):(ds.length?fmy(ds[0]).slice(0,3)+" \u2013 "+fmy(ds[ds.length-1]):"")} });
+  // everything before the numbered seasons is one era: the old workbook and the first ladder era together
+  const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
+  if(preEnd) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
   defs.push({k:"all",label:"Whole career",sub:"everything on record"});
   return defs;
 }
@@ -3605,13 +3586,21 @@ function scopeOf(k){
     let s=null; snaps.forEach(x=>{ if(x.date<=F[ni]&&x.div[name]) s=x.div[name] });
     return s||bandOf(rIn) };
   let S;
-  if(k==="old"){ const un={}; ERAS.old.dates.forEach((d,i)=>un[i]=1); const oR={}; P.forEach(p=>{ const r=oldRating(p.n); if(r!=null) oR[p.n]=r });
+  const oR={}; P.forEach(p=>{ const r=oldRating(p.n); if(r!=null) oR[p.n]=r });
+  if(k==="pre"){ const first=ERAS.first||0, un={}; for(let i=0;i<O;i++) un[i]=1;
+    const idx=[]; ERAS.season.forEach((s,i)=>{ if(s<first) idx.push(i) }); const inP=i=>idx.indexOf(i)>=0;
+    const hist={}; Object.keys(ERAS.hist).forEach(n=>{ hist[n]=ERAS.hist[n].filter(h=>inP(h[0])).map(h=>[h[0]+O,h[1],h[2]]) });
+    S={key:k,label:"Seasons 1\u2013"+(first-1),lower:"seasons 1\u2013"+(first-1),dates:ERAS.old.dates.concat(idx.map(i=>F[i])),
+      games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]).concat(ERAS.games.filter(g=>inP(g[0])).map(g=>[g[0]+O,nm(g[1]),nm(g[2]),g[3]])),
+      byes:ERAS.byes.filter(b=>inP(b[0])).map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,oldR:oR,
+      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
+  else if(k==="old"){ const un={}; ERAS.old.dates.forEach((d,i)=>un[i]=1);
     S={key:k,label:"Seasons 1\u20137",lower:"seasons 1\u20137",dates:ERAS.old.dates,games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]),byes:[],hist:{},seed:{},unrated:un,bandAt:null,oldR:oR,rated:false,seasonOf:()=>null} }
   else if(k==="all"){ const un={}; for(let i=0;i<O;i++) un[i]=1;
     const hist={}; Object.keys(ERAS.hist).forEach(n=>{ hist[n]=ERAS.hist[n].map(h=>[h[0]+O,h[1],h[2]]) });
     S={key:k,label:"Whole career",lower:"their whole career",dates:ERAS.old.dates.concat(F),
       games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]).concat(ERAS.games.map(g=>[g[0]+O,nm(g[1]),nm(g[2]),g[3]])),
-      byes:ERAS.byes.map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,
+      byes:ERAS.byes.map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,oldR:oR,
       bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
   else { const no=+k.slice(1), idx=[]; ERAS.season.forEach((s,i)=>{ if(s===no) idx.push(i) });
     const off=idx.length?idx[0]:F.length, inS=i=>i>=off&&i<off+idx.length;
@@ -3631,7 +3620,7 @@ function kpiHTML(p){
   let rating;
   if(S.rated===false) rating='<div><dt>Old rating</dt><dd>'+(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]:'&mdash;')+'<small>old system</small></dd></div>';
   else if(cur||S.key==="all") rating='<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'&ndash;'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>';
-  else rating='<div><dt>Rating</dt><dd>'+(p.hist.length?p.r+'<small>at the end</small>':'&mdash;<small>no games</small>')+'</dd></div>';
+  else rating='<div><dt>Rating</dt><dd>'+(p.hist.length?p.r+'<small>at the end</small>':(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]+'<small>old system</small>':'&mdash;<small>not rated</small>'))+'</dd></div>';
   return rating+
     '<div><dt>Record</dt><dd>'+p.rec.join("\u2013")+'<small>W\u2013D\u2013L</small></dd></div>'+
     '<div><dt>Win rate</dt><dd style="color:'+(wr(p)>=50?"var(--gain)":"var(--loss)")+'">'+wr(p)+'%<small>across '+p.games+' games</small></dd></div>'+
@@ -3644,9 +3633,9 @@ function scopeBar(p){
   if(!defs.some(d=>d.k===SCOPE)) SCOPE=defs[0].k;
   const show=defs.filter(d=>isCurScope(d.k)||d.k==="all"||d.k===SCOPE||scoped(p,d.k).games>0);
   $("#scopeSel").innerHTML=show.map(d=>{ const sp=scoped(p,d.k);
-    return '<option value="'+d.k+'"'+(d.k===SCOPE?' selected':'')+'>'+d.label+(d.sub?' \u00b7 '+d.sub:'')+' \u00b7 '+sp.games+' games</option>' }).join("");
+    return '<option value="'+d.k+'"'+(d.k===SCOPE?' selected':'')+'>'+d.label+(d.sub?' \u00b7 '+d.sub:'')+'</option>' }).join("");
   const sp=scoped(p,SCOPE), S=dsOf(sp);
-  $("#scopeNote").textContent=sp.games?(sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
+  $("#scopeNote").textContent=sp.games?(sp.games+" games \u00b7 "+sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
   bar.classList.remove("hid");
   $("#scopeSel").onchange=function(){ SCOPE=this.value; renderScope(CUR); scopeBar(CUR) };
 }
@@ -3689,7 +3678,7 @@ function showProfile(n,rival){
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"instant",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   scopeBar(p);
   renderScope(p);
-  $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#rv").classList.add("hid"); $("#pv").classList.remove("hid");
+  $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#pv").classList.remove("hid"); document.body.classList.add("sub");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
   try{ profileEggs(p) }catch(e){}
@@ -3742,7 +3731,6 @@ $("#pv").onclick=function(e){
 };
 $("#bk").onclick=function(){ go(boardHash||"") };
 $("#hbk").onclick=function(){ go(boardHash||"") };
-$("#rbk").onclick=function(){ go(boardHash||"") };
 document.addEventListener("click",function(e){
   const bh=e.target.closest("[data-bh]");
   if(bh&&CUR){
@@ -3753,10 +3741,7 @@ document.addEventListener("click",function(e){
     return;
   }
   if(e.target.closest("#hintDot")){ e.stopPropagation(); giveHint(); return }
-  const l=e.target.closest("#recLink"); if(!l) return;
-  boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records";
 });
-$("#recBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/records" };
 $("#histBtn").onclick=function(){ boardHash=stateHash(); boardScroll=scrollY; location.hash="#/history" };
 $("#arcMore").onclick=function(){ const open=$("#arcRest").classList.toggle("hid")===false;
   this.setAttribute("aria-expanded",open); this.textContent=open?"Hide Seasons 1\u20137 and the all-time table":"Show Seasons 1\u20137 and the all-time table" };
@@ -3908,7 +3893,7 @@ document.addEventListener("dblclick",e=>{ if(!e.target.closest("#xtHead")) retur
 const EGG_IDS=["badge","seasons","updated","ladder-name","wiggle","away","vibes","self-cell",
  "rating","record","trophy","spirit","turnout","code",
  "e4","e5","d4","sicilian","gambit","positional","theory","blunder",
- "lenny","goblin","checkers","backgammon","pony","update","kava","leet","checkmate","records",
+ "lenny","goblin","checkers","backgammon","pony","update","kava","leet","checkmate",
  // and thirty more
  "castle","stalemate","fork","pin","skewer","zugzwang","opening","endgame",
  "queen","rook","bishop","pawn","king","draw","resign","clock","blitz","bullet",
@@ -4074,7 +4059,6 @@ function searchEgg(v){
     egg('The chess goblin says "CHYEEEEEEECK"',4200,"goblin","goblin"); return true }
   if(k==="en passant"||k==="enpassant"){ egg("En passant is forced.",2600); return true }
   if(k==="kava"){ flash("dim-mode",2600); egg("Lights down. Bowls up.",2600,null,"kava"); return true }
-  if(k==="records"||k==="record"){ eggFind("records"); location.hash="#/records"; return true }
   if(k==="1337"||k==="leet"){ flash("gold-mode",2600); egg("Elite.",2000,null,"leet"); return true }
   if(k==="checkmate"){ egg("Not on this page. Take it to the board.",2600,null,"checkmate"); return true }
   if(k==="castle"||k==="castling"){ egg("Castle early, castle often, regret nothing.",2800,null,"castle"); return true }
@@ -4138,7 +4122,7 @@ function searchEgg(v){
 // the last-night heading, the footer, the search icon, the earned label
 document.addEventListener("click",function(e){
   if(e.target.closest("#ln .lh b")) egg("The one that just happened.",2400,null,"lastnight");
-  if(e.target.closest("footer")&&!e.target.closest("#recLink")&&!e.target.closest("#hintDot"))
+  if(e.target.closest("footer")&&!e.target.closest("#hintDot"))
     egg("Turn up, play someone, write it down. That is the whole club.",3200,null,"footer");
   if(e.target.closest(".srch svg")) egg("Looking for someone? So is everyone.",2600,null,"searchicon");
   if(e.target.closest(".achhead small")) egg("Slowly. That is rather the point.",2600,null,"earned");
@@ -4214,7 +4198,6 @@ const HINTS={
  "kava":"Type where you are.",
  "leet":"Type the four-digit number that means elite.",
  "checkmate":"Type how the game ends.",
- "records":"Type what a club keeps besides scores.",
  "castle":"Type the move that tucks the king away.",
  "stalemate":"Type the draw nobody enjoys.",
  "fork":"Type the knight's favourite meal.",
@@ -4306,94 +4289,6 @@ function dropHint(force){
 }
 window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
-
-/* ---------- club records, reachable from the footer or by typing it ---------- */
-function seasonCard(s,now){
-  const PIECE=["&#9818;","&#9820;","&#9823;"];
-  const champs=(s.champs||[]).map(c=>'<div class="ch"><i>'+(PIECE[D.divisions.indexOf(c.d)]||"")+'</i><b>'+E(c.n)+'</b><span>'+E(longDiv(c.d))+' &middot; '+c.r+'</span></div>').join("");
-  return '<div class="season-card'+(now?' now':'')+'"><h3>Season '+s.no+'<small>'+(now?'in progress &middot; ':'')+(s.from===s.to?'from '+fshort(s.from):fshort(s.from)+' &ndash; '+fshort(s.to))+'</small></h3>'+
-    (champs||'<div class="ch"><b>'+(now?'Leaders so far':'No champions recorded')+'</b></div>')+
-    '<p class="sz">'+s.nights+' night'+(s.nights===1?'':'s')+' &middot; '+s.games+' games &middot; '+s.players+' players</p>'+
-    (now?'':'<a class="howbtn" href="season-'+s.no+'.html">Season '+s.no+' standings</a>')+'</div>';
-}
-function drawSeasons(){
-  const box=$("#seasons"); if(!box) return;
-  const cards=[];
-  if(SEASON&&!D.arch){
-    const leaders=D.divisions.map(d=>{ const p=rankedIn(d)[0]; return p?{d,n:p.n,r:p.r}:null }).filter(Boolean);
-    const played=new Set(); D.games.forEach(g=>{ played.add(NAMES[g[1]]); played.add(NAMES[g[2]]) });
-    cards.push(seasonCard({no:SEASON.no,from:DATES[0]||SEASON.from,to:DATES[LASTI]||SEASON.from,nights:DATES.length,games:D.games.length,
-      players:[...played].filter(n=>byN[n]&&!byN[n].gh).length,champs:leaders},true));
-  }
-  (D.seasons||[]).forEach(s=>cards.push(seasonCard(s,false)));
-  if(ARC&&ARC.seasons) cards.push('<div class="season-card"><h3>Seasons '+E(String(ARC.seasons))+'<small>'+fshort(ARC.from)+' &ndash; '+fshort(ARC.to)+' &middot; the old rating system</small></h3>'+
-    '<div class="ch"><b>The club before this ladder</b></div><p class="sz">'+ARC.nights+' nights &middot; '+ARC.games+' games &middot; '+ARC.everPlayed+' players</p>'+
-    '<button class="howbtn" id="seasonsHist">Club history</button></div>');
-  box.innerHTML=cards.join("");
-  const hb=$("#seasonsHist"); if(hb) hb.onclick=()=>{ location.hash="#/history" };
-}
-/* the all-time marks read the careers the build ships, which cover every night on record */
-function drawAllTime(){
-  const box=$("#recsAll"); if(!box) return;
-  const rows=[]; const add=(label,value,note)=>rows.push('<div class="rec"><dt>'+label+'</dt><dd>'+value+(note?'<small>'+note+'</small>':'')+'</dd></div>');
-  const M=P.filter(p=>!p.gh&&p.c);
-  const best=(k,f)=>M.reduce((m,p)=>(!m||f(p)>f(m))?p:m,null);
-  const g=best("games",p=>p.c.games); if(g) add("Most games",g.c.games,E(g.n));
-  const w=best("wins",p=>p.c.rec[0]); if(w) add("Most wins",w.c.rec[0],E(w.n));
-  const n=best("nights",p=>p.c.nights); if(n) add("Most nights",n.c.nights,E(n.n));
-  const r=best("run",p=>p.c.bestRun); if(r&&r.c.bestRun>1) add("Most nights in a row",r.c.bestRun,E(r.n));
-  const o=best("opps",p=>p.c.opps); if(o) add("Most different opponents",o.c.opps,E(o.n));
-  const s=best("sweeps",p=>p.c.sweeps); if(s&&s.c.sweeps>0) add("Most clean sweeps",s.c.sweeps,E(s.n));
-  const f=best("full",p=>p.c.full); if(f&&f.c.full>0) add("Most five-game nights",f.c.full,E(f.n));
-  const tr=best("rival",p=>p.c.topRival); if(tr&&tr.c.topRival>1) add("Most games with one person",tr.c.topRival,E(tr.n));
-  const nights=realNights();
-  const busiest=nights.reduce((m,x)=>!m||x[1]>m[1]?x:m,null), turnout=nights.reduce((m,x)=>!m||x[2]>m[2]?x:m,null);
-  if(busiest) add("Busiest club night",busiest[1]+" games",fd(busiest[0]));
-  if(turnout) add("Best turnout",turnout[2]+" players",fd(turnout[0]));
-  const y=best("years",p=>p.c.span); if(y) add("Longest at the club",(y.c.span/365).toFixed(1)+" years",E(y.n)+", since "+fd(y.c.first));
-  box.innerHTML=rows.join("");
-}
-function drawRecords(){
-  drawSeasons(); drawAllTime();
-  { const h=$("#recsNowH"); if(h) h.innerHTML=(SEASON?"Season "+SEASON.no:"This season")+' <span>so far</span>' }
-  const rows=[];
-  const add=(label,value,note)=>rows.push('<div class="rec"><dt>'+label+'</dt><dd>'+value+
-    (note?'<small>'+note+'</small>':'')+'</dd></div>');
-  let up=null, big=null, run=null, rival=null, nightGames=null, climb=null;
-  P.forEach(p=>{
-    p.log.forEach(l=>{ const gap=l.orat-l.mrat;
-      if(l.s===1&&(!up||gap>up.gap)) up={p:p.n,o:l.o,gap:gap,d:DATES[l.ni]} });
-    p.nightly.forEach(n=>{
-      const g=n.w+n.dr+n.l;
-      if(!nightGames||g>nightGames.g) nightGames={n:p.n,g:g,d:n.d};
-      if(!n.first&&(!climb||n.delta>climb.v)) climb={n:p.n,v:n.delta,d:n.d};
-    });
-    if(!run||p.streak[0]>run.v) run={n:p.n,v:p.streak[0]};
-    Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2];
-      if(!rival||g>rival.g) rival={a:p.n,b:o,g:g} });
-  });
-  const mostNights=P.reduce((m,p)=>!m||p.cons>m.cons?p:m,null);
-  const mostGames=P.reduce((m,p)=>!m||p.games>m.games?p:m,null);
-  const mostUps=P.reduce((m,p)=>!m||p.upsets>m.upsets?p:m,null);
-  const mostGold=P.reduce((m,p)=>!m||p.trophies[0]>m.trophies[0]?p:m,null);
-  // a record of 0 is not a record: before a season's first night the season-only ones are all 0
-  if(up) add("Biggest upset",E(up.p),"beat "+E(anon(up.o))+", rated "+up.gap+" higher, on "+fd(up.d));
-  if(climb) add("Biggest night",E(climb.n),"+"+climb.v+" rating points on "+fd(climb.d));
-  if(run&&run.v>0) add("Longest winning run",run.v+" straight",E(run.n));
-  if(nightGames&&nightGames.g>0&&DATES.length>1) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
-  if(rival&&rival.g>1) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
-  if(mostNights&&mostNights.cons>0&&DATES.length>1) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
-  if(mostGames&&mostGames.games>0&&DATES.length>1) add("Most games",mostGames.games,E(mostGames.n));
-  if(mostUps&&mostUps.upsets>0) add("Most upsets",mostUps.upsets,E(mostUps.n));
-  if(mostGold&&mostGold.trophies[0]>0) add("Most nights won",mostGold.trophies[0],E(mostGold.n));
-  $("#recs").innerHTML=rows.length?rows.join(""):'<p style="color:var(--ink-3);margin:0">Nothing to show until a couple of nights are in.</p>';
-}
-function showRecords(){
-  CUR=null; RIVAL=null; document.title="Club records \u00b7 "+CLUB;
-  drawRecords();
-  $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.add("hid");
-  $("#rv").classList.remove("hid"); scrollTo({top:0,behavior:"instant"});
-}
 
 /* ---------- wiring ---------- */
 function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
