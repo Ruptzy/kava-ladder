@@ -2770,6 +2770,198 @@ var ACH=[
  A("at-peak","🌞","Career Best","Sit at your highest rating yet, after 25 games.",(p,c)=>p.games>=25&&!!(p.peak&&Math.abs(p.r-p.peak[0])<=2)),
  A("improve-120","📈","On the Up","Gain 120 points over three months.",(p,c)=>p.imp!=null&&p.imp>=120,(p,c)=>[Math.max(0,p.imp||0),120])
 ];
+
+/* ---------- the club's own list, on top ----------
+   Patterns below read this season's games (p.log, grouped by night); the
+   counts read the career through the context. Worked out once per player
+   and kept on the object, like achWhen does. */
+function achX(p){
+  if(p._ax) return p._ax;
+  const L=p.log, byNi={};
+  L.forEach(l=>{ (byNi[l.ni]=byNi[l.ni]||[]).push(l) });
+  const nis=Object.keys(byNi).map(Number).sort((a,b)=>a-b);
+  const x={};
+  // firsts and runs
+  let seenLoss=false; x.playedAfterLoss=false;
+  L.forEach(l=>{ if(seenLoss) x.playedAfterLoss=true; if(l.s===0) seenLoss=true });
+  let ub=0; x.unbeaten=0; L.forEach(l=>{ if(l.s>0){ ub++; if(ub>x.unbeaten) x.unbeaten=ub } else ub=0 });
+  x.peak=Math.max(p.peak?p.peak[0]:0, p.r||0);
+  // beating up
+  x.maxGap=0; x.winsHigher=0;
+  L.forEach(l=>{ if(l.s===1){ const g=l.orat-l.mrat; if(g>x.maxGap) x.maxGap=g; if(g>0) x.winsHigher++ } });
+  x.dragon=false;
+  nis.forEach(ni=>{ const N=NIGHT[ni]; if(!N||!N.table.length) return;
+    let top=null, tr=-1; N.table.forEach(r=>{ const q=byN[r[0]]; if(!q) return; const rr=q.rb[ni]!=null?q.rb[ni]:q.seed; if(rr>tr){ tr=rr; top=r[0] } });   // rating going into that night
+    if(top&&top!==p.n&&byNi[ni].some(l=>l.o===top&&l.s===1)) x.dragon=true; });
+  // rivalries, in the order the games were played
+  const seq={}; L.forEach(l=>{ (seq[l.o]=seq[l.o]||[]).push(l.s) });
+  x.settled=false; x.revenge=false; x.turned=false; x.deadEven=false; x.lead=0; x.beatUnique=0; x.drewTwice=false; x.maxWith=0;
+  Object.keys(seq).forEach(o=>{
+    const s=seq[o]; let w=0,d=0,l=0,lossRun=0,wasNeg=false;
+    if(s.length>x.maxWith) x.maxWith=s.length;
+    s.forEach(r=>{
+      if(r===1){ if(l>0) x.settled=true; if(lossRun>=2) x.revenge=true; w++ } else if(r===0){ l++ } else d++;
+      lossRun=r===0?lossRun+1:0;
+      if(w-l<0) wasNeg=true; if(wasNeg&&w-l>0) x.turned=true;
+    });
+    if(w+d+l>=5&&w===l) x.deadEven=true;
+    if(w-l>x.lead) x.lead=w-l;
+    if(w>0) x.beatUnique++;
+    if(d>=2) x.drewTwice=true;
+  });
+  x.uno=false; x.youAgain=false;
+  for(let i=1;i<L.length;i++){
+    if(L[i].o===L[i-1].o&&L[i-1].s===0&&L[i].s===1) x.uno=true;
+    if(i>=2&&L[i].o===L[i-1].o&&L[i].o===L[i-2].o) x.youAgain=true;
+  }
+  x.rollercoaster=false;
+  for(let i=4;i<L.length;i++){ const s=L.slice(i-4,i+1).map(l=>l.s); if(s.join(",")==="1,0,1,0,1") x.rollercoaster=true }
+  // nights
+  x.untouched=false; x.marathon=false; x.personal=false; x.gauntlet=false; x.bossRush=false; x.survivor=false;
+  x.reverseSweep=false; x.redemption=false; x.chaos=false; x.imperfect=false; x.mainCharacter=false; x.dejaVu=false; x.groundhog=false;
+  let prevRec=null, prevOpps=null;
+  nis.forEach(ni=>{
+    const g=byNi[ni], w=g.filter(l=>l.s===1).length, d=g.filter(l=>l.s===.5).length, l=g.length-w-d;
+    if(g.length>=4&&l===0) x.untouched=true;
+    if(g.length>=7) x.marathon=true;
+    const beat={}; g.forEach(q=>{ if(q.s===1) beat[q.o]=(beat[q.o]||0)+1 });
+    if(Object.values(beat).some(n=>n>=2)) x.personal=true;
+    if(Object.keys(beat).length>=3) x.gauntlet=true;
+    if(g.filter(q=>q.s===1&&q.orat>q.mrat).length>=3) x.bossRush=true;
+    if(g.length>=4&&g[0].s===0&&g[1].s===0&&w>l) x.survivor=true;
+    if(g.length>=5&&g[0].s===0&&g[1].s===0&&g[2].s===1&&g[3].s===1&&g[4].s===1) x.reverseSweep=true;
+    const lostTo={}; g.forEach(q=>{ if(q.s===0) lostTo[q.o]=1; else if(q.s===1&&lostTo[q.o]) x.redemption=true });
+    if(g.some(q=>q.s===1&&q.orat>q.mrat)&&g.some(q=>q.s===0&&q.orat<q.mrat)) x.chaos=true;
+    if(w===1&&d===1&&l===1&&g.length===3) x.imperfect=true;
+    const mine=p.nightly.find(n=>n.ni===ni);
+    if(mine&&mine.delta>0&&!P.some(q=>q.n!==p.n&&q.nightly.some(n=>n.ni===ni&&n.delta>mine.delta))) x.mainCharacter=true;
+    const rec=w+"-"+d+"-"+l, opps=g.map(q=>q.o).sort().join("|");
+    if(prevRec!==null&&rec===prevRec) x.dejaVu=true;
+    if(prevOpps!==null&&opps===prevOpps) x.groundhog=true;
+    prevRec=rec; prevOpps=opps;
+  });
+  // coming back, and the season
+  x.comeback=false;
+  for(let i=1;i<nis.length;i++){ if(daysBetween(DATES[nis[i-1]],DATES[nis[i]])>=90&&byNi[nis[i]][0].s===1) x.comeback=true }
+  x.plotArmor=false;
+  if(p.low&&p.hist.length){ const lowNi=(p.hist.find(h=>h[1]===p.low[0])||[])[0];
+    const next=nis.find(ni=>ni>lowNi); if(next!=null&&byNi[next][0].s===1) x.plotArmor=true }
+  x.seasonWins=p.rec[0]; x.seasonGain=p.hist.length?p.r-p.hist[0][1]:0;
+  x.positive=p.games>=10&&p.rec[0]>p.rec[2];
+  x.archives=!!(ARC&&ARC.link&&ARC.link[p.n]);
+  return p._ax=x;
+}
+{
+  const X=(id,ic,name,how,test,prog)=>ACH.push(A(id,ic,name,how,test,prog));
+  const nightsOf=(p,c)=>c.nights;
+  // firsts
+  X("first-move","\u265F\uFE0F","First Move","Play your first recorded game.",(p,c)=>c.games>=1);
+  X("first-night","\uD83D\uDEAA","Welcome to the Board","Complete your first club night.",(p,c)=>c.nights>=1);
+  X("first-blood","\uD83E\uDE78","First Blood","Win your first game.",(p,c)=>c.wins>=1);
+  X("first-draw","\uD83E\uDD1D","Peace Treaty","Record your first draw.",(p,c)=>c.draws>=1);
+  X("go-again","\uD83D\uDD01","We Go Again","Play another game after your first loss.",(p,c)=>achX(p).playedAfterLoss);
+  X("games-5","\uD83C\uDF31","Getting Settled","Play 5 games.",(p,c)=>c.games>=5,(p,c)=>[c.games,5]);
+  X("games-10","\u2615","Regular Customer","Play 10 games.",(p,c)=>c.games>=10,(p,c)=>[c.games,10]);
+  X("games-20","\uD83E\uDDE9","One of Us","Play 20 games.",(p,c)=>c.games>=20,(p,c)=>[c.games,20]);
+  X("nights-3","\uD83D\uDD6F\uFE0F","Kava Initiate","Turn up to 3 club nights.",(p,c)=>c.nights>=3,(p,c)=>[c.nights,3]);
+  // games
+  X("games-250","\uD83C\uDFAF","250 Club","Play 250 games.",(p,c)=>c.games>=250,(p,c)=>[c.games,250]);
+  X("games-300","\uD83D\uDEE1\uFE0F","Iron Knight","Play 300 games.",(p,c)=>c.games>=300,(p,c)=>[c.games,300]);
+  X("games-400","\u2694\uFE0F","Four Hundred Battles","Play 400 games.",(p,c)=>c.games>=400,(p,c)=>[c.games,400]);
+  X("games-500","\uD83D\uDC51","Kava Immortal","Play 500 games.",(p,c)=>c.games>=500,(p,c)=>[c.games,500]);
+  // wins
+  X("wins-5","\uD83C\uDF57","Winner Winner","Win 5 games.",(p,c)=>c.wins>=5,(p,c)=>[c.wins,5]);
+  X("wins-10","\uD83D\uDD1F","Double Digits","Win 10 games.",(p,c)=>c.wins>=10,(p,c)=>[c.wins,10]);
+  X("wins-20","\uD83C\uDF57","Twenty Piece","Win 20 games.",(p,c)=>c.wins>=20,(p,c)=>[c.wins,20]);
+  X("wins-75","\uD83C\uDFF0","Conqueror","Win 75 games.",(p,c)=>c.wins>=75,(p,c)=>[c.wins,75]);
+  X("wins-150","\uD83E\uDE93","Executioner","Win 150 games.",(p,c)=>c.wins>=150,(p,c)=>[c.wins,150]);
+  X("wins-200","\uD83C\uDFF4","Warlord","Win 200 games.",(p,c)=>c.wins>=200,(p,c)=>[c.wins,200]);
+  X("wins-250","\uD83C\uDFDB\uFE0F","Hall of Victors","Win 250 games.",(p,c)=>c.wins>=250,(p,c)=>[c.wins,250]);
+  // runs
+  X("streak-2","\uD83C\uDF21\uFE0F","Heating Up","Win two games in a row.",(p,c)=>p.streak[0]>=2,(p,c)=>[p.streak[0],2]);
+  X("streak-3","\uD83C\uDFA9","Hat Trick","Win three games in a row.",(p,c)=>p.streak[0]>=3,(p,c)=>[p.streak[0],3]);
+  X("streak-4","\uD83D\uDD25","On Fire","Win four games in a row.",(p,c)=>p.streak[0]>=4,(p,c)=>[p.streak[0],4]);
+  X("streak-7","\uD83D\uDE82","Juggernaut","Win seven games in a row.",(p,c)=>p.streak[0]>=7,(p,c)=>[p.streak[0],7]);
+  X("unbeaten-5","\uD83E\uDDF1","Untouchable","Go five games without losing.",(p,c)=>achX(p).unbeaten>=5,(p,c)=>[achX(p).unbeaten,5]);
+  X("unbeaten-10","\uD83C\uDFF0","Fortress","Go ten games without losing.",(p,c)=>achX(p).unbeaten>=10,(p,c)=>[achX(p).unbeaten,10]);
+  X("unbeaten-15","\uD83E\uDDF1","Iron Wall","Go fifteen games without losing.",(p,c)=>achX(p).unbeaten>=15,(p,c)=>[achX(p).unbeaten,15]);
+  X("unbeaten-20","\uD83C\uDF19","The Long Night","Go twenty games without losing.",(p,c)=>achX(p).unbeaten>=20,(p,c)=>[achX(p).unbeaten,20]);
+  // rating
+  [[1000,"Four Digits","\uD83D\uDD22"],[1100,"Breaking Through","\uD83D\uDCA5"],[1200,"Rising Knight","\u265E"],[1300,"Dangerous","\u26A0\uFE0F"],
+   [1400,"Club Fighter","\uD83E\uDD4A"],[1500,"The 1500 Wall","\uD83E\uDDF1"],[1600,"Heavyweight","\uD83C\uDFCB\uFE0F"],[1700,"Elite Company","\uD83C\uDF96\uFE0F"],
+   [1800,"Monster","\uD83D\uDC79"],[1900,"Boss Fight","\uD83D\uDC09"]].forEach(([r,nm,ic])=>
+    X("reach-"+r,ic,nm,"Reach a rating of "+r+".",(p,c)=>achX(p).peak>=r,(p,c)=>[Math.min(achX(p).peak,r),r]));
+  // beating up
+  X("upset-50","\uD83E\uDD4A","Punching Above","Beat someone rated 50 or more above you.",(p,c)=>achX(p).maxGap>=50);
+  X("upset-100","\uD83D\uDEA8","Upset Alert","Beat someone rated 100 or more above you.",(p,c)=>achX(p).maxGap>=100);
+  X("upset-200","\uD83E\uDE83","David","Beat someone rated 200 or more above you.",(p,c)=>achX(p).maxGap>=200);
+  X("upset-300","\uD83E\uDD2F","What Just Happened?","Beat someone rated 300 or more above you.",(p,c)=>achX(p).maxGap>=300);
+  X("upset-400","\uD83E\uDEE8","There Are Levels?","Beat someone rated 400 or more above you.",(p,c)=>achX(p).maxGap>=400);
+  X("dragon","\uD83D\uDC09","Dragon Slayer","Beat the highest-rated player in the room that night.",(p,c)=>achX(p).dragon);
+  X("higher-5","\uD83C\uDFF9","Serial Giant Killer","Five wins over players rated above you.",(p,c)=>achX(p).winsHigher>=5,(p,c)=>[achX(p).winsHigher,5]);
+  X("higher-10","\uD83D\uDC51","Hunter of Kings","Ten wins over players rated above you.",(p,c)=>achX(p).winsHigher>=10,(p,c)=>[achX(p).winsHigher,10]);
+  X("higher-25","\uD83D\uDC06","Predator","Twenty-five wins over players rated above you.",(p,c)=>achX(p).winsHigher>=25,(p,c)=>[achX(p).winsHigher,25]);
+  // rivalries
+  X("rivalry-2","\uD83D\uDC4B","Hello Again","Play the same person twice.",(p,c)=>achX(p).maxWith>=2);
+  X("rivalry-20","\u2694\uFE0F","Archrivals","Play the same person twenty times.",(p,c)=>achX(p).maxWith>=20,(p,c)=>[achX(p).maxWith,20]);
+  X("settled-score","\uD83E\uDDFE","Settling the Score","Beat someone who had beaten you before.",(p,c)=>achX(p).settled);
+  X("revenge-arc","\uD83C\uDFAC","Revenge Arc","Lose twice running to someone, then beat them.",(p,c)=>achX(p).revenge);
+  X("tables-turned","\uD83D\uDD04","Tables Turned","Go from behind to ahead against the same person.",(p,c)=>achX(p).turned);
+  X("dead-even","\u2696\uFE0F","Dead Even","A rivalry of five or more games, exactly level.",(p,c)=>achX(p).deadEven);
+  X("dominance","\uD83E\uDDB8","Dominance","Lead someone by five wins head to head.",(p,c)=>achX(p).lead>=5,(p,c)=>[achX(p).lead,5]);
+  X("boogeyman","\uD83D\uDC7B","Boogeyman","Lead someone by ten wins head to head.",(p,c)=>achX(p).lead>=10,(p,c)=>[achX(p).lead,10]);
+  // the room
+  X("opps-5","\uD83E\uDD1D","Making Friends","Play five different people.",(p,c)=>c.opps>=5,(p,c)=>[c.opps,5]);
+  X("opps-15","\uD83E\uDD8B","Around the Room","Play fifteen different people.",(p,c)=>c.opps>=15,(p,c)=>[c.opps,15]);
+  X("opps-25","\uD83D\uDEC2","Passport Full","Play twenty-five different people.",(p,c)=>c.opps>=25,(p,c)=>[c.opps,25]);
+  X("opps-50","\uD83C\uDF10","I Know Everybody Here","Play fifty different people.",(p,c)=>c.opps>=50,(p,c)=>[c.opps,50]);
+  X("beat-10","\uD83D\uDE08","Equal Opportunity Menace","Beat ten different people.",(p,c)=>achX(p).beatUnique>=10,(p,c)=>[achX(p).beatUnique,10]);
+  X("nights-50","\uD83D\uDD11","Do You Work Here?","Turn up to 50 club nights.",(p,c)=>c.nights>=50,(p,c)=>[c.nights,50]);
+  // cups
+  X("cup-1","\uD83C\uDFC6","First Cup","Finish top three on a night.",(p,c)=>c.podium>=1);
+  X("cup-5","\uD83C\uDFC6","Trophy Shelf","Five top-three finishes.",(p,c)=>c.podium>=5,(p,c)=>[c.podium,5]);
+  X("cup-10","\uD83C\uDFC6","Cabinet Needed","Ten top-three finishes.",(p,c)=>c.podium>=10,(p,c)=>[c.podium,10]);
+  X("cup-20","\uD83C\uDFC6","Cup Hoarder","Twenty top-three finishes.",(p,c)=>c.podium>=20,(p,c)=>[c.podium,20]);
+  X("cup-30","\uD83C\uDFC6","Silverware Dynasty","Thirty top-three finishes.",(p,c)=>c.podium>=30,(p,c)=>[c.podium,30]);
+  // a night
+  X("untouched","\uD83E\uDDE4","Untouched","Finish a night of four or more games without losing.",(p,c)=>achX(p).untouched);
+  X("marathon","\uD83C\uDFC3","Marathon Man","Play seven or more games in one night.",(p,c)=>achX(p).marathon);
+  X("personal","\uD83D\uDE24","Tonight Was Personal","Beat the same person twice in one night.",(p,c)=>achX(p).personal);
+  X("gauntlet","\uD83E\uDDE8","Gauntlet","Beat three different people in one night.",(p,c)=>achX(p).gauntlet);
+  X("boss-rush","\uD83D\uDC7E","Boss Rush","Beat three players rated above you in one night.",(p,c)=>achX(p).bossRush);
+  X("survivor","\uD83E\uDE79","Survivor","Lose the first two games of a night and still finish with more wins than losses.",(p,c)=>achX(p).survivor);
+  X("reverse-sweep","\uD83E\uDD38","Reverse Sweep","Lose the first two games of a night, then win the next three.",(p,c)=>achX(p).reverseSweep);
+  X("redemption","\uD83C\uDF05","The Redemption Arc","Lose to someone and beat them later the same night.",(p,c)=>achX(p).redemption);
+  X("chaos","\uD83C\uDF00","Chaos Theory","Beat someone above you and lose to someone below you on the same night.",(p,c)=>achX(p).chaos);
+  X("imperfect","\uD83C\uDFAD","Perfectly Imperfect","A night of exactly one win, one draw and one loss.",(p,c)=>achX(p).imperfect);
+  X("main-character","\uD83C\uDF1F","Main Character Night","Gain more rating than anyone else that night.",(p,c)=>achX(p).mainCharacter);
+  // the season
+  X("positive-season","\uD83D\uDCC8","Positive Season","More wins than losses this season, over ten or more games.",(p,c)=>achX(p).positive);
+  X("season-wins-10","\uD83D\uDD1F","Ten Win Season","Win ten games in one season.",(p,c)=>achX(p).seasonWins>=10,(p,c)=>[achX(p).seasonWins,10]);
+  X("season-wins-20","\uD83D\uDCAF","Twenty Win Season","Win twenty games in one season.",(p,c)=>achX(p).seasonWins>=20,(p,c)=>[achX(p).seasonWins,20]);
+  X("season-gain-100","\uD83E\uDDD7","Season Climber","Gain 100 rating points in one season.",(p,c)=>achX(p).seasonGain>=100,(p,c)=>[Math.max(0,achX(p).seasonGain),100]);
+  X("season-gain-200","\uD83D\uDE80","Breakout Season","Gain 200 rating points in one season.",(p,c)=>achX(p).seasonGain>=200,(p,c)=>[Math.max(0,achX(p).seasonGain),200]);
+  // time
+  X("three-years","\uD83C\uDFDB\uFE0F","Ancient One","Three years between your first game and your last.",(p,c)=>c.span>=1095,(p,c)=>[Math.min(c.span,1095),1095]);
+  X("archives","\uD83D\uDCDC","From the Archives","Played in Seasons 1 to 7, before this ladder.",(p,c)=>achX(p).archives);
+  X("five-years","\uD83D\uDDFF","Living History","Play in five different calendar years.",(p,c)=>c.calYears>=5,(p,c)=>[c.calYears,5]);
+  X("the-comeback","\uD83D\uDD1B","The Comeback","Win your first game back after three months away.",(p,c)=>achX(p).comeback);
+  // draws and balance
+  X("draws-10","\uD83D\uDD4A\uFE0F","Peacekeeper","Draw ten games.",(p,c)=>c.draws>=10,(p,c)=>[c.draws,10]);
+  X("balanced","\u2696\uFE0F","Perfectly Balanced","Exactly as many wins as losses, after twenty or more games.",(p,c)=>c.games>=20&&c.wins===c.games-c.wins-c.draws);
+  X("rollercoaster","\uD83C\uDFA2","Rollercoaster","Win, lose, win, lose, win - five games running.",(p,c)=>achX(p).rollercoaster);
+  // secrets
+  X("nice","\uD83D\uDE0F","Nice.","Sit on exactly 69 recorded games.",(p,c)=>c.games===69);
+  X("average","\uD83D\uDE10","Perfectly Average","Land on a rating of exactly 1500.",(p,c)=>p.r===1500);
+  X("the-answer","\uD83E\uDDE0","The Answer","Sit on exactly 42 recorded games.",(p,c)=>c.games===42);
+  X("deja-vu","\uD83D\uDC08\u200D\u2B1B","D\u00E9j\u00E0 Vu","The same win-draw-loss line two nights running.",(p,c)=>achX(p).dejaVu);
+  X("groundhog","\uD83E\uDDAB","Groundhog Day","The same opponents two nights running.",(p,c)=>achX(p).groundhog);
+  X("uno-reverse","\uD83D\uDD03","Uno Reverse Card","Beat someone in the very next game after they beat you.",(p,c)=>achX(p).uno);
+  X("you-again","\uD83D\uDE11","You Again?!","Three games in a row against the same person.",(p,c)=>achX(p).youAgain);
+  X("immovable","\uD83E\uDEA8","The Immovable Object","Draw with the same person twice.",(p,c)=>achX(p).drewTwice);
+  X("plot-armor","\uD83E\uDDBE","Plot Armor","Win the first game after your lowest rating.",(p,c)=>achX(p).plotArmor);
+  X("after-dark","\uD83C\uDF03","Kava After Dark","Earn 25 other achievements.",(p,c)=>false,(p,c)=>[0,25]);
+}
 var ACHART=(D.achart&&D.achart.length)?D.achart:[];
 /* The player as they stood after a given night of the season: enough of them
    for the achievement tests, and no more. Career totals come down by whatever
@@ -2845,11 +3037,14 @@ function achWhen(p){
 
 function achFor(p){
   const c=achCtx(p);
-  return ACH.map(a=>{
+  const rows=ACH.map(a=>{
     let got=false; try{ got=!!a.test(p,c) }catch(e){}
     let pr=null; try{ pr=a.prog?a.prog(p,c):null }catch(e){}
     return {a:a, got:got, pr:pr};
   });
+  const ad=rows.find(r=>r.a.id==="after-dark");
+  if(ad){ const n=rows.filter(r=>r.got&&r.a.id!=="after-dark").length; ad.got=n>=25; ad.pr=[Math.min(n,25),25] }
+  return rows;
 }
 function huntTile(){
   const f=eggsFound().size, n=EGG_IDS.length, done=f>=n;
