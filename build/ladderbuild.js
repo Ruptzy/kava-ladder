@@ -109,13 +109,11 @@ text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 text-transform:uppercase;line-height:1.7;text-align:right}
 .upd b{color:var(--cream);font-weight:700}
 .upd.fresh b.d{color:var(--gain)}
-.howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-2);cursor:pointer;white-space:nowrap}
+.howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);cursor:pointer;white-space:nowrap}
 .howbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
-/* colour says what kind of place a button goes: outline = explainer, cream =
-   the club's story, scarlet = standings and records */
-.howbtn.cream{background:var(--cream);border-color:var(--cream);color:var(--void);font-weight:700}
-.howbtn.cream:hover{background:#fff;border-color:#fff;color:var(--void)}
+/* one red button per screen - the thing to tap - and the same quiet outline
+   pill for everything else, in the same order on every page */
 .howbtn.red{background:var(--btn-red);border-color:var(--btn-red);color:#fff;font-weight:700}
 .howbtn.red:hover{background:var(--scarlet);border-color:var(--scarlet);color:#fff}
 #seasonNote{margin:0 0 .9rem;padding:.6rem .8rem;border-left:3px solid var(--scarlet);background:rgba(31,15,18,.85);border-radius:4px;font-size:.84rem;line-height:1.45;color:var(--cream)}
@@ -332,7 +330,7 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .xrow b{font-weight:600}
 .xrow .net{font-family:var(--fm);font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:3rem;text-align:center}
 .xrow .rc{font-family:var(--fm);font-size:.72rem;color:var(--ink-3);min-width:3.6rem;text-align:right}
-.xbtn{width:100%;background:var(--btn-red);border:1px solid var(--btn-red);border-radius:8px;padding:.85rem;color:#fff;font-weight:700;font-family:var(--fm);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:.8rem}
+.xbtn{width:100%;background:none;border:1px solid var(--rule-2);border-radius:8px;padding:.85rem;color:var(--cream);font-weight:700;font-family:var(--fm);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:.8rem}
 .xbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 /* avatars: photos/<slug>.jpg if it exists, else the initial */
 .av{display:inline-grid;place-items:center;border-radius:50%;background:var(--panel-3);color:var(--ink-2);font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;overflow:hidden;position:relative;flex:none;vertical-align:middle;line-height:1}
@@ -344,8 +342,8 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .ph2row{display:flex;gap:1.1rem;align-items:center}
 .pc{display:flex;gap:.8rem;align-items:center}.pc .av.m{margin:0}.pc>div{min-width:0}
 /* profile */
-.back{background:none;border:1px solid var(--cream);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin-bottom:1.2rem}
-.back:hover{background:var(--cream);color:var(--void)}
+.back{background:none;border:1px solid var(--rule-2);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin-bottom:1.2rem}
+.back:hover{border-color:var(--scarlet);color:var(--scarlet)}
 .back:hover{color:var(--scarlet)}
 .card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:3px;padding:1rem;min-width:0}
 .card h3{font-family:var(--fm);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:.8rem}
@@ -486,9 +484,9 @@ border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;backgroun
 .ach .pg{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.6rem;color:var(--ink-3)}
 .ach .pgb{display:block;height:3px;border-radius:2px;background:var(--panel-3);margin-top:.25rem;overflow:hidden}
 .ach .pgb i{display:block;height:100%;background:var(--ink-3)}
-.pmore{display:block;width:100%;min-height:48px;margin:.2rem 0 1rem;background:var(--cream);border:1px solid var(--cream);
-border-radius:10px;color:var(--void);font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.95rem;cursor:pointer}
-.pmore:hover{background:#fff;border-color:#fff}
+.pmore{display:block;width:100%;min-height:48px;margin:.2rem 0 1rem;background:none;border:1px solid var(--rule-2);
+border-radius:10px;color:var(--cream);font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.95rem;cursor:pointer}
+.pmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
 #graphs2>#pRest>.gwrap{margin-bottom:.9rem}
 .achmore{margin-top:.6rem;width:100%;min-height:42px;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.6rem;
 color:var(--ink-3);font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
@@ -693,10 +691,10 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sres"><div class="sres hid" id="sres" role="listbox" aria-label="Players"></div></div>
 <button class="howbtn red" id="jumpBtn">Standings &darr;</button>
-<button class="howbtn" id="howBtn">How ratings work</button>
-<button class="howbtn cream" id="histBtn">Club history</button>
-<button class="howbtn red" id="recBtn">Club records</button>
+<button class="howbtn" id="histBtn">Club history</button>
+<button class="howbtn" id="recBtn">Club records</button>
 <span id="pastBtns" style="display:contents"></span>
+<button class="howbtn" id="howBtn">How ratings work</button>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
 <div id="champs"></div>
@@ -1040,8 +1038,9 @@ window.addEventListener("hashchange",route);
       document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
       addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
-      .map(n=>'<a class="howbtn red" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
+      .map(n=>'<a class="howbtn" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
       (arch?'<a class="howbtn red" href="./">Current season</a>':'');
+    if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
   $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
@@ -1251,7 +1250,7 @@ function drawLastNight(){
   const results=games.map(g=>{ const w=NAMES[g[1]], b=NAMES[g[2]], r=g[3];
     return '<tr><td class="'+(r==="w"?"win":"")+'">'+E(w)+'</td><td class="res">'+(r==="w"?"1–0":r==="b"?"0–1":"½–½")+'</td><td class="'+(r==="b"?"win":"")+'">'+E(b)+'</td></tr>' }).join("");
   const standings=N.table.map(r=>'<tr data-n="'+E(r[0])+'"><td class="n">'+N.place[r[0]]+'</td><td>'+E(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
-  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn red" id="lnBtn" aria-expanded="false">Full results</button></div>'+
+  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn" id="lnBtn" aria-expanded="false">Full results</button></div>'+
     '<dl class="lg">'+tiles.join("")+'</dl>'+
     '<div class="recap"><div><h4>Standings on the night</h4><table>'+standings+'</table></div><div><h4>Results &middot; White first</h4><table>'+results+'</table></div></div>';
   $("#lnBtn").onclick=function(){ const o=$("#ln").classList.toggle("open"); this.setAttribute("aria-expanded",o); this.textContent=o?"Hide results":"Full results" };
