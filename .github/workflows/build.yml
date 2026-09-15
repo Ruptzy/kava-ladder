@@ -6,7 +6,8 @@ name: Build the ladder
 on:
   push:
     branches: [main]
-    paths: ['build/nights/**']
+    # a night from the phone, or any change to the builders, data or template
+    paths: ['build/**', '.github/workflows/build.yml']
   workflow_dispatch:
 
 permissions:
