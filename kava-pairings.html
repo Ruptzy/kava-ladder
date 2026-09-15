@@ -1251,7 +1251,7 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .xrow b{font-weight:600}
 .xrow .net{font-family:var(--fm);font-weight:700;padding:.2rem .5rem;border-radius:4px;min-width:3rem;text-align:center}
 .xrow .rc{font-family:var(--fm);font-size:.72rem;color:var(--ink-3);min-width:3.6rem;text-align:right}
-.xbtn{width:100%;background:var(--panel);border:1px solid var(--rule-2);border-radius:8px;padding:.85rem;color:var(--ink-2);font-family:var(--fm);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:.8rem}
+.xbtn{width:100%;background:var(--scarlet);border:1px solid var(--scarlet);border-radius:8px;padding:.85rem;color:#fff;font-weight:700;font-family:var(--fm);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;margin-bottom:.8rem}
 .xbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 /* avatars: photos/<slug>.jpg if it exists, else the initial */
 .av{display:inline-grid;place-items:center;border-radius:50%;background:var(--panel-3);color:var(--ink-2);font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;overflow:hidden;position:relative;flex:none;vertical-align:middle;line-height:1}
@@ -1263,7 +1263,8 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .ph2row{display:flex;gap:1.1rem;align-items:center}
 .pc{display:flex;gap:.8rem;align-items:center}.pc .av.m{margin:0}.pc>div{min-width:0}
 /* profile */
-.back{background:none;border:none;cursor:pointer;padding:.45rem 0;font-family:var(--fm);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin-bottom:1.2rem}
+.back{background:none;border:1px solid var(--cream);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin-bottom:1.2rem}
+.back:hover{background:var(--cream);color:var(--void)}
 .back:hover{color:var(--scarlet)}
 .card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:3px;padding:1rem;min-width:0}
 .card h3{font-family:var(--fm);font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-bottom:.8rem}
@@ -1404,9 +1405,9 @@ border-radius:50%;background:rgba(12,13,14,.6);background-size:contain;backgroun
 .ach .pg{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.6rem;color:var(--ink-3)}
 .ach .pgb{display:block;height:3px;border-radius:2px;background:var(--panel-3);margin-top:.25rem;overflow:hidden}
 .ach .pgb i{display:block;height:100%;background:var(--ink-3)}
-.pmore{display:block;width:100%;min-height:48px;margin:.2rem 0 1rem;background:var(--panel);border:1px solid var(--rule-2);
-border-radius:10px;color:var(--cream);font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.95rem;cursor:pointer}
-.pmore:hover{border-color:var(--scarlet);color:var(--scarlet)}
+.pmore{display:block;width:100%;min-height:48px;margin:.2rem 0 1rem;background:var(--cream);border:1px solid var(--cream);
+border-radius:10px;color:var(--void);font-family:var(--fd);font-variation-settings:"wdth" 108,"wght" 700;font-size:.95rem;cursor:pointer}
+.pmore:hover{background:#fff;border-color:#fff}
 #graphs2>#pRest>.gwrap{margin-bottom:.9rem}
 .achmore{margin-top:.6rem;width:100%;min-height:42px;background:none;border:1px dashed var(--rule-2);border-radius:8px;padding:.6rem;
 color:var(--ink-3);font-family:var(--fm);font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
@@ -1474,7 +1475,7 @@ text-transform:uppercase;color:var(--ink-3);margin-bottom:.3rem}
 .mbox h2{font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;font-size:1.3rem;text-transform:uppercase;margin-bottom:.8rem}
 .mbox h2 span{color:var(--scarlet)}
 .mbox .x{position:absolute;right:.7rem;top:.7rem;background:none;border:1px solid var(--rule-2);border-radius:50%;width:32px;height:32px;cursor:pointer;color:var(--ink-2)}
-.faq{margin:0}.faq dt{font-weight:700;margin-top:.8rem}.faq dd{margin:.15rem 0 0;color:var(--ink-2);font-size:.92rem}
+.faq{margin:0;padding:0 0 0 1.1rem}.faq li{margin:.55rem 0;color:var(--cream);font-size:.95rem;line-height:1.45}.faq li b{color:var(--scarlet)}
 /* easter eggs */
 #eggToast{position:fixed;left:50%;bottom:1.1rem;transform:translate(-50%,120%);z-index:80;
 max-width:min(420px,92vw);padding:.7rem 1rem;border-radius:24px;background:rgba(22,23,25,.97);
@@ -1532,7 +1533,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .sortmenu button{padding:.7rem .65rem}
   .showaway{padding:.85rem}
   .xbtn{padding:.95rem}
-  .back{padding:.7rem 0;font-size:.7rem}
+  .back{padding:.7rem 1rem;font-size:.7rem}
   .chip,.cmpbtn{padding:.6rem .95rem}
   .cmpsel select,.xsel select{padding:.7rem 2.2rem .7rem .8rem}
   .card{padding:.9rem .85rem}
@@ -1705,15 +1706,15 @@ the club is older than its paperwork.</p>
 <div class="modal" id="how" role="dialog" aria-modal="true" aria-labelledby="howT"><div class="mbox">
 <button class="x" id="howX" aria-label="Close">&times;</button>
 <h2 id="howT">How the <span>ratings</span> work</h2>
-<dl class="faq">
-<dt>How do I go up?</dt><dd>Win games. Beating someone rated above you gains a lot. Beating someone rated below you gains a little.</dd>
-<dt>I won most of my games. Why did I go down?</dt><dd>You lost to someone rated well below you, and that costs more than the wins gained. It evens out over a few nights.</dd>
-<dt>What is the &plusmn; next to my number?</dt><dd>How settled your rating is. New players move fast. It shrinks as you play more.</dd>
-<dt>Why am I not on the main table?</dt><dd>You need about eight games first. Until then you are listed as still settling in.</dd>
-<dt>Which bracket am I in?</dt><dd>The one you start the season in. It stays for the whole season. Pass the top of it and you still win its prize, then move up next season.</dd>
-<dt>Where did my name go?</dt><dd>No games for 90 days puts you on the away list. Play one night and you are back.</dd>
-<dt>What are the cups on my page?</dt><dd>Top three in your bracket on a club night. You need three games that night for it to count.</dd>
-</dl></div></div>
+<ul class="faq">
+<li>Win and your number goes up. Lose and it goes down.</li>
+<li>Beat someone rated higher: big gain. Lose to someone lower: big loss.</li>
+<li>The <b>&plusmn;</b> is how settled your number is. It shrinks as you play.</li>
+<li>About 8 games gets you on the main table.</li>
+<li>Your bracket is set on your first night and lasts the season.</li>
+<li>No games for 90 days puts you on the away list. Play once and you are back.</li>
+<li>Cups: top three in your bracket on a night. Three games needed.</li>
+</ul></div></div>
 <script>
 const D=${JSON.stringify(D)};
 const $=s=>document.querySelector(s), E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -2145,7 +2146,7 @@ function drawLastNight(){
   const results=games.map(g=>{ const w=NAMES[g[1]], b=NAMES[g[2]], r=g[3];
     return '<tr><td class="'+(r==="w"?"win":"")+'">'+E(w)+'</td><td class="res">'+(r==="w"?"1–0":r==="b"?"0–1":"½–½")+'</td><td class="'+(r==="b"?"win":"")+'">'+E(b)+'</td></tr>' }).join("");
   const standings=N.table.map(r=>'<tr data-n="'+E(r[0])+'"><td class="n">'+N.place[r[0]]+'</td><td>'+E(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
-  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn" id="lnBtn" aria-expanded="false">Full results</button></div>'+
+  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn red" id="lnBtn" aria-expanded="false">Full results</button></div>'+
     '<dl class="lg">'+tiles.join("")+'</dl>'+
     '<div class="recap"><div><h4>Standings on the night</h4><table>'+standings+'</table></div><div><h4>Results &middot; White first</h4><table>'+results+'</table></div></div>';
   $("#lnBtn").onclick=function(){ const o=$("#ln").classList.toggle("open"); this.setAttribute("aria-expanded",o); this.textContent=o?"Hide results":"Full results" };
