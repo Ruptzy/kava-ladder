@@ -2068,7 +2068,7 @@ function achX(p){
   X("balanced","\u2696\uFE0F","Perfectly Balanced","Exactly as many wins as losses, after twenty or more games.",(p,c)=>c.games>=20&&c.wins===c.games-c.wins-c.draws);
   X("rollercoaster","\uD83C\uDFA2","Rollercoaster","Win, lose, win, lose, win - five games running.",(p,c)=>achX(p).rollercoaster);
   // secrets
-  X("nice","\uD83D\uDE0F","Nice.","End a night on exactly 69 recorded games.",(p,c)=>endedOn(p,c,69));
+  X("nice","\uD83D\uDE0F","Nice.","Reach 69 games on record. Nice.",(p,c)=>c.games>=69,(p,c)=>[c.games,69]);
   X("average","\uD83D\uDE10","Perfectly Average","End a night on a rating of exactly 1500.",(p,c)=>p.r===1500||p.hist.some(h=>h[1]===1500));
   X("the-answer","\uD83E\uDDE0","The Answer","End a night on exactly 42 recorded games.",(p,c)=>endedOn(p,c,42));
   X("deja-vu","\uD83D\uDC08\u200D\u2B1B","D\u00E9j\u00E0 Vu","The same win-draw-loss line two nights running.",(p,c)=>achX(p).dejaVu);
