@@ -108,10 +108,13 @@ text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
 .upd{margin-left:auto;font-family:var(--fm);font-size:.75rem;letter-spacing:.08em;color:var(--ink-3);
 text-transform:uppercase;line-height:1.7;text-align:right}
 .upd b{color:var(--cream);font-weight:700}
+.upd a{color:var(--cream);text-decoration:underline dotted}
 .upd.fresh b.d{color:var(--gain)}
 .howbtn{background:none;border:1px solid var(--rule-2);border-radius:20px;padding:.35rem .7rem;font-family:var(--fm);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);cursor:pointer;white-space:nowrap}
 .howbtn:hover{border-color:var(--scarlet);color:var(--scarlet)}
 a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
+.howbtn .sm{display:none}
+@media(max-width:560px){.howbtn .lg{display:none}.howbtn .sm{display:inline}}
 /* one red button per screen - the thing to tap - and the same quiet outline
    pill for everything else, in the same order on every page */
 .howbtn.red{background:var(--btn-red);border-color:var(--btn-red);color:#fff;font-weight:700}
@@ -123,8 +126,8 @@ a.howbtn{text-decoration:none;display:inline-flex;align-items:center}
 /* movement since last night, gap to the one above, last five results */
 .mv{font-family:var(--fm);font-size:.7rem;margin-left:.3rem;font-weight:700;white-space:nowrap}
 .mv.up{color:var(--gain)}.mv.dn{color:var(--loss)}.mv.nw{color:var(--ink-3);font-weight:400}
-.gap{display:block;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);white-space:nowrap}
-.fs5{display:inline-flex;gap:2px;margin-left:.5rem;vertical-align:middle}
+.gap{display:block;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);white-space:nowrap;line-height:1.2}
+.fs5{display:flex;gap:2px;justify-content:flex-end;margin:.25rem 0 0}   /* under the night, where there is room */
 .fs5 i{width:7px;height:10px;border-radius:1px;background:var(--panel-3)}
 .fs5 i.W{background:var(--gain)}.fs5 i.L{background:var(--loss)}.fs5 i.D{background:var(--ink-3)}
 /* the row this phone calls you */
@@ -141,6 +144,11 @@ background:var(--scarlet-wash);border:1px solid var(--scarlet-dim);border-radius
 .rc h4 span{margin-left:auto;color:var(--cream);text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:.8rem}
 .rc p{margin:0 0 .3rem;font-size:.92rem}.rc small{display:block;color:var(--ink-3);font-size:.78rem;line-height:1.5}
 @media(max-width:700px){.rcs{grid-template-columns:1fr}}
+.rcl{background:var(--panel);border:1px solid var(--rule-2);border-radius:3px;padding:.2rem .9rem}
+.rr{display:flex;gap:.6rem;align-items:baseline;min-height:40px;padding:.45rem 0;border-bottom:1px solid var(--rule);font-size:.9rem;flex-wrap:wrap}
+.rr:last-child{border-bottom:none}
+.rr i{font-style:normal;color:var(--scarlet)}.rr b{font-family:var(--fm);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
+.rr span{font-family:var(--fm);font-size:.72rem;color:var(--ink-3)}.rr em{font-style:normal;margin-left:auto;color:var(--cream)}
 #champs a{display:flex;flex-wrap:wrap;gap:.35rem .9rem;align-items:center;margin:0 0 .9rem;padding:.55rem .8rem;min-height:40px;
 border:1px solid var(--rule-2);border-radius:8px;background:var(--panel);color:var(--cream);text-decoration:none;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
@@ -213,6 +221,7 @@ font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;padding:.7rem .85
 background:transparent no-repeat center/100% 100%;container-type:inline-size;text-align:left;
 border-radius:10px;overflow:hidden}
 .pc.p1{background-image:url(podium/1.png)}
+.pcb{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet);margin:-.1rem 0 .15rem}
 .pc.p2{background-image:url(podium/2.png)}
 .pc.p3{background-image:url(podium/3.png)}
 /* until the art loads, the card still stands up on its own */
@@ -249,7 +258,7 @@ font-family:var(--fd);font-variation-settings:"wdth" 106,"wght" 600}
 table{border-collapse:collapse;width:100%}
 th{font-family:var(--fm);font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);
 text-align:left;padding:.55rem .6rem;background:#101113;border-bottom:1px solid var(--rule-2);white-space:nowrap;font-weight:500}
-td{padding:.5rem .6rem;border-bottom:1px solid var(--rule)}
+td{padding:.42rem .6rem;border-bottom:1px solid var(--rule)}
 tbody tr[data-n]{cursor:pointer}tbody tr[data-n]:hover,tbody tr[data-n]:focus-visible{background:var(--panel-2);outline:none}
 tbody tr[data-n]:focus-visible td.nmc2{box-shadow:inset 3px 0 0 var(--scarlet)}
 th.r,td.r{text-align:right}
@@ -262,7 +271,7 @@ tr.one td{background:linear-gradient(90deg,var(--scarlet-wash),transparent 55%)}
 tr[data-n]:hover .nmc{color:var(--scarlet)}
 td .chev{display:none;color:var(--ink-3);margin-left:.3rem}
 .rat{font-family:var(--fm);font-size:1.05rem;font-weight:700}
-.rdv{font-family:var(--fm);font-size:.72rem;color:var(--ink-3);display:block}
+.rdv{font-family:var(--fm);font-size:.72rem;color:var(--ink-3);display:inline;margin-left:.3rem}
 .dl{font-family:var(--fm);font-weight:700;white-space:nowrap;font-size:1rem}
 .dl.u{color:var(--gain)}.dl.d{color:var(--loss)}.dl.f{color:var(--ink-3);font-weight:400;font-size:.8rem}
 .wdl{font-family:var(--fm);font-size:.76rem;color:var(--ink-2);white-space:nowrap}
@@ -613,6 +622,7 @@ color:var(--rule-2);font-size:1.15rem;transition:color .2s;min-height:40px;verti
 .rec dt{font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .rec dd{margin:.35rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.35rem;line-height:1.1}
 .rec dd small{display:block;font-family:var(--fb);font-weight:400;font-size:.8rem;color:var(--ink-2);margin-top:.3rem;line-height:1.4}
+footer a{color:var(--ink-2)}
 footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);font-family:var(--fm);font-size:.75rem;color:var(--ink-3);line-height:1.9}
 /* phones */
 @media(max-width:640px){
@@ -652,6 +662,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .tabs .lg{display:none}.tabs .sm{display:inline}
   .tabs button{padding:.6rem .6rem;font-size:.7rem}
   .tabs.art{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;width:100%;margin-left:0;transform:none}
+  .tabs.art .ta{aspect-ratio:1000/190;background-size:cover}
   .tabs.art button .n{font-size:.7rem;margin-top:.3rem}
   .pod{grid-template-columns:1fr;gap:.3rem;margin:.9rem 0}
   .pc .pcw{right:29%}
@@ -725,8 +736,8 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sres"><div class="sres hid" id="sres" role="listbox" aria-label="Players"></div></div>
 <button class="howbtn red" id="jumpBtn">Standings &darr;</button>
-<button class="howbtn" id="histBtn">Club history</button>
-<button class="howbtn" id="recBtn">Club records</button>
+<button class="howbtn" id="histBtn"><span class="lg">Club history</span><span class="sm">History</span></button>
+<button class="howbtn" id="recBtn"><span class="lg">Club records</span><span class="sm">Records</span></button>
 <span id="pastBtns" style="display:contents"></span>
 <button class="howbtn" id="howBtn">How ratings work</button>
 <div class="upd" id="upd"></div></div>
@@ -741,7 +752,6 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="pod" id="pod"></div>
 <div id="you"></div>
 <div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p id="ladSub">&nbsp;</p></div>
-<p class="l">Beat someone better, gain more. The <b>&plusmn;</b> is wiggle room &mdash; it shrinks as you play.</p>
 <div class="sortbar" id="sortbar" tabindex="0" aria-label="Sort the table">
 <div class="sorts" id="sorts"></div>
 <div class="funwrap">
@@ -848,6 +858,8 @@ const PAGE_TITLE=document.title, CLUB="Kava Social Chess Club";
 /* The club predates its records: it started in 2021, the first night anyone
    kept is September 2022. Anything about the club's age counts from here. */
 const CLUB_FROM=2021;
+/* where and when a club night is, for somebody who has only got the date */
+const NIGHT_TIME="8pm", VENUE="Kava Social, 540 13th St W", CLUB_SITE="https://kavasocialchessclub.com/";
 const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1;
 /* The ladder is one season. Everything before it is the vault: still in the
    ratings, because Glicko needs the whole run to know what anybody is worth,
@@ -1043,7 +1055,9 @@ window.addEventListener("hashchange",route);
   const today=new Date().toISOString().slice(0,10);
   const fresh=D.built&&daysBetween(D.built,today)<=2;
   $("#upd").className="upd"+(fresh?" fresh":"");
-  $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; includes <b>'+fshort(D.date)+'</b>'+(D.next?'<br>Next night <b>'+fshort(D.next)+'</b>':'');
+  $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; last night <b>'+fshort(D.date)+'</b>'+
+    (D.next&&!D.arch?'<br>Next night <b>'+new Date(D.next+"T12:00").toLocaleDateString("en-GB",{weekday:"short"})+' '+fshort(D.next)+'</b> &middot; '+NIGHT_TIME+
+      ' &middot; <a href="'+CLUB_SITE+'">'+VENUE+'</a>':'');
   { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
   /* Which season this page is, worked out rather than typed into the masthead:
      a hand-written "Season 10 up next" is right for exactly one season. */
@@ -1056,7 +1070,7 @@ window.addEventListener("hashchange",route);
     const first=D.next?(D.next===now?"tonight":fshort(D.next)):"soon";
     if(tag) tag.innerHTML=arch?'<b>Final</b><small>standings</small>'
       :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
-      :SEASON?'<b>Night '+D.dates.length+'</b><small>'+(D.next?'next '+fshort(D.next):'this season')+'</small>':'';
+      :SEASON?'<b>Night '+D.dates.length+'</b><small>of about '+seasonExpected()+'</small>':'';
     if(note) note.innerHTML=arch
       ?'This is how Season '+arch+' finished. <a href="./">Back to the current season &rarr;</a>'
       :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
@@ -1075,12 +1089,14 @@ window.addEventListener("hashchange",route);
       document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
       addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
     if(past) past.innerHTML=(D.past||[]).filter(n=>n!==arch).slice().reverse()
-      .map(n=>'<a class="howbtn" href="season-'+n+'.html">Season '+n+' standings</a>').join("")+
+      .map(n=>'<a class="howbtn" href="season-'+n+'.html"><span class="lg">Season '+n+' standings</span><span class="sm">Season '+n+'</span></a>').join("")+
       (arch?'<a class="howbtn red" href="./">Current season</a>':'');
     if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
-  $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club nights &middot; earlier seasons archived separately &middot; ratings by Glicko-2 &middot; built "+fd(D.built)+
+  $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club night"+(DATES.length===1?"":"s")+
+    ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().map(n=>'<a href="season-'+n+'.html">Season '+n+'</a>').join(", "):"")+
+    " &middot; ratings recalculated from every game &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
 const TABART=D.tabart||[];
@@ -1149,15 +1165,15 @@ const rank=()=>pool().filter(p=>!away(p)&&p.rd<=RS);
 const prov=()=>pool().filter(p=>!away(p)&&p.rd>RS);
 const gone=()=>pool().filter(away);
 const SORTS=[
- {k:"r", ic:"🏆", t:"Rating",         col:"Last night", val:p=>p.r, show:null, note:"Ranked once the ± is 110 or less. Away after 90 days without a game."},
+ {k:"r", ic:"🏆", t:"Rating",         col:"Last night", val:p=>p.r, show:null, note:""},
  {k:"win", ic:"🎯", t:"Win rate",       col:"Win rate",   val:p=>pct(p.rec[0],p.rec[1],p.games), show:p=>pct(p.rec[0],p.rec[1],p.games)+"%", min:8, note:"Draws count half. Fewer than 8 games drops to the bottom."},
  {k:"g", ic:"♟️", t:"Games played",   col:"Games",      val:p=>p.games, show:p=>p.games, note:"Every game this season."},
  {k:"imp", ic:"📈", t:"Most improved",  col:"3 months",   val:p=>p.imp==null?-9999:p.imp,
    show:p=>p.imp!=null?(p.imp>0?"+"+p.imp:p.imp)
      :'<span style="font-size:.7rem;color:var(--ink-3)">'+(p.d===DIVS[0]?"—":"settling")+'</span>',
    sign:p=>p.imp||0, note:"Change over the last 90 days, for the two lower brackets. Settled ratings only, at least 12 games."},
- {k:"con", ic:"🪑", t:"Most consistent",col:"Nights",     val:p=>p.cons||0, show:p=>(p.cons||0)+" of "+DATES.length, note:"Club nights turned up to."},
- {k:"blk", ic:"♚", t:"Best as Black",  col:"As Black",   val:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g):-1},
+ {k:"con", ic:"🪑", t:"Most consistent",col:"Nights", fun:true,    val:p=>p.cons||0, show:p=>(p.cons||0)+" of "+DATES.length, note:"Club nights turned up to."},
+ {k:"blk", ic:"♚", t:"Best as Black",  col:"As Black", fun:true,  val:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g):-1},
    show:p=>{const g=p.bl[0]+p.bl[1]+p.bl[2];return g?pct(p.bl[0],p.bl[1],g)+"%":"—"}, min:6, note:"Score with the Black pieces. Fewer than 6 games as Black drops to the bottom."},
  {k:"ups", ic:"⚡", t:"Giant killer", col:"Upsets", fun:true, val:p=>p.upsets, min:4,
    show:p=>p.upsets>0?p.upsets:'<span style="color:var(--ink-3)">0</span>',
@@ -1205,7 +1221,13 @@ function spark(p){
 }
 function metricCell(p){
   const s=SORT();
-  if(!s.show) return p.played&&p.delta!=null?'<span class="dl '+(p.delta>0?"u":p.delta<0?"d":"f")+'">'+dtx(p.delta)+'</span>':'<span class="dl f">—</span>';
+  if(!s.show){
+    const ln=p.nightly[p.nightly.length-1];
+    // their first night at the club, ever - not the first this season: the seed
+    // settling, not points lost. nw = no rating from before this season.
+    if(p.played&&p.nw&&p.nightly.length===1&&ln&&ln.ni===LASTI) return '<span class="dl f">first night</span>';
+    return p.played&&p.delta!=null?'<span class="dl '+(p.delta>0?"u":p.delta<0?"d":"f")+'">'+dtx(p.delta)+'</span>':'<span class="dl f">—</span>';
+  }
   let cls="";
   if(s.sign){ const v=s.sign(p); cls=v>0?"u":v<0?"d":"f" }
   return '<span class="dl '+cls+'">'+s.show(p)+'</span>';
@@ -1214,9 +1236,9 @@ function row(p,i,kind,ctx){
   ctx=ctx||{};
   return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+(p.n===meName()?" me":"")+'">'+
    '<td class="k">'+(kind==="r"?(i+1)+(ctx.prev?moveMark(p,i,ctx.prev):""):"·")+'</td>'+
-   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span>'+form5(p)+'<span class="chev">›</span></td>'+
+   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span><span class="chev">›</span></td>'+
    '<td class="r"><span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span>'+(ctx.gap>0?'<span class="gap">'+ctx.gap+' behind</span>':'')+'</td>'+
-   '<td class="r">'+metricCell(p)+'</td>'+
+   '<td class="r">'+metricCell(p)+form5(p)+'</td>'+
    '<td class="hm">'+spark(p)+'</td>'+
    '<td class="wdl hm">'+p.rec[0]+'<i>–</i>'+p.rec[1]+'<i>–</i>'+p.rec[2]+'</td></tr>';
 }
@@ -1235,7 +1257,7 @@ function draw(){
     '<button role="menuitemradio" data-s="'+s.k+'" aria-checked="'+(s.k===sortK)+'">'
     +'<span class="ic" aria-hidden="true">'+s.ic+'</span><span><b>'+s.t+'</b><small>'+s.note+'</small></span></button>').join("");
   $("#thMetric").textContent=SORT().col;
-  $("#sortNote").textContent=(SORT().note||"")+(SORT().k==="r"?" Ties on rating: more games played, then the name.":"");
+  $("#sortNote").textContent=SORT().k==="r"?"Ties on rating: more games played, then the name.":(SORT().note||"");
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
@@ -1244,11 +1266,16 @@ function draw(){
   $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r",{prev, gap:byR&&i>0?rk[i-1].r-p.r:0})).join("")
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
-  $("#pod").innerHTML=[...rank()].sort(byRating).slice(0,3).map((p,i)=>'<button class="pc p'+(i+1)+'" data-n="'+E(p.n)+
-   '" aria-label="'+E(p.n)+', number '+(i+1)+' in '+E(longDiv(div))+'">'+
+  // on Whole Club the top three are always the top bracket's, so that view shows
+  // each bracket's leader instead - the three people the prizes are between
+  const leaders=div==="all"?D.divisions.map(d=>({p:rankedIn(d)[0],d})).filter(x=>x.p)
+                           :[...rank()].sort(byRating).slice(0,3).map((p,i)=>({p,i}));
+  $("#pod").innerHTML=leaders.map((x,i)=>{ const p=x.p, lab=x.d?longDiv(x.d)+" leader":"number "+(i+1)+" in "+longDiv(div);
+    return '<button class="pc p'+(x.d?1:i+1)+'" data-n="'+E(p.n)+'" aria-label="'+E(p.n)+', '+E(lab)+'">'+
    '<span class="pcav">'+av(p.n,"m")+'</span>'+
    '<span class="pcw"><span class="nm">'+E(p.n)+'</span>'+
-   '<span class="rt">'+p.r+'<sub>±'+p.rd+'</sub></span></span></button>').join("");
+   (x.d?'<span class="pcb">'+E(shortDiv(x.d))+'</span>':'')+
+   '<span class="rt">'+p.r+'<sub>±'+p.rd+'</sub></span></span></button>' }).join("");
   fitPodium();
   drawLastNight();
   drawYou(); drawRace();
@@ -1308,6 +1335,19 @@ function drawRace(){
   const box=$("#race"); if(!box) return;
   if(D.arch||!SEASON||!DATES.length){ box.innerHTML=""; return }
   const exp=seasonExpected(), need=Math.ceil(exp/2), left=exp-DATES.length, PIECE=["&#9818;","&#9820;","&#9823;"];
+  const amount=d=>((PRIZES[d]||"").match(/[$][0-9]+/)||[""])[0];
+  if(DATES.length<need){
+    const rows=D.divisions.map((d,k)=>{
+      const sofar=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p)&&p.rd<=RS).sort(byRating)[0];
+      return '<div class="rr"><i>'+PIECE[k]+'</i><b>'+E(longDiv(d))+'</b><span>'+amount(d)+'</span>'+
+        '<em>'+(sofar?E(sofar.n)+' top so far, '+sofar.r:'nobody settled yet')+'</em></div>';
+    }).join("");
+    box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
+      '<p class="l">Top settled rating in each bracket wins it, among everyone who plays at least <b>'+need+' of the '+exp+' nights</b>. '+
+      DATES.length+' played, so everyone needs '+(need-DATES.length)+' more night'+(need-DATES.length===1?'':'s')+' to qualify.</p>'+
+      '<div class="rcl">'+rows+'</div>';
+    return;
+  }
   const cards=D.divisions.map((d,k)=>{
     const all=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p));
     const elig=all.filter(p=>p.rd<=RS&&p.cons>=need).sort(byRating), top=elig[0], second=elig[1];
@@ -1319,7 +1359,7 @@ function drawRace(){
                   :'Nobody has '+need+' nights yet.';
     const sh=early?'<small>'+all.length+' playing. Everyone needs '+(need-DATES.length)+' more night'+(need-DATES.length===1?'':'s')+' to qualify.</small>'
              :short.length?'<small>Needs '+need+' nights: '+short.map(p=>E(p.n)+' '+p.cons).join(' &middot; ')+'</small>':'';
-    return '<div class="rc"><h4><i>'+PIECE[k]+'</i>'+E(longDiv(d))+'<span>'+(PRIZES[d]||"")+'</span></h4><p>'+lead+'</p>'+sh+'</div>';
+    return '<div class="rc"><h4><i>'+PIECE[k]+'</i>'+E(longDiv(d))+'<span>'+amount(d)+' gift card</span></h4><p>'+lead+'</p>'+sh+'</div>';
   }).join("");
   box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
     '<p class="l">Top settled rating in each bracket wins it, among everyone who plays at least <b>'+need+' of the '+exp+' nights</b>. '+
@@ -1353,6 +1393,7 @@ function drawLastNight(){
   const played=P.filter(p=>p.played), games=D.games.filter(g=>g[0]===ni);
   let riser=null; played.forEach(p=>{ if(p.delta>0&&(!riser||p.delta>riser.delta)) riser=p });
   let up=null; played.forEach(p=>p.log.forEach(l=>{ if(l.ni===ni&&l.s===1&&l.orat-l.mrat>=100&&(!up||l.orat-l.mrat>up.gap)) up={p, o:l.o, gap:l.orat-l.mrat} }));
+  if(up&&riser&&riser.n===up.p.n){ riser=null; played.forEach(p=>{ if(p.n!==up.p.n&&p.delta>0&&(!riser||p.delta>riser.delta)) riser=p }) }
   const sweeps=played.filter(p=>{ const n=p.nightly[p.nightly.length-1]; return n&&n.ni===ni&&n.w>=3&&n.l===0&&n.dr===0 });
   const top=N.table.filter(r=>r[2]>=3); const win=top.length?top.filter(r=>r[1]===top[0][1]):[];
   const tiles=[];
