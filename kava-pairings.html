@@ -1602,7 +1602,25 @@ html.gold-mode,html.dim-mode{transition:filter .4s}
 color:var(--rule-2);font-size:1.15rem;transition:color .2s;min-height:40px;vertical-align:middle}
 #hintDot:hover,#hintDot:focus-visible{color:var(--scarlet)}
 .eggl:hover{color:var(--scarlet)}
-.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem}
+.recs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.7rem;margin-bottom:1.2rem}
+/* a season a card: champions, then its size */
+.seasons{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:.7rem;margin-bottom:1.2rem}
+.season-card{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem 1rem}
+.season-card h3{margin:0 0 .5rem;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;font-size:1.15rem}
+.season-card h3 small{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:400;margin-top:.15rem}
+.season-card .ch{display:flex;gap:.6rem;align-items:baseline;padding:.3rem 0;border-bottom:1px solid var(--rule);font-size:.92rem}
+.season-card .ch i{font-style:normal;color:var(--scarlet)}.season-card .ch b{flex:1}.season-card .ch span{font-family:var(--fm);font-size:.8rem;color:var(--ink-3)}
+.season-card .sz{font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;color:var(--ink-3);margin:.6rem 0 0;text-transform:uppercase}
+.season-card a.howbtn{margin-top:.7rem}
+.season-card.now{border-color:var(--scarlet-dim)}
+.mbox.wide{max-width:720px}
+.career{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:.5rem;margin-top:.9rem}
+.career h4{grid-column:1/-1;margin:.6rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--scarlet)}
+.career h4:first-child{margin-top:0}
+.career div{background:var(--panel-2);border:1px solid var(--rule-2);border-radius:6px;padding:.55rem .7rem;min-width:0}
+.career dt{font-family:var(--fm);font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3)}
+.career dd{margin:.15rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.15rem;line-height:1.1}
+.career dd small{display:block;font-family:var(--fb);font-weight:400;font-size:.76rem;color:var(--ink-2);margin-top:.15rem}
 .rec{background:rgba(22,23,25,.94);border:1px solid var(--rule-2);border-radius:6px;padding:.9rem}
 .rec dt{font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
 .rec dd{margin:.35rem 0 0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.35rem;line-height:1.1}
@@ -1803,10 +1821,18 @@ the club is older than its paperwork.</p>
 </main>
 <main id="rv" class="hid">
 <button class="back" id="rbk">&larr; Back to the ladder</button>
-<div class="sh"><h2>Club <span>records</span></h2><p>Every night on record</p></div>
-<p class="l">The high-water marks, worked out from every game the club has kept.</p>
+<div class="sh"><h2>Past <span>seasons</span></h2><p>Who won what</p></div>
+<div class="seasons" id="seasons"></div>
+<div class="sh"><h2>All-time <span>records</span></h2><p>Every night on record</p></div>
+<dl class="recs" id="recsAll"></dl>
+<div class="sh"><h2 id="recsNowH">This <span>season</span></h2><p>So far</p></div>
 <dl class="recs" id="recs"></dl>
 </main>
+<div class="modal" id="career" role="dialog" aria-modal="true" aria-labelledby="careerT"><div class="mbox wide">
+<button class="x" id="careerX" aria-label="Close">&times;</button>
+<h2 id="careerT">Career <span>stats</span></h2>
+<div id="careerBody"></div>
+</div></div>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
 <div class="phead2"><div class="pnick" id="pnick"></div><div class="ph2row"><div id="pav"></div><div style="min-width:0"><h1 id="pname"></h1><div class="psub" id="psub"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
@@ -3412,6 +3438,41 @@ function vsTable(p){
         [a[0],a[1],a[2]].map(function(v){ return '<td style="'+num+';color:'+k+'">'+v+'</td>' }).join("")+'</tr>' }).join("")+
     '</tbody></table>';
 }
+/* Everything the club knows about one player, in one place: this season, this
+   era before it, and Seasons 1-7 on the old system. */
+function careerPanel(p){
+  const c=p.c||{}, out=[];
+  const H=t=>out.push('<h4>'+t+'</h4>'), S=(k,v,n)=>out.push('<div><dt>'+k+'</dt><dd>'+v+(n?'<small>'+n+'</small>':'')+'</dd></div>');
+  const rec=c.rec||p.rec, games=c.games||p.games, wins=rec[0], dr=rec[1], loss=rec[2];
+  const pct=games?Math.round((wins+dr*0.5)/games*100):0;
+  H("Every night on record");
+  S("Games",games); S("Record",wins+"&ndash;"+dr+"&ndash;"+loss,"W&ndash;D&ndash;L"); S("Score",pct+"%","wins plus half the draws");
+  S("Nights",c.nights!=null?c.nights:p.cons); if(c.first) S("First night",fd(c.first)); if(c.last) S("Latest night",fd(c.last));
+  if(c.span) S("At the club",(c.span/365).toFixed(1)+" years",(c.months||0)+" different months");
+  H("As White and Black");
+  const wh=c.wh||p.wh, bl=c.bl||p.bl;
+  S("As White",wh[0]+"&ndash;"+wh[1]+"&ndash;"+wh[2],(wh[0]+wh[1]+wh[2])+" games"); S("As Black",bl[0]+"&ndash;"+bl[1]+"&ndash;"+bl[2],(bl[0]+bl[1]+bl[2])+" games");
+  H("Turning up");
+  if(c.bestRun) S("Nights in a row",c.bestRun,"best run"); if(c.full!=null) S("Five-game nights",c.full); if(c.sweeps!=null) S("Clean sweeps",c.sweeps,"won every game, four or more");
+  if(c.maxNight) S("Most games in a night",c.maxNight); if(c.share!=null) S("Nights made",Math.round(c.share*100)+"%","of the nights since your first");
+  H("People");
+  S("Different opponents",c.opps!=null?c.opps:Object.keys(p.opp).length); if(c.topRival) S("Most games with one person",c.topRival);
+  H("This season");
+  S("Rating",p.r,"&plusmn;"+p.rd); S("Record",p.rec[0]+"&ndash;"+p.rec[1]+"&ndash;"+p.rec[2],p.games+" games"); S("Nights",p.cons+" of "+DATES.length);
+  if(p.peak) S("Season high",p.peak[0],fshort(p.peak[1])); if(p.streak&&p.streak[0]) S("Best winning run",p.streak[0]+" straight");
+  S("Cups",p.trophies[0]+" &middot; "+p.trophies[1]+" &middot; "+p.trophies[2],"gold &middot; silver &middot; bronze");
+  if(p.v&&p.v[3]){ H("This era, before this season"); S("Games",p.v[3],VAULT?fshort(VAULT.from)+" &ndash; "+fshort(VAULT.to):""); S("Record",p.v[0]+"&ndash;"+p.v[1]+"&ndash;"+p.v[2]) }
+  const old=ARCBY[p.n]||(ARC&&ARC.link&&ARC.link[p.n]?ARCBY[ARC.link[p.n]]:null);   // the archive is keyed by the current name
+  if(old){ H("Seasons 1&ndash;7, the old system"); S("Games",old.g); S("Record",old.rec[0]+"&ndash;"+old.rec[1]+"&ndash;"+old.rec[2]); S("Old rating",old.r,"not comparable with today's") }
+  return '<dl class="career">'+out.join("")+'</dl>';
+}
+let careerOpener=null;
+function openCareer(p){ careerOpener=document.activeElement; $("#careerT").innerHTML=E(p.n)+' <span>career</span>'; $("#careerBody").innerHTML=careerPanel(p); $("#career").classList.add("open"); $("#careerX").focus() }
+function closeCareer(){ const was=$("#career").classList.contains("open"); $("#career").classList.remove("open"); if(was&&careerOpener){ careerOpener.focus(); careerOpener=null } }
+$("#careerX").onclick=closeCareer;
+$("#career").onclick=e=>{ if(e.target===$("#career")) closeCareer() };
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeCareer() });
+
 function suggestRivals(p){
   var out=[], seen={};
   // only people on the board: a visitor's chip opens nothing when tapped
@@ -3464,9 +3525,10 @@ function showProfile(n,rival){
   $("#pname").textContent=p.n; $("#pav").innerHTML=av(p.n,"l");
   $("#ptro").outerHTML=trophyHead(p);
   $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+p.games+' games</span>'+(p.rd>RS?'<span class="pill set">still settling · ±'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away · '+awayWhy(p)+'</span>':'');
-  $("#pact").innerHTML='<button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
+  $("#pact").innerHTML='<button class="chip" id="careerBtn">Career stats</button><button class="cmpbtn" id="cmpGo">Compare with a rival</button>'+suggestRivals(p).map(function(r){return '<button class="chip" data-r="'+esc(r[0])+'"><small>'+r[1]+'</small>'+esc(r[0])+'</button>'}).join("")+
     '<button class="chip" id="meBtn" aria-pressed="'+(meName()===p.n)+'">'+(meName()===p.n?"Not me":"This is me")+'</button>';
   $("#meBtn").onclick=function(){ const on=meName()!==p.n; setMe(on?p.n:""); this.textContent=on?"Not me":"This is me"; this.setAttribute("aria-pressed",on); draw() };
+  $("#careerBtn").onclick=function(){ openCareer(p) };
   $("#cmpGo").onclick=function(){ var c=$("#cmpCard"); if(c){ c.scrollIntoView({behavior:"instant",block:"start"}); var s=$("#rivalSel"); if(s&&!RIVAL) setTimeout(function(){ s.focus() },400) } };
   $("#kpis").innerHTML=
     '<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'–'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>'+
@@ -4094,7 +4156,54 @@ window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
 
 /* ---------- club records, reachable from the footer or by typing it ---------- */
+function seasonCard(s,now){
+  const PIECE=["&#9818;","&#9820;","&#9823;"];
+  const champs=(s.champs||[]).map(c=>'<div class="ch"><i>'+(PIECE[D.divisions.indexOf(c.d)]||"")+'</i><b>'+E(c.n)+'</b><span>'+E(longDiv(c.d))+' &middot; '+c.r+'</span></div>').join("");
+  return '<div class="season-card'+(now?' now':'')+'"><h3>Season '+s.no+'<small>'+(now?'in progress &middot; ':'')+(s.from===s.to?'from '+fshort(s.from):fshort(s.from)+' &ndash; '+fshort(s.to))+'</small></h3>'+
+    (champs||'<div class="ch"><b>'+(now?'Leaders so far':'No champions recorded')+'</b></div>')+
+    '<p class="sz">'+s.nights+' night'+(s.nights===1?'':'s')+' &middot; '+s.games+' games &middot; '+s.players+' players</p>'+
+    (now?'':'<a class="howbtn" href="season-'+s.no+'.html">Season '+s.no+' standings</a>')+'</div>';
+}
+function drawSeasons(){
+  const box=$("#seasons"); if(!box) return;
+  const cards=[];
+  if(SEASON&&!D.arch){
+    const leaders=D.divisions.map(d=>{ const p=rankedIn(d)[0]; return p?{d,n:p.n,r:p.r}:null }).filter(Boolean);
+    const played=new Set(); D.games.forEach(g=>{ played.add(NAMES[g[1]]); played.add(NAMES[g[2]]) });
+    cards.push(seasonCard({no:SEASON.no,from:DATES[0]||SEASON.from,to:DATES[LASTI]||SEASON.from,nights:DATES.length,games:D.games.length,
+      players:[...played].filter(n=>byN[n]&&!byN[n].gh).length,champs:leaders},true));
+  }
+  (D.seasons||[]).forEach(s=>cards.push(seasonCard(s,false)));
+  if(ARC&&ARC.seasons) cards.push('<div class="season-card"><h3>Seasons '+E(String(ARC.seasons))+'<small>'+fshort(ARC.from)+' &ndash; '+fshort(ARC.to)+' &middot; the old rating system</small></h3>'+
+    '<div class="ch"><b>The club before this ladder</b></div><p class="sz">'+ARC.nights+' nights &middot; '+ARC.games+' games &middot; '+ARC.everPlayed+' players</p>'+
+    '<button class="howbtn" id="seasonsHist">Club history</button></div>');
+  box.innerHTML=cards.join("");
+  const hb=$("#seasonsHist"); if(hb) hb.onclick=()=>{ location.hash="#/history" };
+}
+/* the all-time marks read the careers the build ships, which cover every night on record */
+function drawAllTime(){
+  const box=$("#recsAll"); if(!box) return;
+  const rows=[]; const add=(label,value,note)=>rows.push('<div class="rec"><dt>'+label+'</dt><dd>'+value+(note?'<small>'+note+'</small>':'')+'</dd></div>');
+  const M=P.filter(p=>!p.gh&&p.c);
+  const best=(k,f)=>M.reduce((m,p)=>(!m||f(p)>f(m))?p:m,null);
+  const g=best("games",p=>p.c.games); if(g) add("Most games",g.c.games,E(g.n));
+  const w=best("wins",p=>p.c.rec[0]); if(w) add("Most wins",w.c.rec[0],E(w.n));
+  const n=best("nights",p=>p.c.nights); if(n) add("Most nights",n.c.nights,E(n.n));
+  const r=best("run",p=>p.c.bestRun); if(r&&r.c.bestRun>1) add("Most nights in a row",r.c.bestRun,E(r.n));
+  const o=best("opps",p=>p.c.opps); if(o) add("Most different opponents",o.c.opps,E(o.n));
+  const s=best("sweeps",p=>p.c.sweeps); if(s&&s.c.sweeps>0) add("Most clean sweeps",s.c.sweeps,E(s.n));
+  const f=best("full",p=>p.c.full); if(f&&f.c.full>0) add("Most five-game nights",f.c.full,E(f.n));
+  const tr=best("rival",p=>p.c.topRival); if(tr&&tr.c.topRival>1) add("Most games with one person",tr.c.topRival,E(tr.n));
+  const nights=realNights();
+  const busiest=nights.reduce((m,x)=>!m||x[1]>m[1]?x:m,null), turnout=nights.reduce((m,x)=>!m||x[2]>m[2]?x:m,null);
+  if(busiest) add("Busiest club night",busiest[1]+" games",fd(busiest[0]));
+  if(turnout) add("Best turnout",turnout[2]+" players",fd(turnout[0]));
+  const y=best("years",p=>p.c.span); if(y) add("Longest at the club",(y.c.span/365).toFixed(1)+" years",E(y.n)+", since "+fd(y.c.first));
+  box.innerHTML=rows.join("");
+}
 function drawRecords(){
+  drawSeasons(); drawAllTime();
+  { const h=$("#recsNowH"); if(h) h.innerHTML=(SEASON?"Season "+SEASON.no:"This season")+' <span>so far</span>' }
   const rows=[];
   const add=(label,value,note)=>rows.push('<div class="rec"><dt>'+label+'</dt><dd>'+value+
     (note?'<small>'+note+'</small>':'')+'</dd></div>');
@@ -4111,9 +4220,6 @@ function drawRecords(){
     Object.keys(p.opp).forEach(o=>{ const a=p.opp[o], g=a[0]+a[1]+a[2];
       if(!rival||g>rival.g) rival={a:p.n,b:o,g:g} });
   });
-  const nights=realNights();
-  const busiest=nights.reduce((m,r)=>!m||r[1]>m[1]?r:m,null);
-  const turnout=nights.reduce((m,r)=>!m||r[2]>m[2]?r:m,null);
   const mostNights=P.reduce((m,p)=>!m||p.cons>m.cons?p:m,null);
   const mostGames=P.reduce((m,p)=>!m||p.games>m.games?p:m,null);
   const mostUps=P.reduce((m,p)=>!m||p.upsets>m.upsets?p:m,null);
@@ -4122,15 +4228,13 @@ function drawRecords(){
   if(up) add("Biggest upset",E(up.p),"beat "+E(anon(up.o))+", rated "+up.gap+" higher, on "+fd(up.d));
   if(climb) add("Biggest night",E(climb.n),"+"+climb.v+" rating points on "+fd(climb.d));
   if(run&&run.v>0) add("Longest winning run",run.v+" straight",E(run.n));
-  if(nightGames&&nightGames.g>0) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
-  if(busiest) add("Busiest club night",busiest[1]+" games",fd(busiest[0]));
-  if(turnout) add("Best turnout",turnout[2]+" players",fd(turnout[0]));
-  if(rival&&rival.g>0) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
-  if(mostNights&&mostNights.cons>0) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
-  if(mostGames&&mostGames.games>0) add("Most games",mostGames.games,E(mostGames.n));
+  if(nightGames&&nightGames.g>0&&DATES.length>1) add("Most games in a night",nightGames.g,E(nightGames.n)+" on "+fd(nightGames.d));
+  if(rival&&rival.g>1) add("Longest rivalry",rival.g+" games",E(rival.a)+" and "+E(rival.b));
+  if(mostNights&&mostNights.cons>0&&DATES.length>1) add("Most nights",mostNights.cons+" of "+DATES.length,E(mostNights.n));
+  if(mostGames&&mostGames.games>0&&DATES.length>1) add("Most games",mostGames.games,E(mostGames.n));
   if(mostUps&&mostUps.upsets>0) add("Most upsets",mostUps.upsets,E(mostUps.n));
   if(mostGold&&mostGold.trophies[0]>0) add("Most nights won",mostGold.trophies[0],E(mostGold.n));
-  $("#recs").innerHTML=rows.join("");
+  $("#recs").innerHTML=rows.length?rows.join(""):'<p style="color:var(--ink-3);margin:0">Nothing to show until a couple of nights are in.</p>';
 }
 function showRecords(){
   CUR=null; RIVAL=null; document.title="Club records \u00b7 "+CLUB;
