@@ -775,19 +775,18 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <button class="back" id="hbk">&larr; Back to the ladder</button>
 <div class="sh"><h2>The <span>club</span></h2><p>Downtown Bradenton, Florida &middot; since 2021</p></div>
 <div class="story">
-<p>The club came together in 2021, shortly after the COVID era, when a group of players
-started meeting at Kava Social in downtown Bradenton. When the original organizer stepped
-away, Harold Gonzalez took over as director.</p>
-<p>It grew from there. Stronger players teach. Study nights the whole room works through
-together. Lectures and simuls from FIDE Masters. US Chess rated events for anyone who wants
-them.</p>
-<p>Harold also connected the club outward &mdash; to the Manasota Chess Center, to the Tampa,
-St.&nbsp;Petersburg, Orlando and University of Florida chess communities, to Chess67 and
-US Chess organizers &mdash; and takes members to tournaments around the state.</p>
-<p>The league came later. For years this was chess nights and nothing else; the ladder, the
-brackets and the ratings grew out of the club, not the other way round.</p>
-<p class="pull">It has never been about who&rsquo;s best in the room. It&rsquo;s a community
-that happens to play chess, where nobody is turned away for being new or rusty.</p>
+<p>The club started in 2021, just after COVID, when a handful of players began meeting at Kava
+Social in downtown Bradenton. When the original organizer moved on, Harold Gonzalez took over
+as director and built it into what it is today.</p>
+<p>Stronger players teach the rest. Study nights work through positions as a room. FIDE Masters
+come in for lectures and simuls. Anyone who wants rated chess can play US Chess events here.</p>
+<p>Harold also opened the club up to the wider game &mdash; the Manasota Chess Center, the Tampa,
+St.&nbsp;Petersburg, Orlando and University of Florida chess communities, Chess67 and US Chess
+organizers &mdash; and members travel together to tournaments across the state.</p>
+<p>The league came later. For years it was just chess nights. The ladder, the brackets and the
+ratings grew out of the club, not the other way round.</p>
+<p class="pull">It was never about who&rsquo;s best in the room. This is a community that happens to
+play chess, and nobody is turned away for being new or rusty.</p>
 </div>
 <div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
 <p class="l">Every game the club has a record of. These records begin in September 2022 &mdash;
