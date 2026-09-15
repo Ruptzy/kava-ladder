@@ -316,7 +316,8 @@ font-size:.86rem;font-weight:700;color:var(--ink-3);cursor:pointer}
 .av.s{width:28px;height:28px;font-size:.72rem;margin-right:.55rem}
 .av.m{width:46px;height:46px;font-size:1.05rem;margin:0 auto .35rem}
 .av.l{width:104px;height:104px;font-size:2.4rem;border:2px solid var(--rule-2);box-shadow:0 0 30px -10px rgba(254,39,58,.5)}
-.ph2row{display:flex;gap:1.1rem;align-items:center}
+.ph2row{display:flex;gap:1.1rem 1.4rem;align-items:center;flex-wrap:wrap}
+.pcol{flex:1 1 16rem;min-width:0}
 .pc{display:flex;gap:.8rem;align-items:center}.pc .av.m{margin:0}.pc>div{min-width:0}
 /* profile */
 .back{background:none;border:1px solid var(--rule-2);border-radius:20px;cursor:pointer;min-height:40px;padding:.5rem 1rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream);margin:.9rem 0 1.5rem}
@@ -336,7 +337,7 @@ body.sub .top{padding-bottom:0}
 .pnick{display:inline-flex;align-items:center;gap:.5rem;min-height:40px;background:var(--scarlet-wash);
 border:1px solid var(--scarlet-dim);border-radius:100px;padding:.45rem .7rem .45rem .8rem;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;
-color:var(--scarlet);margin-bottom:1rem;position:relative;cursor:pointer;outline:none}
+color:var(--scarlet);margin:.7rem 0 0;position:relative;cursor:pointer;outline:none}
 .pnick .ni{font-size:1rem;line-height:1}
 .pnick .q{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;
 border:1px solid var(--scarlet-dim);font-size:.7rem;margin-left:.2rem;opacity:.85;letter-spacing:0}
@@ -349,7 +350,7 @@ line-height:1.45;box-shadow:0 10px 30px -10px rgba(0,0,0,.8);opacity:0;visibilit
 letter-spacing:.14em;text-transform:uppercase;margin-bottom:.25rem}
 .phead2{padding-bottom:.8rem;border-bottom:2px solid var(--rule-2);margin-bottom:.8rem}
 .phead2 h1{font-family:var(--fd);font-variation-settings:"wdth" 118,"wght" 900;
-font-size:clamp(2.1rem,8vw,4rem);letter-spacing:-.035em;line-height:.92;margin-bottom:.5rem;overflow-wrap:anywhere}
+font-size:clamp(2rem,6.5vw,3.4rem);letter-spacing:-.035em;line-height:.95;margin-bottom:.45rem;overflow-wrap:normal;word-break:keep-all}
 .psub{font-family:var(--fm);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:flex;gap:.7rem;flex-wrap:wrap;align-items:center}
 .pill{display:inline-block;border:1px solid var(--rule-2);border-radius:20px;padding:.15rem .55rem;font-size:.7rem;color:var(--ink-2);letter-spacing:.1em}
 .pill.set{border-color:var(--loss);color:var(--loss)}
@@ -410,17 +411,18 @@ font-size:.7rem;font-weight:700;color:#0C0D0E}
 .rg td.rs{font-family:var(--fm);font-weight:700;text-align:center;width:2rem}
 .rg td.rs.W{color:var(--gain)}.rg td.rs.L{color:var(--loss)}.rg td.rs.D{color:var(--ink-2)}
 .rg td.dl2{font-family:var(--fm);font-size:.74rem;text-align:right}
-.ptro{margin-left:auto;padding-left:1.2rem;border-left:1px solid var(--rule-2)}
-.ptro .tset{display:flex;gap:1.1rem}
-.ptro .lb em{display:block;font-style:normal;color:var(--scarlet);letter-spacing:.14em;margin-top:.2rem}
-.tprev{margin:.55rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.1em;
+.ptro{margin-left:auto;padding-left:1.4rem;border-left:1px solid var(--rule-2);flex:0 0 auto}
+.ptro .tset{display:flex;gap:.9rem;justify-content:flex-end}
+.ptro .cap2{margin:.5rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet);text-align:right}
+.tprev{margin:.3rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;
 text-transform:uppercase;color:var(--ink-3);text-align:right}
-.ptro .it{text-align:center;min-width:96px;position:relative}
+.tprev b{color:var(--ink-2);font-weight:400}
+.ptro .it{text-align:center;min-width:72px;position:relative}
 .ptro .it.z{opacity:.22;filter:saturate(.25)}
 .ptro .it:not(.z)::before{content:"";position:absolute;left:50%;top:6%;width:118%;height:78%;
 transform:translateX(-50%);border-radius:50%;pointer-events:none;
 background:radial-gradient(closest-side,rgba(254,39,58,.22),transparent 72%)}
-.ptro .pic{position:relative;display:block;width:104px;height:104px;margin:0 auto .3rem;
+.ptro .pic{position:relative;display:block;width:72px;height:72px;margin:0 auto .2rem;
 background-size:contain;background-repeat:no-repeat;background-position:center;
 animation:tpop .5s cubic-bezier(.2,1.5,.4,1) both}
 .ptro .it:nth-child(2) .pic{animation-delay:.07s}
@@ -430,11 +432,10 @@ animation:tpop .5s cubic-bezier(.2,1.5,.4,1) both}
 .ptro .it:not(.z):nth-child(2) .pic{filter:drop-shadow(0 8px 16px rgba(215,222,235,.4))}
 .ptro .it:not(.z):nth-child(3) .pic{filter:drop-shadow(0 8px 16px rgba(205,120,55,.45))}
 .ptro .n{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
-font-size:2rem;line-height:1;color:var(--cream);text-shadow:0 2px 10px rgba(0,0,0,.6)}
+font-size:1.5rem;line-height:1;color:var(--cream);text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .ptro .it:not(.z) .n{color:#FFF}
 .ptro .lb{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.18em;
-text-transform:uppercase;color:var(--ink-3);margin-top:.3rem}
-.ptro .lb i{font-style:normal;color:var(--scarlet);margin:0 .2rem}
+text-transform:uppercase;color:var(--ink-3);margin-top:.2rem}
 .achhead{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;margin-bottom:.7rem}
 .achhead b{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.1rem}
 .achhead .bar{flex:1 1 120px;height:6px;border-radius:3px;background:var(--panel-3);overflow:hidden;min-width:90px}
@@ -666,7 +667,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .av.l{width:72px;height:72px;font-size:1.7rem}.ph2row{gap:.8rem;flex-wrap:wrap}
   .ptro{margin:.4rem 0 0;padding:.4rem 0 0;border-left:none;border-top:1px solid var(--rule-2);flex:1 1 100%}
   .ptro .tset{justify-content:space-around;gap:.3rem}
-  .tprev{text-align:center}
+  .tprev,.ptro .cap2{text-align:center}.ptro .tset{justify-content:center}
   .ptro .it{min-width:0}
   .ptro .pic{width:46px;height:46px}
   .ptro .n{font-size:1.05rem}
@@ -815,7 +816,7 @@ the club is older than its paperwork.</p>
 </main>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
-<div class="phead2"><div class="pnick" id="pnick"></div><div class="ph2row"><div id="pav"></div><div style="min-width:0"><h1 id="pname"></h1><div class="psub" id="psub"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
+<div class="phead2"><div class="ph2row"><div id="pav"></div><div class="pcol"><h1 id="pname"></h1><div class="psub" id="psub"></div><div class="pnick" id="pnick"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
 <div class="cmpsel scope hid" id="scope"><label for="scopeSel">Showing</label><select id="scopeSel"></select><span class="sn" id="scopeNote"></span></div>
 <h2 class="sr" id="pvH2">Player details</h2>
 <dl class="kpis" id="kpis"></dl>
@@ -2414,11 +2415,12 @@ function trophyHead(p){
   const cups='<div class="tset">'+L.map(function(lab,i){
     return '<div class="it'+(counts[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
       '<span class="n">\u00d7'+counts[i]+'</span>'+
-      '<span class="lb"><i>\u2013</i>'+lab+'<i>\u2013</i><em>'+esc(under)+'</em></span></div>';
+      '<span class="lb">'+lab+'</span></div>';
   }).join("")+'</div>';
-  const split=divs.length>1?divs.map(d=>{ const c=p.byDiv[d];
-      return esc(dn(d))+" "+[0,1,2].filter(i=>c[i]).map(i=>c[i]+"\u00d7"+["1st","2nd","3rd"][i]).join(", ") }):[];
+  // the split by bracket reads first / second / third, the same order as the cups
+  const split=divs.length>1?divs.map(d=>{ const c=p.byDiv[d]; return '<b>'+esc(dn(d))+'</b> '+c[0]+' / '+c[1]+' / '+c[2] }):[];
   return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+cups+
+    '<p class="cap2">Cups \u00b7 '+esc(under)+'</p>'+
     (split.length?'<p class="tprev">'+split.join(" \u00b7 ")+'</p>':'')+'</div>';
 }
 function trophyLine(p){
@@ -2588,7 +2590,7 @@ function scopeDefs(){
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
   if(preEnd) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
   if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
-  defs.push({k:"all",label:"Whole career",sub:"everything on record"});
+  defs.push({k:"all",label:"Whole career",sub:""});
   return defs;
 }
 function scopeOf(k){
