@@ -31,6 +31,11 @@ jobs:
         with:
           python-version: '3.12'
 
+      # the night file is a hand-off: its games go into history.json, anyone
+      # added on the phone joins roster.json and seeds.json, and the file goes
+      - name: Fold the night into the club records
+        run: python build/promote_nights.py
+
       - name: Build the site and the phone tool
         working-directory: build
         run: |
@@ -47,6 +52,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add index.html kava-pairings.html
+          git add -A build/nights build/history.json build/roster.json build/seeds.json
           for f in season-*.html; do
             if [ -e "$f" ]; then git add "$f"; fi
           done

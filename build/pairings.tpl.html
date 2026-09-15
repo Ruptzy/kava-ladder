@@ -3803,6 +3803,8 @@ async function publishNight(rec,status){
   const note=n=>{ const p=R.find(x=>x.n===n); if(p&&p.fresh) fresh[n]=p };
   rec.games.forEach(g=>{ note(g[0]); note(g[1]) });
   (rec.byes||[]).forEach(b=>note(Array.isArray(b)?b[0]:b));
+  // anyone added tonight joins the club, even if they only watched
+  [...playing,...gone].forEach(id=>{ const p=byId[id]; if(p&&p.fresh) fresh[p.n]=p });
   const seeds={}, joined=[];
   Object.values(fresh).forEach(p=>{ if(SEEDS[p.n]!=null) seeds[p.n]=SEEDS[p.n]; joined.push({n:p.n,d:p.d}) });
   status&&status("saving the night");
