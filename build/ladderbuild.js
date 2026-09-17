@@ -479,12 +479,18 @@ background:radial-gradient(closest-side,rgba(254,39,58,.22),transparent 72%)}
 .ptro .pic{position:relative;display:block;width:72px;height:72px;margin:0 auto .2rem;
 background-size:contain;background-repeat:no-repeat;background-position:center;
 animation:tpop .5s cubic-bezier(.2,1.5,.4,1) both}
-.ptro .it:nth-child(2) .pic{animation-delay:.07s}
-.ptro .it:nth-child(3) .pic{animation-delay:.14s}
+.ptro .pic.t1{animation-delay:.07s}
+.ptro .pic.t2{animation-delay:.14s}
+.ptro .pic.t3{animation-delay:.21s}
 @keyframes tpop{from{opacity:0;transform:scale(.82) translateY(8px)}to{opacity:1;transform:none}}
-.ptro .it:not(.z):nth-child(1) .pic{filter:drop-shadow(0 8px 16px rgba(240,180,80,.5))}
-.ptro .it:not(.z):nth-child(2) .pic{filter:drop-shadow(0 8px 16px rgba(215,222,235,.4))}
-.ptro .it:not(.z):nth-child(3) .pic{filter:drop-shadow(0 8px 16px rgba(205,120,55,.45))}
+.ptro .it:not(.z) .pic.t1{filter:drop-shadow(0 8px 16px rgba(240,180,80,.5))}
+.ptro .it:not(.z) .pic.t2{filter:drop-shadow(0 8px 16px rgba(215,222,235,.4))}
+.ptro .it:not(.z) .pic.t3{filter:drop-shadow(0 8px 16px rgba(205,120,55,.45))}
+.ptro .it:not(.z) .pic.ts{filter:drop-shadow(0 8px 16px rgba(72,118,232,.55))}
+/* the season title is a different honour, so it carries a different light */
+.ptro .it.crown:not(.z)::before{background:radial-gradient(closest-side,rgba(72,118,232,.26),transparent 72%)}
+.ptro .it.crown .lb{color:#8FB0F5}
+.tsep{flex:0 0 1px;align-self:stretch;background:var(--rule-2);margin:.5rem .25rem 1.5rem}
 .ptro .n{display:block;font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;
 font-size:1.5rem;line-height:1;color:var(--cream);text-shadow:0 2px 10px rgba(0,0,0,.6)}
 .ptro .it:not(.z) .n{color:#FFF}
@@ -543,6 +549,7 @@ font-size:1.5rem;line-height:1;color:var(--cream)}
 .cab .lb{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;
 color:var(--ink-3);margin-top:.35rem}
 .cab .lb i{font-style:normal;color:var(--scarlet-dim);margin:0 .25rem}
+.ts{background-image:url(trophies/season.png)}
 .t1{background-image:url(trophies/1.png)}
 .t2{background-image:url(trophies/2.png)}
 .t3{background-image:url(trophies/3.png)}
@@ -2515,6 +2522,13 @@ function scoutLine(p){
 /* The cups are the era's totals, every bracket counted - the top bracket alone
    read as wrong against eighty nights. The split by bracket goes underneath
    when there is more than one; the old system had no brackets. */
+/* Section titles, by the same rule the finale uses. A frozen season page
+   shows only what had been won by then. */
+const CROWNS=D.crowns||{};
+function crownList(p){
+  const all=CROWNS[p.n]||[];
+  return D.arch?all.filter(c=>c.no<=D.arch):all;
+}
 function trophyHead(p){
   const L=["First","Second","Third"], counts=p.trophies||[0,0,0];
   const any=counts[0]+counts[1]+counts[2];
@@ -2522,7 +2536,14 @@ function trophyHead(p){
   const dn=d=>d==="all"?"old system":shortDiv(d);
   const under=divs.length===1?dn(divs[0]):divs.length>1?"all brackets":shortDiv(p.d);
   const tip=any ? "Top-three finishes on a club night, in "+dsOf(p).lower : "No top-three finish yet in "+dsOf(p).lower;
-  const cups='<div class="tset">'+L.map(function(lab,i){
+  const cr=crownList(p);
+  const ctip=cr.length?("Won their section outright in "+(cr.length===1?"season ":"seasons ")+
+      cr.map(function(c){return c.no}).join(", ")+" \u2014 "+cr.map(function(c){return shortDiv(c.d)}).filter(function(v,i,a){return a.indexOf(v)===i}).join(", "))
+    :"Has never won a section over a whole season";
+  const crown='<div class="it crown'+(cr.length?'':' z')+'" title="'+esc(ctip)+'">'+
+    '<span class="pic ts"></span><span class="n">\u00d7'+cr.length+'</span>'+
+    '<span class="lb">Section</span></div><div class="tsep" aria-hidden="true"></div>';
+  const cups='<div class="tset">'+crown+L.map(function(lab,i){
     return '<div class="it'+(counts[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
       '<span class="n">\u00d7'+counts[i]+'</span>'+
       '<span class="lb">'+lab+'</span></div>';
@@ -2530,7 +2551,7 @@ function trophyHead(p){
   // the split by bracket reads first / second / third, the same order as the cups
   const split=divs.length>1?divs.map(d=>{ const c=p.byDiv[d]; return '<b>'+esc(dn(d))+'</b> '+c[0]+' / '+c[1]+' / '+c[2] }):[];
   return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+cups+
-    '<p class="cap2">Cups \u00b7 '+esc(under)+'</p>'+
+    '<p class="cap2">Sections won \u00b7 nightly cups in '+esc(under)+'</p>'+
     (split.length?'<p class="tprev">'+split.join(" \u00b7 ")+'</p>':'')+'</div>';
 }
 function trophyLine(p){

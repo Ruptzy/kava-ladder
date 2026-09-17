@@ -742,16 +742,15 @@ if __name__=="__main__":
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
              sum(len(n["games"]) for n in VAULTED)))
+    # built first, written once the section winners are known
+    FROZEN=[]
     for no,frm,to in PAST:
         cut=[h for h in HISTORY if h["date"]<to]
         Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
                             HIDDEN,ARCM,built,calendar=False,window=(no,frm,to) if no<SEASON_ANCHOR[0] else None)
         Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
         with_old(Da)
-        name='season-%d.html'%no
-        open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
-        print('%s: season %d frozen | %d nights, %d games, %s .. %s'
-              % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
+        FROZEN.append((no,Da))
     # seasons 1-7: the old workbook, replayed on its own so it can be read the
     # same way as the seasons since. Nothing here reaches the live ladder.
     if OLDS and OH:
@@ -768,10 +767,24 @@ if __name__=="__main__":
             if e:
                 e["season"]=[where.get(d,no) for d in e["dates"]]
                 e["first"]=OLDS[0]["no"]
-            name='season-%d.html'%no
-            open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
-            print('%s: season %d frozen | %d nights, %d games, %s .. %s'
-                  % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
+            FROZEN.append((no,Da))
+
+    # who won their section, season by season, by the finale's own rule
+    CROWNS={}
+    for no,Da in sorted(FROZEN):
+        for c in champions(Da):
+            CROWNS.setdefault(c["n"],[]).append({"no":no,"d":c["d"]})
+        print('season %d section winners: %s'
+              % (no,', '.join('%s %s'%(x["d"],x["n"]) for x in champions(Da)) or 'none'))
+    D["crowns"]=CROWNS
+    for no,Da in sorted(FROZEN):
+        Da["crowns"]=CROWNS          # a frozen page shows only up to its own season
+        name='season-%d.html'%no
+        open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
+        print('%s: season %d frozen | %d nights, %d games, %s .. %s'
+              % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
+    print('section titles: %d players hold %d'
+          % (len(CROWNS),sum(len(v) for v in CROWNS.values())))
     html=page(D)
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
