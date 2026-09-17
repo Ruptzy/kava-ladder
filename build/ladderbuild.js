@@ -1538,12 +1538,18 @@ function cross(){
     if(td) openProfile(tr.dataset.n, td.dataset.o); else openProfile(tr.dataset.n) };
   tbl.onmouseover=e=>{ const td=e.target.closest("td"); if(!td) return; tbl.dataset.c=td.cellIndex };
   tbl.onmouseleave=()=>{ delete tbl.dataset.c };
+  // a phone never sees the matrix, so the list has to arrive already showing somebody
+  if(!XL_PICK||!list.some(p=>p.n===XL_PICK)){
+    const mine=meName();
+    XL_PICK=(mine&&list.some(p=>p.n===mine))?mine:list[0].n;
+  }
   const sel='<div class="xsel"><select id="xtPick" aria-label="Pick a player"><option value="">Pick a player…</option>'+list.map(p=>'<option value="'+E(p.n)+'"'+(XL_PICK===p.n?" selected":"")+'>'+E(p.n)+' — '+p.r+'</option>').join("")+'</select></div>';
   const me=XL_PICK&&byN[XL_PICK];
   $("#xl").innerHTML=sel+(me?list.filter(o=>o.n!==me.n).map(o=>{ const a=me.opp[o.n];
      if(!a) return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+E(o.n)+'</b><span class="net" style="color:#3A4046">·</span><span class="rc">never played</span></div>';
      const net=a[0]-a[2]; return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+E(o.n)+'</b><span class="net '+cellCls(a)+'">'+(net>0?"+"+net:net<0?net:"=")+'</span><span class="rc">'+a[0]+'–'+a[1]+'–'+a[2]+'</span></div>' }).join("")
-    :'<p style="color:var(--ink-3);font-size:.88rem;margin:0">Pick a name to see their record against everyone.</p>');
+    :'<p style="color:var(--ink-3);font-size:.88rem;margin:0">Pick a name to see their record against everyone.</p>')+
+    '<p class="cap" style="margin-top:.6rem">Tap a row to open that head to head.</p>';
   $("#xtPick").onchange=function(){ XL_PICK=this.value||null; cross() };
   $("#xl").onclick=e=>{ const r=e.target.closest(".xrow"); if(r&&me) openProfile(me.n, r.dataset.o) };
 }
