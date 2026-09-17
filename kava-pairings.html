@@ -2027,7 +2027,12 @@ derive();
 let div="all", sortK="r", showAway=false, CUR=null, RIVAL=null, boardHash="", boardScroll=0, xtShown=false;
 const shortDiv=d=>{ if(d==="all") return "Club"; const m=/^over ([0-9]+)$/i.exec(d); if(m) return m[1]+"+"; const u=/^under ([0-9]+)$/i.exec(d); if(u) return "U"+u[1]; return d };
 const DIVNAME={"over 1400":"Over 1400 ELO","U1400":"Under 1400 ELO","U1000":"Under 1000 ELO"};
-const longDiv=d=>d==="all"?"Whole Club":(DIVNAME[d]||d.charAt(0).toUpperCase()+d.slice(1));
+/* the bands are read out of their own names, so the old era's Over 1000 /
+   U1000 / U800 read the same way as today's three */
+const longDiv=d=>{ if(d==="all") return "Whole Club";
+  let m=/^over[ _]?(\d+)$/i.exec(d); if(m) return "Over "+m[1]+" ELO";
+  m=/^u(?:nder)?[ _]?(\d+)$/i.exec(d); if(m) return "Under "+m[1]+" ELO";
+  return DIVNAME[d]||d.charAt(0).toUpperCase()+d.slice(1) };
 function stateHash(){ const a=[]; if(div!=="all") a.push("b",div); if(sortK!=="r") a.push("sort",sortK); return a.length?"#/"+a.map(encodeURIComponent).join("/"):"" }
 function go(h){ if(location.hash===h||(h===""&&!location.hash)){ route(); return } location.hash=h }
 function route(){
@@ -2086,7 +2091,8 @@ window.addEventListener("hashchange",route);
   }
   { const l=$("#ladSub"); if(l) l.textContent=SEA+" · tap a name"; }
   $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club night"+(DATES.length===1?"":"s")+
-    ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().map(n=>'<a href="season-'+n+'.html">'+seasonName(n)+'</a>').join(", "):"")+
+    ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().slice(0,4).map(n=>'<a href="season-'+n+'.html">'+seasonName(n)+'</a>').join(", ")+
+      ((D.past||[]).length>4?" and "+((D.past||[]).length-4)+" more":""):"")+
     " &middot; ratings recalculated from every game &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
@@ -3623,13 +3629,14 @@ function scopeDefs(){
   nos.sort((a,b)=>b-a);
   const first=ERAS.first||nos[nos.length-1];
   const defs=nos.filter(no=>no>=first||(SEASON&&no===SEASON.no)).map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
-    return {k:"s"+no, label:cur&&!D.arch?"Current season":seasonName(no), sub:cur?(D.arch?"final":"Season "+no):(ds.length?fmy(ds[0]).slice(0,3)+" \u2013 "+fmy(ds[ds.length-1]):"")} });
+    return {k:"s"+no, label:cur&&!D.arch?"Current season":seasonName(no), sub:cur?(D.arch?"final":"Season "+no):(ds.length?(ds[0].slice(0,4)===ds[ds.length-1].slice(0,4)?fmy(ds[0]).slice(0,3):fmy(ds[0]))+" \u2013 "+fmy(ds[ds.length-1]):"")} });
   // everything before the numbered seasons is one era: the old workbook and the first ladder era together
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
   // the one place the two eras really are added together
   if(preEnd&&!(SEASON&&SEASON.no<first)) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"old system + Season "+(first-1)});
   if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
-  defs.push({k:"all",label:"Whole career",sub:""});
+  if(!D.era0) defs.push({k:"all",label:"Whole career",sub:""});
+  else if(SEASON&&SEASON.no>1) defs.push({k:"all",label:"Seasons 1\u2013"+SEASON.no,sub:"the old system"});
   return defs;
 }
 function scopeOf(k){
