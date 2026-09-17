@@ -467,7 +467,7 @@ font-size:.7rem;font-weight:700;color:#0C0D0E}
 .rg td.dl2{font-family:var(--fm);font-size:.74rem;text-align:right}
 .ptro{margin-left:auto;padding-left:1.4rem;border-left:1px solid var(--rule-2);flex:0 0 auto}
 .ptro .tset{display:flex;gap:.9rem;justify-content:flex-end}
-.ptro .cap2{margin:.5rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet);text-align:right}
+.ptro .cap2{margin:.55rem 0 0;font-family:var(--fm);font-size:.66rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);text-align:right}
 .tprev{margin:.3rem 0 0;font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;
 text-transform:uppercase;color:var(--ink-3);text-align:right}
 .tprev b{color:var(--ink-2);font-weight:400}
@@ -2551,7 +2551,7 @@ function trophyHead(p){
   // the split by bracket reads first / second / third, the same order as the cups
   const split=divs.length>1?divs.map(d=>{ const c=p.byDiv[d]; return '<b>'+esc(dn(d))+'</b> '+c[0]+' / '+c[1]+' / '+c[2] }):[];
   return '<div class="ptro" id="ptro" title="'+esc(tip)+'">'+cups+
-    '<p class="cap2">Sections won \u00b7 nightly cups in '+esc(under)+'</p>'+
+    '<p class="cap2">Season titles \u00b7 cups in '+esc(under)+'</p>'+
     (split.length?'<p class="tprev">'+split.join(" \u00b7 ")+'</p>':'')+'</div>';
 }
 function trophyLine(p){

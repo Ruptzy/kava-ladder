@@ -262,6 +262,31 @@ def final_bands(P, frm, to, divisions):
     return out
 
 
+BANDS_FILE = 'season_bands.json'
+_PINNED = None
+
+
+def pinned_bands():
+    """The brackets each season was played in, once it has been played."""
+    global _PINNED
+    if _PINNED is None:
+        try: _PINNED = json.load(open(here(BANDS_FILE), encoding='utf-8'))
+        except Exception: _PINNED = {}
+    return _PINNED
+
+
+def pin_bands(no, bands):
+    """Freeze a season's brackets the first time it is built with a night in
+    it. Recomputing them every build only held while the history behind them
+    never changed; it changed, and people moved bracket in a season that was
+    already over."""
+    P = pinned_bands()
+    if str(no) in P or not bands: return
+    P[str(no)] = dict(bands)
+    json.dump(P, open(here(BANDS_FILE), 'w', encoding='utf-8'), indent=1, sort_keys=True)
+    print('pinned season %d brackets (%d players) -> %s' % (no, len(bands), BANDS_FILE))
+
+
 def batch_dates():
     """Old-workbook dates that hold a backlog of games, not one night's play."""
     try: return set(json.load(open(here('batch_dates.json'),encoding='utf-8')).get("dates",[]))
@@ -375,7 +400,9 @@ def era_data(P, full, arc_matches, link, hidden, seeds, id_, divisions):
         frm,to=season_bounds(no)
         nights=[h for h in full if frm<=h["date"]<to]
         pk=window_level(P, lookback_start(frm), frm)
-        for n,b in season_bands(P,nights,pk,divisions).items(): bands.setdefault(n,{})[no]=b
+        sb=season_bands(P,nights,pk,divisions)
+        sb.update(pinned_bands().get(str(no),{}))   # the season was played in these
+        for n,b in sb.items(): bands.setdefault(n,{})[no]=b
     # the old workbook: its names mapped to today's, people who asked to be
     # unlisted relabelled the same way the replay relabels them
     a=anon_map(hidden); back={old:cur for cur,old in (link or {}).items()}
@@ -602,6 +629,10 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True
     CAREER=career_stats(HISTORY, ARCM, ARCHIVE.get('link'), set(P.keys()))
     BANDS=(final_bands(P, SEASON["from"], SEASON["to"], roster["divisions"]) if window and SEASON["no"]<SEASON_ANCHOR[0]
            else season_bands(P, SEASON_NIGHTS, PEAKS, roster["divisions"]))
+    # a bracket is fixed on the first night of the season and never moves again
+    if SEASON and SEASON["no"]>=SEASON_ANCHOR[0] and SEASON_NIGHTS:
+        pin_bands(SEASON["no"], BANDS)
+        BANDS={**BANDS, **pinned_bands().get(str(SEASON["no"]), {})}
     D=ladder_data(P,SEASON_NIGHTS,roster["roster"],roster["divisions"],ARCHIVE,SEEDS,built,
                   HIDDEN,VAULTED,SEASON,PEAKS,CAREER,BANDS,HISTORY,ARCM)
     D["pics"]=photo_slugs()
