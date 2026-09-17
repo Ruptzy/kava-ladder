@@ -1857,9 +1857,11 @@ const SEASON=D.season||null, VAULT=D.vault||null;
    board is then last season's players at the rating they carry, in the
    bracket they will start in. Up here, not by pool(): the header needs it first. */
 const PRESEASON=!!SEASON&&!D.dates.length&&!D.arch;
-// the numbered seasons by number; everything before them is one block, Seasons 1-8
-const FIRST_NO=(D.eras&&D.eras.first)||9;
-const seasonName=n=>n<FIRST_NO?"Seasons 1\u2013"+n:"Season "+n;
+/* Every season page is one season, season 8 included - it is the first ladder
+   era, December 2024 to May 2026. Seasons 1-7 only ever appear added to it, in
+   the profile era picker, because the old system's ratings cannot be ranked
+   against these. */
+const seasonName=n=>"Season "+n;
 const SEA=SEASON?seasonName(SEASON.no):"This season";
 const seaLower=SEASON?seasonName(SEASON.no).toLowerCase():"this season";
 /* ALL includes the one-off visitors, so their games still count towards the
@@ -2048,7 +2050,7 @@ window.addEventListener("hashchange",route);
   $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; last night <b>'+fshort(D.date)+'</b>'+
     (D.next&&!D.arch?'<br>Next night <b>'+new Date(D.next+"T12:00").toLocaleDateString("en-GB",{weekday:"short"})+' '+fshort(D.next)+'</b> &middot; '+NIGHT_TIME+
       ' &middot; <a href="'+CLUB_SITE+'">'+VENUE+'</a>':'');
-  { const w=$("#wmSeason"); if(w) w.innerHTML=SEASON&&SEASON.no<FIRST_NO?"Seasons <b>1\u2013"+SEASON.no+"</b>":"Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
+  { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
   /* Which season this page is, worked out rather than typed into the masthead:
      a hand-written "Season 10 up next" is right for exactly one season. */
   { const arch=D.arch||null, now=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);   // the club's date, not UTC's
@@ -3624,7 +3626,8 @@ function scopeDefs(){
     return {k:"s"+no, label:cur&&!D.arch?"Current season":seasonName(no), sub:cur?(D.arch?"final":"Season "+no):(ds.length?fmy(ds[0]).slice(0,3)+" \u2013 "+fmy(ds[ds.length-1]):"")} });
   // everything before the numbered seasons is one era: the old workbook and the first ladder era together
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
-  if(preEnd&&!(SEASON&&SEASON.no<first)) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"to "+fmy(preEnd)});
+  // the one place the two eras really are added together
+  if(preEnd&&!(SEASON&&SEASON.no<first)) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"old system + Season "+(first-1)});
   if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
   defs.push({k:"all",label:"Whole career",sub:""});
   return defs;
