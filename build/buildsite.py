@@ -617,9 +617,10 @@ def champions(Da):
 
 
 def season_label(no):
-    """How the club names a season: the numbered ones by number, and everything
-    before them - the old workbook and the first ladder era - as one block."""
-    return "Season %d"%no if no>=SEASON_ANCHOR[0] else "Seasons 1\u2013%d"%no
+    """Every frozen page is one season's standings, including season 8 - the
+    first ladder era, December 2024 to May 2026. Seasons 1-7 are not in any of
+    them: the old system's ratings cannot share a column with these."""
+    return "Season %d" % no
 
 
 def archive_head(html,no):
