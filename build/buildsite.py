@@ -703,6 +703,41 @@ if __name__=="__main__":
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
     # every page links to every season, the old ones included
     D["past"]=[s["no"] for s in OLDS]+[no for no,_,_ in PAST]
+
+    # The old era, replayed on its own. Its own pages are built from it below;
+    # here it also lets any profile pick a single old season, which needs the
+    # night-by-night ratings the old workbook never kept.
+    OH=[]; OP={}; OWHERE={}; OBANDS={}
+    if OLDS and ARCM:
+        OH=old_history(ARCHIVE,ARCM)
+        OH,_=anonymise(OH,{},HIDDEN)
+        OP=run(OH,{})
+        for s in OLDS:
+            for h in OH:
+                if s["from"]<=h["date"]<s["to"]: OWHERE[h["date"]]=s["no"]
+            for n,b in final_bands(OP,s["from"],s["to"],OLD_DIVISIONS).items():
+                OBANDS.setdefault(n,{})[s["no"]]=b
+
+    # who played on which night, so only those nights need a rating carried
+    OPLAYED={}
+    for h in OH:
+        for w,b_,r in h["games"]:
+            OPLAYED.setdefault(w,set()).add(h["date"]); OPLAYED.setdefault(b_,set()).add(h["date"])
+
+    def with_old(Dx):
+        """Carry the old replay on a page that holds the old matches, for
+        everyone who played it - the brackets other people were in are what
+        decides a podium."""
+        o=(Dx.get("eras") or {}).get("old") or {}
+        if not o.get("dates") or not OP: return
+        oi={d:i for i,d in enumerate(o["dates"])}
+        o["hist"]={n:[[oi[d],round(r),round(rd)] for d,r,rd in q["hist"]
+                      if d in oi and d in OPLAYED.get(n,())]
+                   for n,q in OP.items() if q["n"]>0}
+        o["season"]=[OWHERE.get(d) for d in o["dates"]]
+        o["bands"]=OBANDS
+        o["divs"]=OLD_DIVISIONS
+    with_old(D)
     print('season %d: %s .. %s | vault %d nights, %d games'
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
@@ -712,21 +747,16 @@ if __name__=="__main__":
         Da,Sa,Va=build_data(cut,SEEDS,ARCHIVE,roster,[s for s in DIVH if s.get("date","")<to],
                             HIDDEN,ARCM,built,calendar=False,window=(no,frm,to) if no<SEASON_ANCHOR[0] else None)
         Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
+        with_old(Da)
         name='season-%d.html'%no
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
         print('%s: season %d frozen | %d nights, %d games, %s .. %s'
               % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
     # seasons 1-7: the old workbook, replayed on its own so it can be read the
     # same way as the seasons since. Nothing here reaches the live ladder.
-    if OLDS and ARCM:
-        OH=old_history(ARCHIVE,ARCM)
-        OH,_=anonymise(OH,{},HIDDEN)
-        OP=run(OH,{})
+    if OLDS and OH:
         oroster=old_roster(OP,OLD_DIVISIONS)
-        where={}
-        for s in OLDS:
-            for h in OH:
-                if s["from"]<=h["date"]<s["to"]: where[h["date"]]=s["no"]
+        where=OWHERE
         for s in OLDS:
             no,frm,to=s["no"],s["from"],s["to"]
             cut=[h for h in OH if h["date"]<to]

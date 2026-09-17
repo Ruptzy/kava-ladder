@@ -2617,7 +2617,7 @@ function topDelta(S){ if(S.topD) return S.topD; const t={}; S.list.forEach(q=>q.
 function deriveSet(S){
   const dates=S.dates, L=dates.length, pl={}, unr=S.unrated||{};
   const get=n=>{ if(!pl[n]){ const m=byN[n];
-      const q=pl[n]={n:n, gh:!m||!!m.gh, d:m?m.d:"", c:m?m.c:null, imp:m?m.imp:null, S:S, aw:m?m.aw:0, ac:m?m.ac:0,
+      const q=pl[n]={n:n, gh:S.member?!S.member(n):(!m||!!m.gh), d:m?m.d:"", c:m?m.c:null, imp:m?m.imp:null, S:S, aw:m?m.aw:0, ac:m?m.ac:0,
         seed:(S.seed&&S.seed[n]!=null)?S.seed[n]:(m?m.seed:1000), hist:(S.hist&&S.hist[n])||[], log:[], opp:{}, rec:[0,0,0], wh:[0,0,0], bl:[0,0,0], games:0, att:{}, rb:{}};
       let prev=q.seed; q.hist.forEach(h=>{ q.rb[h[0]]=prev; prev=h[1] });
       q.r=q.hist.length?q.hist[q.hist.length-1][1]:(S.oldR&&S.oldR[n]!=null?S.oldR[n]:q.seed);
@@ -2686,15 +2686,25 @@ function deriveSet(S){
   return S;
 }
 const SCOPES={};
+/* Everyone the old era rated is a member of it, whatever became of them since.
+   Anonymised names are not, the same as on that season's own page. */
+const oldBands=()=>(ERAS&&ERAS.old&&ERAS.old.bands)||{};
+const wasMember=n=>n.indexOf("Visitor ")!==0&&!!oldBands()[n];
+const everMember=n=>wasMember(n)||!!(byN[n]&&!byN[n].gh);
 const oldRating=n=>{ const a=ARCBY[n]||(ARC&&ARC.link&&ARC.link[n]?ARCBY[ARC.link[n]]:null); return a?a.r:null };
 function scopeDefs(){
   if(!ERAS) return [];
+  // every season the page holds, the old ones included
+  const OS=(ERAS.old&&ERAS.old.season)||[];
   const seen={}, nos=[];
-  ERAS.season.forEach(no=>{ if(!seen[no]){ seen[no]=1; nos.push(no) } });
-  if(SEASON&&!seen[SEASON.no]) nos.push(SEASON.no);
+  const add=no=>{ if(no!=null&&!seen[no]){ seen[no]=1; nos.push(no) } };
+  ERAS.season.forEach(add); OS.forEach(add);
+  if(SEASON) add(SEASON.no);
   nos.sort((a,b)=>b-a);
   const first=ERAS.first||nos[nos.length-1];
-  const defs=nos.filter(no=>no>=first||(SEASON&&no===SEASON.no)).map(no=>{ const cur=SEASON&&no===SEASON.no, ds=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
+  const datesOf=no=>{ const a=ERAS.dates.filter((d,i)=>ERAS.season[i]===no);
+    return a.length?a:(ERAS.old&&ERAS.old.dates?ERAS.old.dates.filter((d,i)=>OS[i]===no):[]) };
+  const defs=nos.map(no=>{ const cur=SEASON&&no===SEASON.no, ds=datesOf(no);
     return {k:"s"+no, label:cur&&!D.arch?"Current season":seasonName(no), sub:cur?(D.arch?"final":"Season "+no):(ds.length?(ds[0].slice(0,4)===ds[ds.length-1].slice(0,4)?fmy(ds[0]).slice(0,3):fmy(ds[0]))+" \u2013 "+fmy(ds[ds.length-1]):"")} });
   // everything before the numbered seasons is one era: the old workbook and the first ladder era together
   const pre=ERAS.dates.filter((d,i)=>ERAS.season[i]<first), preEnd=pre.length?pre[pre.length-1]:(ERAS.old&&ERAS.old.dates.length?ERAS.old.dates[ERAS.old.dates.length-1]:null);
@@ -2724,7 +2734,7 @@ function scopeOf(k){
     S={key:k,label:"Seasons 1\u2013"+(first-1),lower:"seasons 1\u2013"+(first-1),dates:ERAS.old.dates.concat(idx.map(i=>F[i])),
       games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]).concat(ERAS.games.filter(g=>inP(g[0])).map(g=>[g[0]+O,nm(g[1]),nm(g[2]),g[3]])),
       byes:ERAS.byes.filter(b=>inP(b[0])).map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,oldR:oR,
-      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
+      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),member:everMember,rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
   else if(k==="old"){ const un={}; ERAS.old.dates.forEach((d,i)=>un[i]=1);
     S={key:k,label:"Seasons 1\u20137",lower:"seasons 1\u20137",dates:ERAS.old.dates,games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]),byes:[],hist:{},seed:{},unrated:un,bandAt:null,oldR:oR,rated:false,seasonOf:()=>null} }
   else if(k==="all"){ const un={}; for(let i=0;i<O;i++) un[i]=1;
@@ -2732,7 +2742,20 @@ function scopeOf(k){
     S={key:k,label:"Whole career",lower:"their whole career",dates:ERAS.old.dates.concat(F),
       games:ERAS.old.games.map(g=>[g[0],nm(g[1]),nm(g[2]),g[3]]).concat(ERAS.games.map(g=>[g[0]+O,nm(g[1]),nm(g[2]),g[3]])),
       byes:ERAS.byes.map(b=>[b[0]+O,nm(b[1]),b[2]]),hist:hist,seed:ERAS.seed,unrated:un,oldR:oR,
-      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
+      bandAt:(name,ni,rIn)=>ni<O?null:bandFull(name,ni-O,rIn),member:everMember,rated:true,seasonOf:ni=>ni<O?null:ERAS.season[ni-O]} }
+  else if(ERAS.old&&(ERAS.old.season||[]).indexOf(+k.slice(1))>=0){
+    const no=+k.slice(1), OS=ERAS.old.season, OD=ERAS.old.dates, OH=ERAS.old.hist||{}, OB=ERAS.old.bands||{};
+    const idx=[]; OS.forEach((s,i)=>{ if(s===no) idx.push(i) });
+    const off=idx[0], inS=i=>i>=off&&i<off+idx.length;
+    const hist={}, seed={};
+    Object.keys(OH).forEach(n=>{ const h=OH[n], before=h.filter(x=>x[0]<off);
+      seed[n]=before.length?before[before.length-1][1]:1000;
+      hist[n]=h.filter(x=>inS(x[0])).map(x=>[x[0]-off,x[1],x[2]]); });
+    S={key:k,label:"Season "+no,lower:"season "+no,dates:idx.map(i=>OD[i]),
+      games:ERAS.old.games.filter(g=>inS(g[0])).map(g=>[g[0]-off,nm(g[1]),nm(g[2]),g[3]]),
+      byes:[],hist:hist,seed:seed,unrated:{},
+      bandAt:(name,ni,rIn)=>(OB[name]||{})[no]||null,member:wasMember,rated:true,seasonOf:()=>no};
+  }
   else { const no=+k.slice(1), idx=[]; ERAS.season.forEach((s,i)=>{ if(s===no) idx.push(i) });
     const off=idx.length?idx[0]:F.length, inS=i=>i>=off&&i<off+idx.length;
     const hist={}, seed={}; Object.keys(ERAS.hist).forEach(n=>{ const before=ERAS.hist[n].filter(h=>h[0]<off);
