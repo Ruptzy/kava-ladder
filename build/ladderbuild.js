@@ -143,17 +143,32 @@ background:var(--scarlet-wash);border:1px solid var(--scarlet-dim);border-radius
 #you button .chev{margin-left:auto;color:var(--ink-3);font-size:1.2rem}
 /* the season prize race */
 .rcs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.9rem}
+@media(max-width:820px){.rcs{grid-template-columns:1fr}}
+.rch{display:flex;align-items:center;gap:.55rem;margin:0 0 .55rem}
+.rch b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.rcp{margin-left:auto;font-family:var(--fd);font-variation-settings:"wdth" 112,"wght" 800;font-size:1.3rem;
+line-height:1.2;color:var(--cream);background:var(--scarlet-wash);border:1px solid var(--scarlet-dim);border-radius:6px;padding:.05rem .5rem}
+.rcr{list-style:none;margin:0;padding:0}
+.rcr li{display:grid;grid-template-columns:1rem minmax(0,1fr) auto auto;align-items:center;gap:.5rem;
+min-height:38px;padding:.2rem .3rem;border-radius:4px;font-size:.9rem}
+.rcr li.lead{background:var(--panel-2)}
+.rcr .pos{font-family:var(--fm);font-size:.72rem;color:var(--ink-3)}
+.rcr li.lead .pos{color:var(--scarlet)}
+.rcr .who{display:flex;align-items:center;gap:.45rem;min-width:0}
+.rcr .who b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:400}
+.rcr li.lead .who b{font-weight:700;color:var(--cream)}
+.rcr .nq{font-family:var(--fm);font-size:.66rem;color:var(--ink-3);border:1px solid var(--rule-2);
+border-radius:20px;padding:.05rem .4rem;white-space:nowrap}
+.rcr .nq.ok{color:var(--gain);border-color:var(--gain)}
+.rcr .rt{font-family:var(--fm);font-size:.82rem;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+.rcr .rt em{display:block;font-style:normal;font-weight:400;font-size:.66rem;color:var(--ink-3)}
+.rcn{margin:0;color:var(--ink-3);font-size:.88rem}
 .rc{background:var(--panel);border:1px solid var(--rule-2);border-radius:3px;padding:.8rem .9rem}
 .rc h4{margin:0 0 .4rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:flex;gap:.5rem;align-items:baseline;flex-wrap:wrap}
 .rc h4 i{font-style:normal;color:var(--scarlet)}
 .rc h4 span{margin-left:auto;color:var(--cream);text-transform:none;letter-spacing:0;font-family:var(--fb);font-size:.8rem}
 .rc p{margin:0 0 .3rem;font-size:.92rem}.rc small{display:block;color:var(--ink-3);font-size:.78rem;line-height:1.5}
 @media(max-width:700px){.rcs{grid-template-columns:1fr}}
-.rcl{background:var(--panel);border:1px solid var(--rule-2);border-radius:3px;padding:.2rem .9rem}
-.rr{display:flex;gap:.6rem;align-items:baseline;min-height:40px;padding:.45rem 0;border-bottom:1px solid var(--rule);font-size:.9rem;flex-wrap:wrap}
-.rr:last-child{border-bottom:none}
-.rr i{font-style:normal;color:var(--scarlet)}.rr b{font-family:var(--fm);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-2)}
-.rr span{font-family:var(--fm);font-size:.72rem;color:var(--ink-3)}.rr em{font-style:normal;margin-left:auto;color:var(--cream)}
 border:1px solid var(--rule-2);border-radius:8px;background:var(--panel);color:var(--cream);text-decoration:none;
 font-family:var(--fm);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase}
 #firstNote{display:flex;align-items:center;gap:.6rem;margin:0 0 .9rem;padding:.35rem .35rem .35rem .8rem;
@@ -1420,36 +1435,30 @@ function seasonExpected(){
 function drawRace(){
   const box=$("#race"); if(!box) return;
   if(D.arch||!SEASON||!DATES.length){ box.innerHTML=""; return }
-  const exp=seasonExpected(), need=Math.ceil(exp/2), left=exp-DATES.length, PIECE=["&#9818;","&#9820;","&#9823;"];
+  const exp=seasonExpected(), need=Math.ceil(exp/2), played=DATES.length;
+  const more=Math.max(0,need-played), left=Math.max(0,exp-played), PIECE=["\u2654","\u265C","\u265F"];
   const amount=d=>((PRIZES[d]||"").match(/[$][0-9]+/)||[""])[0];
-  if(DATES.length<need){
-    const rows=D.divisions.map((d,k)=>{
-      const sofar=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p)&&p.rd<=RS).sort(byRating)[0];
-      return '<div class="rr"><i>'+PIECE[k]+'</i><b>'+E(longDiv(d))+'</b><span>'+amount(d)+'</span>'+
-        '<em>'+(sofar?E(sofar.n)+' top so far, '+sofar.r:'nobody settled yet')+'</em></div>';
-    }).join("");
-    box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
-      '<p class="l">Top settled rating in each bracket wins it, among everyone who plays at least <b>'+need+' of the '+exp+' nights</b>. '+
-      DATES.length+' played, so everyone needs '+(need-DATES.length)+' more night'+(need-DATES.length===1?'':'s')+' to qualify.</p>'+
-      '<div class="rcl">'+rows+'</div>';
-    return;
-  }
   const cards=D.divisions.map((d,k)=>{
-    const all=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p));
-    const elig=all.filter(p=>p.rd<=RS&&p.cons>=need).sort(byRating), top=elig[0], second=elig[1];
-    const short=all.filter(p=>p.cons<need).sort(byRating);
-    const early=DATES.length<need;   // nobody can have qualified yet
-    const sofar=all.filter(p=>p.rd<=RS).sort(byRating)[0];
-    const lead=top?'<b>'+E(top.n)+'</b> leads on '+top.r+(second?', '+(top.r-second.r)+' clear of '+E(second.n):'')+'.'
-                  :sofar?'<b>'+E(sofar.n)+'</b> top so far on '+sofar.r+'. Nobody has '+need+' nights yet.'
-                  :'Nobody has '+need+' nights yet.';
-    const sh=early?'<small>'+all.length+' playing. Everyone needs '+(need-DATES.length)+' more night'+(need-DATES.length===1?'':'s')+' to qualify.</small>'
-             :short.length?'<small>Needs '+need+' nights: '+short.map(p=>E(p.n)+' '+p.cons).join(' &middot; ')+'</small>':'';
-    return '<div class="rc"><h4><i>'+PIECE[k]+'</i>'+E(longDiv(d))+'<span>'+amount(d)+' gift card</span></h4><p>'+lead+'</p>'+sh+'</div>';
+    // only settled ratings can win it, so those are the ones racing
+    const field=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p)&&p.rd<=RS).sort(byRating);
+    const top=field[0];
+    const rows=field.slice(0,3).map((p,i)=>{
+      const ok=p.cons>=need;
+      return '<li'+(i?'':' class="lead"')+' data-n="'+E(p.n)+'" tabindex="0" role="button">'+
+        '<span class="pos">'+(i+1)+'</span>'+
+        '<span class="who">'+av(p.n,"s")+'<b>'+E(p.n)+'</b></span>'+
+        '<span class="nq'+(ok?' ok':'')+'" title="'+(ok?'Has the nights':'Needs '+need+' nights')+'">'+p.cons+'/'+need+' nights</span>'+
+        '<span class="rt">'+p.r+(i?'<em>'+(top.r-p.r)+' behind</em>':'')+'</span></li>';
+    }).join("");
+    return '<div class="rc"><h4 class="rch"><i>'+PIECE[k]+'</i><b>'+E(longDiv(d))+'</b><span class="rcp">'+amount(d)+'</span></h4>'+
+      (rows?'<ol class="rcr">'+rows+'</ol>':'<p class="rcn">Nobody settled yet \u2014 play a few games.</p>')+'</div>';
   }).join("");
+  const status=more>0
+    ? played+' of them played, so <b>'+more+' more night'+(more===1?'':'s')+'</b> and you are in the running.'
+    : left>0?'<b>'+left+' night'+(left===1?'':'s')+' left.</b>':'<b>Last night of the season.</b>';
   box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
-    '<p class="l">Top settled rating in each bracket wins it, among everyone who plays at least <b>'+need+' of the '+exp+' nights</b>. '+
-    DATES.length+' played'+(left>0?', '+left+' to go':'')+'.</p><div class="rcs">'+cards+'</div>';
+    '<p class="l">Top of your bracket wins the card. Turn up to <b>'+need+' of the '+exp+' nights</b> to qualify. '+status+'</p>'+
+    '<div class="rcs">'+cards+'</div>';
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
@@ -2982,7 +2991,7 @@ document.addEventListener("click",e=>{ const ic=e.target.closest("#pnick .ni"); 
 // pieces on the page: check, long castle, promotion, and the scream
 { let seq=[], pawnTaps=0, pawnAt=0;
   document.addEventListener("click",e=>{
-    const el=e.target.closest(".rc h4 i, .rr i"); if(!el) return;
+    const el=e.target.closest(".rc h4 i"); if(!el) return;
     const g=el.textContent.trim(); if(!/^[\u265A-\u265F\u2654-\u2659]$/.test(g)) return;
     if(el.closest("a")) e.preventDefault();   // the glyph is the toy; the words are the link
     const now=Date.now();
@@ -3002,7 +3011,7 @@ eggNightOwl(new Date().getHours());
 
 // the last week of October, some pieces are not themselves
 function eggHalloween(d){ if(d.getMonth()===9&&d.getDate()>=24){ eggFind("halloween");
-  const swap=()=>document.querySelectorAll(".rc h4 i, .rr i").forEach(i=>{ if(Math.random()<0.3&&!i.dataset.k){ i.dataset.k=i.textContent; i.textContent="\uD83D\uDC80" } });
+  const swap=()=>document.querySelectorAll(".rc h4 i").forEach(i=>{ if(Math.random()<0.3&&!i.dataset.k){ i.dataset.k=i.textContent; i.textContent="\uD83D\uDC80" } });
   swap(); setInterval(swap,20000); return true } return false }
 eggHalloween(new Date());
 
@@ -3475,8 +3484,8 @@ window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
 
 /* ---------- wiring ---------- */
-function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("tr[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
-["#tb","#tbAway","#arc","#alltime"].forEach(function(s){ $(s).onclick=function(e){ var t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) }; $(s).addEventListener("keydown",rowKeys) });
+function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
+["#tb","#tbAway","#arc","#alltime","#race"].forEach(function(s){ $(s).onclick=function(e){ var t=e.target.closest("[data-n]"); if(t) openProfile(t.dataset.n) }; $(s).addEventListener("keydown",rowKeys) });
 function closeSort(){ $("#sortMenu").classList.add("hid"); $("#sortBtn").setAttribute("aria-expanded","false") }
 $("#sortBtn").onclick=e=>{ e.stopPropagation();
   const open=$("#sortMenu").classList.toggle("hid")===false;
