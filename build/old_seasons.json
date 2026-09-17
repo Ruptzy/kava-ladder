@@ -1,0 +1,54 @@
+{
+ "why": "seasons 1-7 are not recorded anywhere; the club's real nights split into seven equal stretches, backlog dates taking no slot",
+ "seasons": [
+  {
+   "no": 1,
+   "from": "2022-09-25",
+   "last": "2023-01-22",
+   "to": "2023-01-23",
+   "nights": 8
+  },
+  {
+   "no": 2,
+   "from": "2023-02-05",
+   "last": "2023-05-07",
+   "to": "2023-05-08",
+   "nights": 7
+  },
+  {
+   "no": 3,
+   "from": "2023-05-21",
+   "last": "2023-09-17",
+   "to": "2023-09-18",
+   "nights": 8
+  },
+  {
+   "no": 4,
+   "from": "2023-10-01",
+   "last": "2024-01-07",
+   "to": "2024-01-08",
+   "nights": 7
+  },
+  {
+   "no": 5,
+   "from": "2024-01-14",
+   "last": "2024-04-21",
+   "to": "2024-04-22",
+   "nights": 8
+  },
+  {
+   "no": 6,
+   "from": "2024-04-28",
+   "last": "2024-08-11",
+   "to": "2024-08-12",
+   "nights": 7
+  },
+  {
+   "no": 7,
+   "from": "2024-08-25",
+   "last": "2024-11-24",
+   "to": "2024-11-25",
+   "nights": 8
+  }
+ ]
+}

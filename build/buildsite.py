@@ -526,6 +526,43 @@ def completed_seasons(history, today):
     return out
 
 
+OLD_DIVISIONS = ["Over 1000", "U1000", "U800"]   # what the club actually used until Nov 2024
+
+
+def old_seasons():
+    """The seven windows, as written down by old_seasons.py. Absent means the
+    old era simply is not built - the rest of the site does not depend on it."""
+    try:
+        return json.load(open(here('old_seasons.json'), encoding='utf-8'))['seasons']
+    except Exception:
+        return []
+
+
+def old_history(archive, arc_matches):
+    """The old workbook as club nights, under the names the club uses now.
+
+    "Null" is the workbook's placeholder for an opponent whose name was not
+    written down, so those games are left out here exactly as career_stats
+    leaves them out - a rating cannot be moved by a player who does not
+    exist."""
+    back = {old: cur for cur, old in (archive.get('link') or {}).items()}
+    by = {}
+    for d, w, b, r in arc_matches or []:
+        if w.strip().lower() == "null" or b.strip().lower() == "null":
+            continue
+        by.setdefault(d, []).append([back.get(w, w), back.get(b, b), r])
+    return [{"date": d, "games": by[d]} for d in sorted(by)]
+
+
+def old_roster(P, divisions):
+    """Everyone the old era rated, in the bracket they finished it in. Without
+    this they would all be visitors: the modern roster has none of them."""
+    return {"divisions": divisions,
+            "roster": [{"n": n, "r": round(q["r"]), "d": band_of(q["r"], divisions), "idle": 0}
+                       for n, q in sorted(P.items())
+                       if q["n"] > 0 and not n.startswith("Visitor ")]}
+
+
 def page(D):
     src=open(here('ladderbuild.js'),encoding='utf-8').read()
     tpl=src[src.index('return `')+len('return `'):src.rindex('`;')]
@@ -662,8 +699,10 @@ if __name__=="__main__":
     pre_to=season_bounds(SEASON_ANCHOR[0])[0]
     if HISTORY and HISTORY[0]["date"]<pre_to:
         PAST.insert(0,(SEASON_ANCHOR[0]-1, HISTORY[0]["date"][:7]+"-01", pre_to))
+    OLDS=old_seasons()
     D,SEASON,VAULTED=build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built)
-    D["past"]=[no for no,_,_ in PAST]
+    # every page links to every season, the old ones included
+    D["past"]=[s["no"] for s in OLDS]+[no for no,_,_ in PAST]
     print('season %d: %s .. %s | vault %d nights, %d games'
           % (SEASON["no"], D["dates"][0] if D["dates"] else "no nights yet",
              D["dates"][-1] if D["dates"] else "-", len(VAULTED),
@@ -677,6 +716,32 @@ if __name__=="__main__":
         open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
         print('%s: season %d frozen | %d nights, %d games, %s .. %s'
               % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
+    # seasons 1-7: the old workbook, replayed on its own so it can be read the
+    # same way as the seasons since. Nothing here reaches the live ladder.
+    if OLDS and ARCM:
+        OH=old_history(ARCHIVE,ARCM)
+        OH,_=anonymise(OH,{},HIDDEN)
+        OP=run(OH,{})
+        oroster=old_roster(OP,OLD_DIVISIONS)
+        where={}
+        for s in OLDS:
+            for h in OH:
+                if s["from"]<=h["date"]<s["to"]: where[h["date"]]=s["no"]
+        for s in OLDS:
+            no,frm,to=s["no"],s["from"],s["to"]
+            cut=[h for h in OH if h["date"]<to]
+            Da,_,_=build_data(cut,{},ARCHIVE,oroster,[],HIDDEN,[],built,calendar=False,window=(no,frm,to))
+            Da["arch"]=no; Da["past"]=D["past"]; Da["next"]=None
+            Da["era0"]=1                 # an old-system page: label its eras honestly
+            Da["tabart"]=[]              # the bracket art is drawn for today's divisions
+            e=Da.get("eras")
+            if e:
+                e["season"]=[where.get(d,no) for d in e["dates"]]
+                e["first"]=OLDS[0]["no"]
+            name='season-%d.html'%no
+            open(os.path.join(ROOT,name),'w',encoding='utf-8').write(archive_head(page(Da),no))
+            print('%s: season %d frozen | %d nights, %d games, %s .. %s'
+                  % (name,no,len(Da["dates"]),len(Da["games"]),Da["dates"][0],Da["dates"][-1]))
     html=page(D)
     out=os.path.join(ROOT,'index.html')
     open(out,'w',encoding='utf-8').write(html)
