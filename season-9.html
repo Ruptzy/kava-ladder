@@ -2648,8 +2648,9 @@ function scopeDefs(){
   // the one place the two eras really are added together
   if(preEnd&&!(SEASON&&SEASON.no<first)) defs.push({k:"pre",label:"Seasons 1\u2013"+(first-1),sub:"old system + Season "+(first-1)});
   if(D.arch) defs.unshift({k:"live",label:"Current season",sub:"on the ladder"});
-  if(!D.era0) defs.push({k:"all",label:"Whole career",sub:""});
-  else if(SEASON&&SEASON.no>1) defs.push({k:"all",label:"Seasons 1\u2013"+SEASON.no,sub:"the old system"});
+  // the old-system pages hold only what came before them, and say so
+  defs.push({k:"all",label:"Whole career",
+    sub:!D.era0?"":(SEASON&&SEASON.no>1?"seasons 1\u2013"+SEASON.no+" on record here":"season 1 on record here")});
   return defs;
 }
 function scopeOf(k){
