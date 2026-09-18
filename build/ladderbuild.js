@@ -955,6 +955,20 @@ border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,
 #nightsLink{margin:.9rem 0 0}
 .ncard{margin:0 0 .8rem}
 tr.hid{display:none}
+.nqn,.nqs{cursor:pointer;text-decoration:underline;text-decoration-color:rgba(240,136,62,.4);text-underline-offset:2px}
+.nqbar a{color:var(--loss);font-weight:700;margin-left:.3rem}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:.8rem}
+.rsec{border:1px solid var(--rule-2);border-radius:8px;background:rgba(22,23,25,.94);padding:1rem 1.1rem}
+.rsec h3{display:flex;align-items:center;gap:.55rem;margin:0 0 .6rem;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.05rem;text-transform:uppercase;letter-spacing:.02em}
+.rsec h3 i{font-style:normal}
+.rsec>ul{margin:0;padding:0 0 0 1.1rem;display:flex;flex-direction:column;gap:.45rem;font-size:.92rem;line-height:1.45;color:var(--ink-2)}
+.rsec>ul>li::marker{color:var(--scarlet)}
+.rsec b{color:var(--cream)}
+.rsec#placing{border-color:rgba(254,39,58,.45)}
+.rsec#fairplay{border-color:rgba(240,136,62,.4)}
+.rprize{list-style:none;margin:.45rem 0 0;padding:0;display:flex;flex-direction:column;gap:.25rem}
+.rprize li{display:flex;justify-content:space-between;gap:1rem;padding:.35rem .6rem;border-radius:4px;background:var(--panel-2);font-size:.86rem}
+.rprize span{color:#EAC078;font-family:var(--fm);font-size:.78rem}
 .nqn{display:block;font-family:var(--fm);font-size:.7rem;font-weight:400;color:var(--loss);line-height:1.25;white-space:normal;margin-top:.15rem}
 td.nmc2 .nqn{max-width:12rem}
 
@@ -1130,6 +1144,7 @@ play chess, and nobody is turned away for being new or rusty.</p>
 </main>
 <main id="nv" class="hid"></main>
 <main id="aw" class="hid"></main>
+<main id="rv" class="hid"></main>
 <footer id="foot"></footer>
 </div>
 <div class="modal" id="how" role="dialog" aria-modal="true" aria-labelledby="howT"><div class="mbox">
@@ -1143,6 +1158,7 @@ play chess, and nobody is turned away for being new or rusty.</p>
 <li>Your bracket is set on your first night and lasts the season.</li>
 <li>No games for 90 days puts you on the away list. Play once and you are back.</li>
 <li>Cups: top three in your bracket on a night. Three games needed.</li>
+<li>Places and prizes: see the <a href="#/rules" onclick="closeHow()">bracket rules</a>.</li>
 <li>The <b>10+</b>, <b>25+</b>, <b>50+</b> tag by a name: club nights they have come to.</li>
 </ul></div></div>
 <div class="modal" id="recapM" role="dialog" aria-modal="true" aria-label="Season recap"><div class="mbox rbox">
@@ -1355,6 +1371,7 @@ function route(){
   if(parts[0]==="history"){ showHistory(); return }
   if(parts[0]==="night"&&parts[1]){ showNight(parts[1]); return }
   if(parts[0]==="awards"){ showAwards(parts[1]?+parts[1]:null); return }
+  if(parts[0]==="rules"){ showRules(); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
     else if(parts[i]==="sort"&&SORTS.some(s=>s.k===parts[i+1])){ ns=parts[i+1]; i+=2 } else i++; }
@@ -1409,6 +1426,7 @@ window.addEventListener("hashchange",route);
   $("#foot").innerHTML="KAVA Social Chess Club &middot; "+seaLower+": "+D.games.length+" games across "+DATES.length+" club night"+(DATES.length===1?"":"s")+
     ((D.past||[]).length?" &middot; earlier: "+(D.past||[]).slice().reverse().slice(0,4).map(n=>'<a href="season-'+n+'.html">'+seasonName(n)+'</a>').join(", ")+
       ((D.past||[]).length>4?" and "+((D.past||[]).length-4)+" more":""):"")+
+    ' &middot; <a href="#/rules">Rules</a>'+
     " &middot; ratings recalculated from every game &middot; built "+fd(D.built)+
     ' <button id="hintDot" aria-label="A hint" title="">&bull;</button>';
 })();
@@ -1678,14 +1696,14 @@ function drawRace(){
   const status=more>0
     ? played+' of them played, so <b>'+more+' more night'+(more===1?'':'s')+'</b> and you are in the running.'
     : left>0?'<b>'+left+' night'+(left===1?'':'s')+' left.</b>':'<b>Last night of the season.</b>';
-  box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2>'+(ERAS?'<a class="howbtn shl" href="#/awards">Season awards &rsaquo;</a>':'')+'</div>'+
+  box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2>'+(ERAS?'<a class="howbtn shl" href="#/awards">Season awards &rsaquo;</a>':'')+'<a class="howbtn" href="#/rules">Rules</a></div>'+
     '<p class="l">\uD83D\uDCB5 Top of your bracket wins a <b>Kava Social gift card</b>. Turn up to <b>'+need+' of the '+exp+' nights</b> to qualify. '+status+'</p>'+
     '<div class="rcs">'+cards+regCard()+'</div>';
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
   $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.remove("hid"); document.body.classList.add("sub");
-  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid"); $("#rv").classList.add("hid");
   scrollTo({top:0,behavior:"instant"});
 }
 function fitPodium(){
@@ -1701,7 +1719,7 @@ addEventListener("resize",()=>{ document.querySelectorAll("#pod .nm").forEach(e=
 function showBoard(){
   if(CUR){ CUR=null; RIVAL=null; document.title=PAGE_TITLE; }
   $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#board").classList.remove("hid"); document.body.classList.remove("sub");
-  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid"); $("#rv").classList.add("hid");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
 }
@@ -3066,7 +3084,7 @@ function scopeBar(p){
   { const no=/^s[0-9]+$/.test(SCOPE)?+SCOPE.slice(1):(SEASON?SEASON.no:null), done=no!=null&&(isCurScope(SCOPE)?FINAL:seasonDone(no));
     const need=Math.ceil(S.dates.length/2), gn=gameNights(sp), short=done&&sp.games>0&&gn<need;
     let nq=$("#scopeNq"); if(!nq){ nq=document.createElement("p"); nq.id="scopeNq"; nq.className="nqbar"; $("#scope").after(nq) }
-    nq.textContent=short?NQ_NOTE+" for "+(isCurScope(SCOPE)?SEA:S.label)+" rewards: "+gn+" of "+S.dates.length+" nights, "+need+" needed.":"";
+    nq.innerHTML=short?E(NQ_NOTE+" for "+(isCurScope(SCOPE)?SEA:S.label)+" rewards: "+gn+" of "+S.dates.length+" nights, "+need+" needed.")+' <a href="#/rules/placing">Rules</a>':"";
     nq.hidden=!short; }
   $("#scopeNote").textContent=sp.games?(sp.games+" games \u00b7 "+sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
   bar.classList.remove("hid");
@@ -3327,7 +3345,7 @@ function tableAfter(i){
 }
 function openNight(d){ if(!CUR&&!$("#board").classList.contains("hid")){ boardHash=stateHash(); boardScroll=scrollY } location.hash="#/night/"+d }
 function showOnly(id){
-  ["#board","#hv","#pv","#nv","#aw"].forEach(s=>{ const el=$(s); if(el) el.classList.toggle("hid",s!==id) });
+  ["#board","#hv","#pv","#nv","#aw","#rv"].forEach(s=>{ const el=$(s); if(el) el.classList.toggle("hid",s!==id) });
   document.body.classList.toggle("sub",id!=="#board");
 }
 const cupIc=k=>'<i class="cupi t'+k+'"></i>';
@@ -3411,6 +3429,38 @@ function drawYearAgo(){
       (w&&!isVis(w)?' · '+E(w)+' won the night':'')+'</span><i>&rsaquo;</i></a>');
   }
   box.innerHTML=lines.join("");
+}
+
+/* ---------- the rules ---------- */
+function showRules(){
+  CUR=null; RIVAL=null; showOnly("#rv"); scrollTo({top:0,behavior:"instant"});
+  document.title="Rules \u00b7 "+CLUB;
+  const brk=D.divisions.map(d=>'<li><b>'+E(longDiv(d))+'</b>'+(PRIZES[d]?'<span>'+((PRIZES[d].match(/[$][0-9]+/)||[""])[0])+' gift card</span>':'')+'</li>').join("");
+  const sec=(id,ic,h,items)=>'<section class="rsec" id="'+id+'"><h3><i>'+ic+'</i>'+h+'</h3><ul>'+items.map(x=>'<li>'+x+'</li>').join("")+'</ul></section>';
+  $("#rv").innerHTML='<button class="back" id="rbk">&larr; Back to the ladder</button>'+
+    '<div class="nhead"><div class="nt"><small>Every season</small><h1>Bracket <span>rules</span></h1>'+
+    '<p class="nsum">How brackets, places and prizes work.</p></div></div>'+
+    '<div class="rgrid">'+
+    sec("brackets","\u265F\uFE0F","Your bracket",[
+      "Seasons run three months.",
+      "Your bracket is set by your rating on your first night of the season. It stays put all season.",
+      "It can\u2019t drop below where last season left you.",
+      "Break your bracket\u2019s ceiling? You still play for its prize, and move up next season."])+
+    sec("placing","\uD83C\uDFC5","Placing at the end of the season",[
+      "Places go by rating on the last night, within your bracket.",
+      "Your rating must be settled (\u00b1"+RS+" or less). A few nights does it.",
+      "<b>Play at least half the season\u2019s nights.</b> A night counts if you played a game. Under half: no place and no prize, in any bracket.",
+      "Ties: more games played goes first.",
+      "1st in your bracket is the season\u2019s section title."])+
+    sec("rewards","\uD83C\uDF81","Rewards",[
+      "The top of each bracket wins a Kava Social gift card:<ul class='rprize'>"+brk+"</ul>",
+      "Regular of the season: most nights played, any rating. More games breaks a tie.",
+      "Nightly cups: top three in your bracket on the night. Three games needed."])+
+    sec("fairplay","\uD83E\uDD1D","Fair play",[
+      "Anyone who breaks fair play or the club\u2019s code of conduct is excluded from seasonal rewards."])+
+    '</div>';
+  $("#rbk").onclick=()=>go(boardHash||"");
+  const h=location.hash.split("/")[2]; if(h){ const el=document.getElementById(h); if(el) scrollTo({top:el.getBoundingClientRect().top+scrollY-12,behavior:"instant"}) }
 }
 
 /* ---------- season awards ---------- */
@@ -3615,7 +3665,7 @@ function showProfile(n,rival){
   scopeBar(p);
   renderScope(p);
   $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#pv").classList.remove("hid"); document.body.classList.add("sub");
-  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid"); $("#rv").classList.add("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
   try{ profileEggs(p) }catch(e){}
@@ -4232,6 +4282,10 @@ function dropHint(force){
 window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
 
+/* "Didn't qualify" anywhere opens the placing rules */
+document.addEventListener("click",function(e){ const q=e.target.closest(".nqn,.nqs,.nqbar a");
+  if(!q) return; e.preventDefault(); e.stopPropagation(); location.hash="#/rules/placing" },true);
+
 /* ---------- names are links ----------
    Any .nlk name opens that player's page, before the row or card it sits
    in gets the tap - a name inside a head-to-head row still means the person. */
@@ -4243,7 +4297,7 @@ document.addEventListener("keydown",function(e){ if(e.key!=="Enter"&&e.key!==" "
 /* ---------- no holes ----------
    Every grid of cards: when a row comes up short, its last card stretches
    across the rest of it. Runs after anything renders and on resize. */
-const FILL=".gwrap,.rcs,.awg,.tafter,.soon,.upg";
+const FILL=".gwrap,.rcs,.awg,.tafter,.soon,.upg,.rgrid";
 function fillGrids(){
   document.querySelectorAll(FILL).forEach(function(g){
     if(!g.offsetParent) return;

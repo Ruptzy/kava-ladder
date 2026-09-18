@@ -677,16 +677,19 @@ def champions(Da):
     finale uses: settled rating (RD <= 110), at least half the season's nights,
     highest rating in the bracket they were fixed in."""
     names=Da["names"]; need=-(-len(Da["dates"])//2)
-    nights={}
+    nights={}; games={}
     for ni,w,b,r in Da["games"]:
-        for i in (w,b): nights.setdefault(names[i],set()).add(ni)
+        for i in (w,b):
+            nights.setdefault(names[i],set()).add(ni); games[names[i]]=games.get(names[i],0)+1
     out=[]
     for d in Da["divisions"]:
         best=None
         for q in Da["players"]:
             if q.get("gh") or q.get("bd")!=d or q["rd"]>110: continue
             if len(nights.get(q["n"],()))<need: continue
-            if best is None or q["r"]>best["r"]: best=q
+            # a tie on rating goes to more games played, as the ladder orders it
+            g=games.get(q["n"],0)
+            if best is None or q["r"]>best["r"] or (q["r"]==best["r"] and g>games.get(best["n"],0)): best=q
         if best: out.append({"d":d,"n":best["n"],"r":best["r"]})
     return out
 
