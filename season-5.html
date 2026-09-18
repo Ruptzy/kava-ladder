@@ -802,7 +802,7 @@ border-radius:9px;border:1px solid currentColor;font-family:var(--fm);font-size:
 .setl em{font-style:normal;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);text-align:right;line-height:1.25}
 .kpis dd.kset{font-size:1.1rem}.kpis dd.kset .sbar{width:100%;margin-top:.45rem}
 #soon:empty,#ago:empty,#upnext:empty,#stand:empty{display:none}
-.soon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.45rem}
+.soon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:.45rem}
 .soon+.soon{margin-top:.45rem}
 .soon li{display:flex;align-items:center;background:var(--panel);border:1px solid var(--rule-2);border-radius:6px;padding:.5rem .7rem;cursor:pointer;min-width:0}
 .soon li:hover{border-color:var(--scarlet)}
@@ -815,14 +815,42 @@ border-radius:9px;border:1px solid currentColor;font-family:var(--fm);font-size:
 .agol span{color:var(--ink-2);min-width:0}
 .agol i{margin-left:auto;font-style:normal;color:var(--ink-3)}
 .agol:hover span{color:var(--cream)}
-.upnext{display:flex;flex-wrap:wrap;gap:.4rem .5rem;align-items:center;margin:0 0 1rem;font-size:.84rem;color:var(--ink-2)}
-.upnext>b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-right:.2rem}
-.un{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--rule-2);border-radius:999px;padding:.2rem .65rem;background:var(--panel)}
-.un i{font-style:normal}.un b{color:var(--gain)}
-.stand{margin:0 0 1rem;padding:.6rem .8rem .3rem;border:1px solid var(--rule-2);border-radius:6px;background:rgba(22,23,25,.94)}
-.stand p{display:flex;flex-wrap:wrap;gap:.2rem .7rem;align-items:baseline;margin:0 0 .2rem}
-.stand p b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
-.stand p span{font-size:.84rem;color:var(--cream)}
+.upnext{margin:0 0 1rem}
+.upt,.ssh h3{font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin:0 0 .5rem}
+.upg{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem}
+.upc{display:flex;flex-direction:column;gap:.2rem;padding:.65rem .8rem .75rem;border:1px solid var(--rule-2);border-radius:6px;background:rgba(22,23,25,.94);min-width:0}
+.upk{font-family:var(--fm);font-size:.7rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.upc b{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.2rem;line-height:1.15;color:var(--cream)}
+.upb{display:block;height:4px;border-radius:2px;background:var(--panel-3);overflow:hidden;margin-top:.3rem}
+.upb i{display:block;height:100%;background:linear-gradient(90deg,var(--scarlet-dim),var(--scarlet))}
+.upc.win b{color:var(--gain)}
+.upc small{font-family:var(--fm);font-size:.7rem;color:var(--ink-3)}
+.stand{margin:0 0 1rem;padding:.8rem 1rem 2.4rem;border:1px solid var(--rule-2);border-radius:6px;background:rgba(22,23,25,.94)}
+.ssh{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:.2rem 1rem;margin-bottom:2.3rem}
+.ssh h3{margin:0}
+.ssh p{margin:0;font-size:.9rem;color:var(--ink-2)}
+.ssh p b{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.05rem;color:var(--cream)}
+.ssh .sep{margin:0 .5rem;color:var(--ink-3)}
+.sst{position:relative;height:26px;margin:0 .4rem}
+.ssz{position:absolute;top:0;bottom:0;border-radius:4px}
+.ssz+.ssz{border-left:2px solid var(--void)}
+.ssz.z0{background:rgba(254,39,58,.13)}.ssz.z1{background:rgba(143,176,245,.11)}.ssz.z2,.ssz.z3{background:rgba(179,171,160,.09)}
+.ssz.mine{box-shadow:inset 0 0 0 1px rgba(255,246,232,.22)}
+.ssz span{position:absolute;left:0;right:0;top:calc(100% + .45rem);text-align:center;white-space:nowrap;
+font-family:var(--fm);font-size:.7rem;color:var(--ink-3)}
+.ssz span b{font-weight:700;color:var(--ink-2);letter-spacing:.06em}
+.ssz.mine span b{color:var(--cream)}
+.ssline{position:absolute;left:0;right:0;top:50%;height:1px;background:rgba(255,246,232,.08)}
+.ssd{position:absolute;top:50%;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:rgba(255,246,232,.42)}
+.ssd.up{margin-top:-9px}
+.ssme{position:absolute;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:var(--scarlet);
+box-shadow:0 0 0 3px #161719,0 0 0 4.5px var(--cream);z-index:2}
+.ssme.unset{background:none;box-shadow:none;border:2px dashed var(--cream)}
+.ssme b{font-style:normal;position:absolute;bottom:calc(100% + 9px);left:50%;transform:translateX(-50%);white-space:nowrap;
+font-family:var(--fm);font-size:.72rem;font-weight:700;color:var(--cream);background:var(--btn-red);padding:.15rem .45rem;border-radius:4px}
+.ssme b::after{content:"";position:absolute;left:50%;top:100%;margin-left:-4px;border:4px solid transparent;border-top-color:var(--btn-red)}
+.ssme.r b{left:auto;right:-6px;transform:none}.ssme.r b::after{left:auto;right:8px}
+.ssme.l b{left:-6px;transform:none}.ssme.l b::after{left:10px}
 #you .stand{margin:-.4rem 0 .8rem}
 /* a night of its own, and a season's awards */
 .nhead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:1rem;margin:0 0 1rem}
@@ -862,7 +890,7 @@ border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,
 .dim{color:var(--ink-3)}
 .bnote{margin:0 0 1rem;padding:.6rem .8rem;border-left:3px solid var(--loss);background:var(--panel);font-size:.86rem;color:var(--ink-2)}
 .nfoot{margin:1.4rem 0 0;display:flex;gap:.5rem;flex-wrap:wrap}
-.awg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.8rem}
+.awg{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:.8rem}
 .awc{display:flex;gap:.9rem;align-items:center;padding:.9rem 1rem;border:1px solid var(--rule-2);border-radius:8px;
 background:linear-gradient(160deg,var(--panel-2),rgba(22,23,25,.94) 70%);min-width:0}
 .awi{flex:none;width:72px;height:72px;display:grid;place-items:center;font-size:2.3rem;line-height:1;border-radius:50%;
@@ -3084,12 +3112,12 @@ function careerCups(){ const S=careerS(), out={};
 function upNextFor(n,loose){
   const q=careerOf(n); if(!q) return [];
   const out=[], k=nightsOf(n), g=q.games, w=q.rec[0];
-  const c=nextOf(CLUBS,k); if(c&&(loose||c-k<=2)) out.push({n:n,s:(c-k)/c,ic:"🎟️",t:(c-k)+" night"+(c-k===1?"":"s")+" to the "+c+" club"});
-  const gg=nextOf(GT,g); if(gg&&(loose||gg-g<=5)) out.push({n:n,s:(gg-g)/gg,ic:"♟️",t:(gg-g)+" game"+(gg-g===1?"":"s")+" to "+gg});
-  const ww=nextOf(WT,w); if(ww&&(loose||ww-w<=3)) out.push({n:n,s:(ww-w)/ww,ic:"⭐",t:(ww-w)+" win"+(ww-w===1?"":"s")+" to "+ww});
+  const c=nextOf(CLUBS,k); if(c&&(loose||c-k<=2)) out.push({n:n,s:(c-k)/c,ic:"🎟️",goal:c+" nights",left:(c-k)+" to go",cur:k,tgt:c,t:(c-k)+" night"+(c-k===1?"":"s")+" to the "+c+" club"});
+  const gg=nextOf(GT,g); if(gg&&(loose||gg-g<=5)) out.push({n:n,s:(gg-g)/gg,ic:"♟️",goal:gg+" games",left:(gg-g)+" to go",cur:g,tgt:gg,t:(gg-g)+" game"+(gg-g===1?"":"s")+" to "+gg});
+  const ww=nextOf(WT,w); if(ww&&(loose||ww-w<=3)) out.push({n:n,s:(ww-w)/ww,ic:"⭐",goal:ww+" wins",left:(ww-w)+" to go",cur:w,tgt:ww,t:(ww-w)+" win"+(ww-w===1?"":"s")+" to "+ww});
   const cc=careerCups(), mine=cc[n]||0;
   let above=null; Object.keys(cc).forEach(o=>{ if(o!==n&&cc[o]>mine&&(!above||cc[o]<cc[above])) above=o });
-  if(above&&(loose||cc[above]-mine<=2)) out.push({n:n,s:(cc[above]-mine)/Math.max(4,cc[above]),ic:"🏆",
+  if(above&&(loose||cc[above]-mine<=2)) out.push({n:n,s:(cc[above]-mine)/Math.max(4,cc[above]),ic:"🏆",goal:"Catch "+E(above),left:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to go",cur:mine,tgt:cc[above],
     t:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to catch "+E(above)+" ("+cc[above]+")"});
   return out;
 }
@@ -3110,37 +3138,40 @@ function drawSoon(){
 function upNextLine(p){
   if(D.arch||!ERAS||p.gh) return "";
   const it=upNextFor(p.n,true).sort((a,b)=>a.s-b.s).slice(0,3);
-  const worth=p.rd<=RS?'<span class="un"><i>🎯</i>A win against an equal: about <b>+'+winWorth(p)+'</b></span>':'';
-  if(!it.length&&!worth) return "";
-  return '<div class="upnext"><b>Up next</b>'+it.map(x=>'<span class="un"><i>'+x.ic+'</i>'+x.t+'</span>').join("")+worth+'</div>';
+  const cards=it.map(x=>'<div class="upc"><span class="upk">'+x.goal+'</span><b>'+x.left+'</b>'+
+    '<span class="upb" role="img" aria-label="'+x.cur+' of '+x.tgt+'"><i style="width:'+Math.max(4,Math.round(x.cur/x.tgt*100))+'%"></i></span></div>');
+  if(p.rd<=RS) cards.push('<div class="upc win"><span class="upk">One win vs an equal</span><b>+'+winWorth(p)+'</b><small>rating points, about</small></div>');
+  if(!cards.length) return "";
+  return '<div class="upnext"><h3 class="upt">Up next</h3><div class="upg">'+cards.join("")+'</div></div>';
 }
-
-/* ---------- where you stand: every settled player on one line ---------- */
-const BCOL=["#FE273A","#8FB0F5","#B3ABA0","#5CC8B8"];
 function standStrip(p,compact){
   if(D.arch||!p) return "";
-  const list=P.filter(x=>x.games>0&&!x.gh&&!away(x)&&x.rd<=RS).sort((a,b)=>a.r-b.r);
+  const list=P.filter(x=>x.games>0&&!x.gh&&!away(x)&&x.rd<=RS).sort((a,b)=>b.r-a.r);
   if(list.length<4) return "";
-  const W=640, H=compact?58:70, L=14, R=14, mn=list[0].r, mx=list[list.length-1].r, span=Math.max(1,mx-mn);
-  const X=r=>L+(Math.max(mn,Math.min(mx,r))-mn)/span*(W-L-R);
-  const lastX=[-99,-99,-99,-99], ys=[26,17,35,8];
-  let dots="";
-  list.forEach(x=>{ const cx=X(x.r); let row=0; while(row<3&&cx-lastX[row]<7) row++; lastX[row]=cx;
-    const me=x.n===p.n, col=BCOL[Math.max(0,divRank(x.d))%BCOL.length];
-    dots+='<circle cx="'+cx.toFixed(1)+'" cy="'+ys[row]+'" r="'+(me?6:3.4)+'" fill="'+col+'"'+(me?' stroke="#FFF6E8" stroke-width="2"':' fill-opacity=".8"')+'><title>'+E(x.n)+' '+x.r+'</title></circle>' });
-  let lines="", labs="";
-  const cuts=DIVFLOOR.filter(f=>isFinite(f)&&f>mn&&f<mx);
-  cuts.forEach(f=>{ lines+='<line x1="'+X(f).toFixed(1)+'" x2="'+X(f).toFixed(1)+'" y1="2" y2="'+(H-18)+'" stroke="#343A40" stroke-dasharray="3 3"/>' });
+  const hiR=list[0].r, loR=list[list.length-1].r, pad=Math.max(15,(hiR-loR)*.04), lo=loR-pad, hi=hiR+pad;
+  const X=r=>(Math.max(lo,Math.min(hi,r))-lo)/(hi-lo)*100;
+  // the brackets as shaded zones, strongest on the right, each named underneath
+  let zones="";
   D.divisions.forEach((d,k)=>{
-    const lo=Math.max(mn,isFinite(DIVFLOOR[k])?DIVFLOOR[k]:mn), hi=Math.min(mx,k===0?mx:DIVFLOOR[k-1]);
-    if(hi<=lo) return;
-    const n=list.filter(x=>x.d===d).length, cx=(X(lo)+X(hi))/2;
-    labs+='<text x="'+cx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#8A8276">'+E(shortDiv(d))+' · '+n+'</text>' });
-  const at=list.findIndex(x=>x.n===p.n);
-  if(at<0&&p.games>0) dots+='<circle cx="'+X(p.r).toFixed(1)+'" cy="26" r="6" fill="none" stroke="#FFF6E8" stroke-width="2" stroke-dasharray="3 2"><title>'+E(p.n)+' '+p.r+' (settling)</title></circle>';
-  const pos=at>=0?ordinal(list.length-at)+' of '+list.length+' settled players':'Still settling · dashed ring is where the number sits now';
-  return '<div class="stand'+(compact?' cp':'')+'"><p><b>Where '+(compact?'you':E(p.n))+' stand'+(compact?'':'s')+'</b><span>'+pos+'</span></p>'+
-    svgWrap(lines+dots+labs,W,H,"Every settled rating on the ladder, "+p.n+" marked")+'</div>';
+    const a=Math.max(lo,isFinite(DIVFLOOR[k])?DIVFLOOR[k]:lo), b=Math.min(hi,k===0?hi:DIVFLOOR[k-1]);
+    if(b<=a) return;
+    const n=list.filter(x=>x.d===d).length;
+    zones+='<div class="ssz z'+Math.min(k,3)+(d===p.d?' mine':'')+'" style="left:'+X(a).toFixed(2)+'%;width:'+(X(b)-X(a)).toFixed(2)+'%">'+
+      '<span><b>'+E(shortDiv(d))+'</b> \u00b7 '+n+' player'+(n===1?'':'s')+'</span></div>' });
+  // everyone else is a quiet dot; near neighbours step up and down so none hides another
+  let dots="", last=-9, flip=0;
+  list.slice().reverse().forEach(x=>{ if(x.n===p.n) return; const px=X(x.r);
+    flip=px-last<1.6?(flip?0:1):0; last=px;
+    dots+='<i class="ssd'+(flip?' up':'')+'" style="left:'+px.toFixed(2)+'%" title="'+E(x.n)+' '+x.r+'"></i>' });
+  const at=list.findIndex(x=>x.n===p.n), settled=at>=0, mx=X(p.r);
+  const side=mx>86?' r':mx<14?' l':'';
+  const me='<i class="ssme'+(settled?'':' unset')+side+'" style="left:'+mx.toFixed(2)+'%"><b>'+(compact?'You':E(p.n))+' \u00b7 '+p.r+'</b></i>';
+  const inB=rankedIn(p.d), bi=inB.findIndex(x=>x.n===p.n);
+  const head=settled
+    ?'<b>'+ordinal(at+1)+'</b> of '+list.length+' on the ladder'+(bi>=0?'<span class="sep">\u00b7</span><b>'+ordinal(bi+1)+'</b> of '+inB.length+' in '+E(shortDiv(p.d)):'')
+    :'Still settling. The ring shows where the number sits for now.';
+  return '<div class="stand'+(compact?' cp':'')+'"><div class="ssh"><h3>Where '+(compact?'you stand':E(p.n)+' stands')+'</h3><p>'+head+'</p></div>'+
+    '<div class="sst" role="img" aria-label="'+E(p.n)+' is '+(settled?ordinal(at+1)+' of '+list.length:'still settling')+' on the ladder">'+zones+'<div class="ssline"></div>'+dots+me+'</div></div>';
 }
 
 /* ---------- a page for every night ---------- */
@@ -3500,7 +3531,7 @@ function drawGraphs(){
   // stopped reading. A rival in the address opens it, since that is where it lives.
   $("#graphs2").innerHTML=
     '<div class="gwrap">'+
-    (function(){ const sc=seasonsCard(p); return sc?card("Season by season", sc, "gwide"):"" })()+
+    (function(){ const sc=seasonsCard(p); return sc?card("Season by season", sc, "gwide")+'</div><div class="gwrap">':"" })()+
     card("Record against everyone", opponents(p))+
     card("Compare with a rival", comparePanel(p,R), "", "cmpCard")+
     '</div><div class="gwrap">'+
@@ -4097,6 +4128,34 @@ function dropHint(force){
 }
 window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
+
+/* ---------- no holes ----------
+   Every grid of cards: when a row comes up short, its last card stretches
+   across the rest of it. Runs after anything renders and on resize. */
+const FILL=".gwrap,.rcs,.awg,.tafter,.soon,.upg";
+function fillGrids(){
+  document.querySelectorAll(FILL).forEach(function(g){
+    if(!g.offsetParent) return;
+    const kids=[...g.children].filter(c=>c.offsetParent!==null&&!c.classList.contains("hid"));
+    kids.forEach(c=>{ if(c.dataset.fill){ c.style.gridColumn=""; delete c.dataset.fill } });
+    const cs=getComputedStyle(g), cols=cs.gridTemplateColumns.split(" ").filter(Boolean).length;
+    if(cols<2||!kids.length) return;
+    const gap=parseFloat(cs.columnGap)||0, cw=(g.clientWidth-parseFloat(cs.paddingLeft||0)-parseFloat(cs.paddingRight||0)-gap*(cols-1))/cols;
+    const rows=[]; kids.forEach(c=>{ const top=Math.round(c.getBoundingClientRect().top), r=rows[rows.length-1];
+      if(r&&Math.abs(r.top-top)<4) r.items.push(c); else rows.push({top:top,items:[c]}) });
+    rows.forEach(function(r){
+      let used=0; r.items.forEach(c=>{ used+=Math.max(1,Math.round((c.getBoundingClientRect().width+gap)/(cw+gap))) });
+      const miss=cols-used, last=r.items[r.items.length-1];
+      if(miss>0){ const own=Math.max(1,Math.round((last.getBoundingClientRect().width+gap)/(cw+gap)));
+        last.style.gridColumn="span "+(own+miss); last.dataset.fill="1" } });
+  });
+}
+let fillQ=0;
+// a timer, not an animation frame: a hidden tab never runs those
+const fillSoon=()=>{ if(fillQ) return; fillQ=setTimeout(()=>{ fillQ=0; fillGrids() },30) };
+new MutationObserver(fillSoon).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:["class"]});
+addEventListener("resize",fillSoon);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fillSoon);
 
 /* ---------- wiring ---------- */
 function rowKeys(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-n]")){ e.preventDefault(); openProfile(e.target.dataset.n) } }
