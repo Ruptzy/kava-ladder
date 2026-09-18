@@ -832,6 +832,148 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .kpis{grid-template-columns:repeat(3,1fr)}
 }
 @media print{.top,.sorts,.showaway,.xbtn,.back,footer{display:none}body{background:#fff;color:#000}}
+/* ---- showing up: the clubs, the regular, settling in, what is next ---- */
+.mc{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:.35rem;height:18px;min-width:22px;padding:0 .3rem;
+border-radius:9px;border:1px solid currentColor;font-family:var(--fm);font-size:.7rem;font-weight:700;line-height:1;flex:none}
+.mc b{font-weight:700}
+.mc5{color:#9FA89B}.mc10{color:#5CC8B8}.mc25{color:#8FB0F5}.mc50{color:#C9A2F2}.mc100{color:#FF7B86}
+.mc.art{border:none;padding:0;width:22px;height:22px;min-width:0}
+.mc.art i{display:block;width:100%;height:100%;background-size:contain;background-repeat:no-repeat;background-position:center}
+.mcp{display:none!important}
+.avw{position:relative;display:inline-block;vertical-align:middle}
+/* on a phone the name has no room beside it, so the badge sits on the photo's corner */
+@media(max-width:640px){td.nmc2 .mc{display:none}td.nmc2 .av.s{margin-right:.35rem}
+  td.nmc2 .mc.mcp{display:inline-flex!important;position:absolute;left:17px;top:15px;margin:0;height:15px;min-width:18px;padding:0 .18rem;
+  background:var(--void);border-radius:8px}
+  td.nmc2 .mc.mcp.art{background:none;width:18px;height:18px;padding:0}}
+.pclub{display:inline-flex;align-items:center;gap:.3rem}.pclub .mc{margin-left:0}
+/* narrow on purpose: a wide cell here widens the whole rating column and squeezes every name */
+.setl{display:inline-flex;flex-direction:column;align-items:flex-end;gap:.18rem;max-width:4.7rem;vertical-align:middle}
+.setl b{font-family:var(--fm);font-size:.78rem;font-weight:700;color:var(--ink-2);letter-spacing:.04em}
+.sbar{display:block;width:100%;min-width:3.4rem;height:4px;border-radius:2px;background:var(--panel-3);overflow:hidden}
+.sbar i{display:block;height:100%;background:linear-gradient(90deg,#3E6B5E,var(--gain))}
+.setl em{font-style:normal;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);text-align:right;line-height:1.25}
+.kpis dd.kset{font-size:1.1rem}.kpis dd.kset .sbar{width:100%;margin-top:.45rem}
+#soon:empty,#ago:empty,#upnext:empty,#stand:empty{display:none}
+.soon{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:.45rem}
+.soon+.soon{margin-top:.45rem}
+.soon li{display:flex;align-items:center;background:var(--panel);border:1px solid var(--rule-2);border-radius:6px;padding:.5rem .7rem;cursor:pointer;min-width:0}
+.soon li:hover{border-color:var(--scarlet)}
+.soon .si{font-size:1rem;margin-right:.5rem;flex:none}
+.soon b{font-weight:600;margin-right:.55rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:8rem;flex:none}
+.soon li>span:last-child{font-size:.84rem;color:var(--ink-2);min-width:0}
+#ago{display:flex;flex-direction:column;gap:1px;margin:.5rem 0 0;border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;background:var(--rule)}
+.agol{display:flex;align-items:baseline;gap:.7rem;padding:.55rem 1rem;background:rgba(22,23,25,.94);color:var(--cream);text-decoration:none;font-size:.86rem}
+.agol b{font-family:var(--fm);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--scarlet);white-space:nowrap}
+.agol span{color:var(--ink-2);min-width:0}
+.agol i{margin-left:auto;font-style:normal;color:var(--ink-3)}
+.agol:hover span{color:var(--cream)}
+.upnext{display:flex;flex-wrap:wrap;gap:.4rem .5rem;align-items:center;margin:0 0 1rem;font-size:.84rem;color:var(--ink-2)}
+.upnext>b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500;margin-right:.2rem}
+.un{display:inline-flex;align-items:center;gap:.35rem;border:1px solid var(--rule-2);border-radius:999px;padding:.2rem .65rem;background:var(--panel)}
+.un i{font-style:normal}.un b{color:var(--gain)}
+.stand{margin:0 0 1rem;padding:.6rem .8rem .3rem;border:1px solid var(--rule-2);border-radius:6px;background:rgba(22,23,25,.94)}
+.stand p{display:flex;flex-wrap:wrap;gap:.2rem .7rem;align-items:baseline;margin:0 0 .2rem}
+.stand p b{font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.stand p span{font-size:.84rem;color:var(--cream)}
+#you .stand{margin:-.4rem 0 .8rem}
+/* a night of its own, and a season's awards */
+.nhead{display:flex;flex-wrap:wrap;align-items:flex-end;gap:1rem;margin:0 0 1rem}
+.nt{min-width:0;margin-right:auto}
+.nt small{font-family:var(--fm);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--scarlet)}
+.nt h1{font-family:var(--fd);font-variation-settings:"wdth" 116,"wght" 900;font-size:clamp(1.4rem,4.5vw,2.3rem);line-height:1.05;text-transform:uppercase;margin:.2rem 0 .35rem}
+.nt h1 span{color:var(--scarlet)}
+.nsum{margin:0;font-family:var(--fm);font-size:.78rem;color:var(--ink-2);letter-spacing:.04em}
+.nnav{display:flex;gap:.45rem;align-items:center;flex-wrap:wrap}
+.nnav a.howbtn{min-width:40px;min-height:34px;justify-content:center;font-size:1rem;padding:.2rem .7rem}
+.welcome{display:flex;flex-wrap:wrap;gap:.3rem .8rem;align-items:baseline;margin:0 0 1rem;padding:.8rem 1rem;border-radius:6px;
+border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,199,154,.14),rgba(22,23,25,.94) 70%)}
+.welcome b{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.05rem}
+.welcome>span{color:var(--cream);font-size:.92rem}
+.nlg{border:1px solid var(--rule-2);border-radius:6px;overflow:hidden;margin:0 0 1rem}
+.nchips{display:flex;flex-wrap:wrap;gap:.4rem;margin:0 0 1rem}
+.nchips>span{font-size:.84rem;color:var(--ink-2);border:1px solid var(--rule-2);border-radius:999px;padding:.25rem .7rem;background:var(--panel)}
+.nchips b{color:var(--cream)}
+.nlk{cursor:pointer;color:inherit;text-decoration:underline;text-decoration-color:var(--rule-2);text-underline-offset:3px}
+.nlk:hover{color:var(--scarlet);text-decoration-color:var(--scarlet)}
+.ntab{width:100%;border-collapse:collapse;font-size:.86rem}
+.ntab td{padding:.32rem .3rem;border-bottom:1px solid var(--rule)}
+.ntab td.n{font-family:var(--fm);font-size:.76rem;color:var(--ink-3);text-align:right;white-space:nowrap}
+.ntab td.res{font-family:var(--fm);font-weight:700;text-align:center;color:var(--ink-3);width:2.4rem}
+.ntab td.win{color:var(--cream);font-weight:600}
+.ncups{display:flex;flex-direction:column;gap:.8rem}
+.ncups>div{display:flex;flex-direction:column;gap:.3rem}
+.ncups b{font-family:var(--fm);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.ncups>div>span{display:flex;align-items:center;gap:.45rem;font-size:.9rem}
+.cupi{display:inline-block;width:20px;height:20px;background-size:contain;background-repeat:no-repeat;background-position:center;flex:none}
+.tafter{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.8rem}
+.tafter table{width:100%;border-collapse:collapse;font-size:.86rem}
+.tafter th.tb{text-align:left;font-family:var(--fm);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500;padding:.55rem .7rem}
+.tafter td{padding:.35rem .6rem;border-top:1px solid var(--rule)}
+.tafter td.n{font-family:var(--fm);font-size:.78rem;text-align:right;white-space:nowrap;color:var(--ink-2)}
+.tafter td.n:first-child{text-align:left;width:3.8rem;color:var(--ink-3)}
+.dim{color:var(--ink-3)}
+.bnote{margin:0 0 1rem;padding:.6rem .8rem;border-left:3px solid var(--loss);background:var(--panel);font-size:.86rem;color:var(--ink-2)}
+.nfoot{margin:1.4rem 0 0;display:flex;gap:.5rem;flex-wrap:wrap}
+.awg{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:.8rem}
+.awc{display:flex;gap:.9rem;align-items:center;padding:.9rem 1rem;border:1px solid var(--rule-2);border-radius:8px;
+background:linear-gradient(160deg,var(--panel-2),rgba(22,23,25,.94) 70%);min-width:0}
+.awi{flex:none;width:72px;height:72px;display:grid;place-items:center;font-size:2.3rem;line-height:1;border-radius:50%;
+background-color:rgba(12,13,14,.6);background-size:contain;background-repeat:no-repeat;background-position:center}
+.awi.art{background-color:transparent;border-radius:0}
+.awt{min-width:0}
+.awt h4{margin:0 0 .25rem;font-family:var(--fm);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+.awt p{margin:0;font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 800;font-size:1.15rem;line-height:1.25;overflow-wrap:anywhere}
+.awt small{display:block;margin-top:.3rem;font-family:var(--fm);font-size:.72rem;color:var(--ink-2);line-height:1.45}
+.awt small a{color:inherit}
+.awr{display:flex;gap:.5rem;align-items:baseline;font-size:1rem}
+.awr em{font-style:normal;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);min-width:6.2rem;font-weight:400}
+.aw-champion{border-color:rgba(72,118,232,.55)}
+.aw-regular{border-color:rgba(92,200,184,.5)}
+/* a career, one season a line */
+table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
+.seas th{text-align:left;font-family:var(--fm);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);font-weight:500;padding:.3rem .45rem;border-bottom:1px solid var(--rule-2)}
+.seas th.n{text-align:right}
+.seas td{padding:.45rem .45rem;border-bottom:1px solid var(--rule);white-space:nowrap}
+.seas .n{text-align:right;font-family:var(--fm);font-size:.8rem}
+.seas td small{color:var(--ink-3);font-size:.7rem}
+.seas td.sn{font-family:var(--fd);font-variation-settings:"wdth" 110,"wght" 900;font-size:1.05rem;width:2.6rem}
+.seas tr[data-sc]{cursor:pointer}.seas tr[data-sc]:hover td{background:var(--panel-2)}
+.seas tr.on td{background:var(--scarlet-wash)}.seas tr.on td.sn{box-shadow:inset 3px 0 0 var(--scarlet)}
+.seas td.mk i{font-style:normal;margin-left:.15rem}
+.rg td.d a{color:inherit;text-decoration:none;border-bottom:1px dotted var(--rule-2)}
+.rg td.d a:hover{color:var(--scarlet)}
+/* the regular's tile, beside the section title */
+.ptro .pic.emo{display:grid;place-items:center;font-size:2.7rem;line-height:1;background:none}
+.ptro .it.reg:not(.z)::before{background:radial-gradient(closest-side,rgba(92,200,184,.24),transparent 72%)}
+.ptro .it.reg .lb{color:#5CC8B8}
+.ptro .it:not(.z) .pic.tr{filter:drop-shadow(0 8px 16px rgba(92,200,184,.45))}
+.rc.reg{border-color:rgba(92,200,184,.45)}
+.rc h4 .rcp.rg{color:#5CC8B8;border-color:rgba(92,200,184,.5);background:rgba(92,200,184,.08)}
+.rc h4 .rcp.rg .rgi{display:inline-block;width:16px;height:16px;background-size:contain;background-repeat:no-repeat;background-position:center}
+.rc.reg .rcr li.lead{box-shadow:inset 2px 0 0 #5CC8B8}.rc.reg .rcr li.lead .rt{color:#5CC8B8}
+.rc .rcn.rgn{margin-top:.45rem;font-size:.8rem}
+.sh .shl{margin-left:auto}
+.near{margin:0 0 .9rem}
+.near>b{display:block;font-family:var(--fm);font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gain);margin-bottom:.45rem}
+.near .ach{opacity:1;border-color:rgba(59,199,154,.35)}
+.near .ach .pgb i{background:var(--gain)}
+.odds{text-align:center;font-size:.86rem;color:var(--ink-2);margin:-.4rem 0 1rem}
+.odds b{color:var(--cream)}
+.odds small{display:block;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin-top:.2rem}
+.rbox{max-width:460px;padding:1rem}
+.rbox canvas{display:block;width:100%;height:auto;border-radius:6px;margin-top:1.8rem}
+.ract{display:flex;gap:.6rem;justify-content:center;margin-top:.9rem}
+.recapbtn{margin-left:auto}
+@media(max-width:640px){
+  .ptro .pic.emo{font-size:1.7rem}
+  .soon{grid-template-columns:1fr}
+  .nnav{width:100%}.nnav .seasel{flex:1 1 auto;min-width:0}
+  .seas td,.seas th{padding:.4rem .3rem}
+  .awc{padding:.75rem .8rem}.awi{width:56px;height:56px;font-size:1.8rem}
+  .recapbtn{margin-left:0}
+}
+@media(min-width:901px){.ptro{max-width:470px}}
 </style></head><body>
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <header class="top"><div class="w">
@@ -853,6 +995,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <div class="w">
 <main id="board">
 <section class="ln" id="ln"></section>
+<div id="ago"></div>
 <div class="pod" id="pod"></div>
 <div id="you"></div>
 <div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p id="ladSub">&nbsp;</p></div>
@@ -870,6 +1013,7 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
 <button class="showaway" id="awayBtn"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
 <div id="race"></div>
+<div id="soon"></div>
 <div class="sh" id="xtHead"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
 <button class="xbtn" id="xtBtn">Show the crosstable</button>
@@ -906,6 +1050,7 @@ play chess, and nobody is turned away for being new or rusty.</p>
 <p class="l">Every game the club has a record of. These records begin in <span class="oldkava" role="button" tabindex="0">September 2022</span> &mdash;
 the club is older than its paperwork.</p>
 <dl class="kpis" id="clubKpis"></dl>
+<p class="nfoot" id="nightsLink"></p>
 <div class="gwrap" id="clubCharts"></div>
 <button class="pmore" id="arcMore" aria-expanded="false">Show Seasons 1&ndash;7 and the all-time table</button>
 <div id="arcRest" class="hid">
@@ -924,15 +1069,19 @@ the club is older than its paperwork.</p>
 <main id="pv" class="hid">
 <button class="back" id="bk">&larr; Back to the ladder</button>
 <div class="phead2"><div class="ph2row"><div id="pav"></div><div class="pcol"><h1 id="pname"></h1><div class="psub" id="psub"></div><div class="pnick" id="pnick"></div></div><div class="ptro" id="ptro"></div></div><div class="pact" id="pact"></div></div>
-<div class="cmpsel scope hid" id="scope"><label for="scopeSel">Showing</label><select id="scopeSel"></select><span class="sn" id="scopeNote"></span></div>
+<div class="cmpsel scope hid" id="scope"><label for="scopeSel">Showing</label><select id="scopeSel"></select><span class="sn" id="scopeNote"></span><button class="howbtn recapbtn hid" id="recapBtn">Season recap</button></div>
 <h2 class="sr" id="pvH2">Player details</h2>
 <dl class="kpis" id="kpis"></dl>
+<div id="upnext"></div>
+<div id="stand"></div>
 <div class="gwrap" id="graphs"></div>
 <div id="graphs2"></div>
 <h3 class="factsH" id="factsH">Career highlights</h3>
 <div class="facts" id="facts"></div>
 <div id="graphs3"></div>
 </main>
+<main id="nv" class="hid"></main>
+<main id="aw" class="hid"></main>
 <footer id="foot"></footer>
 </div>
 <div class="modal" id="how" role="dialog" aria-modal="true" aria-labelledby="howT"><div class="mbox">
@@ -947,6 +1096,11 @@ the club is older than its paperwork.</p>
 <li>No games for 90 days puts you on the away list. Play once and you are back.</li>
 <li>Cups: top three in your bracket on a night. Three games needed.</li>
 </ul></div></div>
+<div class="modal" id="recapM" role="dialog" aria-modal="true" aria-label="Season recap"><div class="mbox rbox">
+<button class="x" id="recapX" aria-label="Close">&times;</button>
+<canvas id="recapC" width="1080" height="1350"></canvas>
+<div class="ract"><button class="howbtn red" id="recapShare">Share</button><button class="howbtn" id="recapSave">Save image</button></div>
+</div></div>
 <script>
 const D=${JSON.stringify(D)};
 const $=s=>document.querySelector(s), E=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -1150,6 +1304,8 @@ function route(){
   const parts=location.hash.replace(/^#[/]?/,"").split("/").map(s=>{ try{return decodeURIComponent(s)}catch(e){return s} }).filter(Boolean);
   if(parts[0]==="p"&&byN[parts[1]]&&!byN[parts[1]].gh){ showProfile(parts[1], parts[2]==="vs"&&byN[parts[3]]&&!byN[parts[3]].gh?parts[3]:null); return }
   if(parts[0]==="history"){ showHistory(); return }
+  if(parts[0]==="night"&&parts[1]){ showNight(parts[1]); return }
+  if(parts[0]==="awards"){ showAwards(parts[1]?+parts[1]:null); return }
   let i=0, nd="all", ns="r";
   while(i<parts.length){ if(parts[i]==="b"&&(parts[i+1]==="all"||D.divisions.indexOf(parts[i+1])>=0)){ nd=parts[i+1]; i+=2 }
     else if(parts[i]==="sort"&&SORTS.some(s=>s.k===parts[i+1])){ ns=parts[i+1]; i+=2 } else i++; }
@@ -1180,7 +1336,7 @@ window.addEventListener("hashchange",route);
       :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
       :SEASON?'<b>Night '+D.dates.length+'</b><small>of about '+seasonExpected()+'</small>':'';
     if(note) note.innerHTML=arch
-      ?'This is how '+seasonName(arch)+' finished. <a href="./">Back to the current season &rarr;</a>'
+      ?'This is how '+seasonName(arch)+' finished. <a href="#/awards">Season awards</a> &middot; <a href="./">Back to the current season &rarr;</a>'
       :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
             '. Ratings carry over from Season '+(SEASON.no-1)+', so this is where everyone starts.'
       :over?'Season '+(SEASON.no+1)+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
@@ -1344,8 +1500,8 @@ function row(p,i,kind,ctx){
   ctx=ctx||{};
   return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+(p.n===meName()?" me":"")+'">'+
    '<td class="k">'+(kind==="r"?(i+1)+(ctx.prev?moveMark(p,i,ctx.prev):""):"·")+'</td>'+
-   '<td class="nmc2">'+av(p.n,"s")+'<span class="nmc">'+E(p.n)+'</span><span class="chev">›</span></td>'+
-   '<td class="r"><span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span>'+(ctx.gap>0?'<span class="gap">'+ctx.gap+' behind</span>':'')+'</td>'+
+   '<td class="nmc2"><span class="avw">'+av(p.n,"s")+clubBadge(p.n).replace('class="mc','class="mcp mc')+'</span><span class="nmc">'+E(p.n)+'</span>'+clubBadge(p.n)+'<span class="chev">›</span></td>'+
+   '<td class="r">'+(kind==="p"?settleCell(p):'<span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span>')+(ctx.gap>0?'<span class="gap">'+ctx.gap+' behind</span>':'')+'</td>'+
    '<td class="r">'+metricCell(p)+form5(p)+'</td>'+
    '<td class="hm">'+spark(p)+'</td>'+
    '<td class="wdl hm">'+p.rec[0]+'<i>–</i>'+p.rec[1]+'<i>–</i>'+p.rec[2]+'</td></tr>';
@@ -1372,7 +1528,7 @@ function draw(){
   $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
   const prev=prevRanks(div), byR=SORT().k==="r";
   $("#tb").innerHTML=rk.map((p,i)=>row(p,i,"r",{prev, gap:byR&&i>0?rk[i-1].r-p.r:0})).join("")
-   +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>ranked once the ± is '+RS+' or less</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
+   +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>new numbers are a guess for the first few nights</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
   // on Whole Club the top three are always the top bracket's, so that view shows
   // each bracket's leader instead - the three people the prizes are between
@@ -1385,7 +1541,7 @@ function draw(){
    '<span class="rt">'+(x.d?'<i class="pcb">'+E(shortDiv(x.d))+'</i>':'')+p.r+'<sub>±'+p.rd+'</sub></span></span></button>' }).join("");
   fitPodium();
   drawLastNight();
-  drawYou(); drawRace();
+  drawYou(); drawRace(); drawSoon(); drawYearAgo();
   if(xtShown) cross();
 }
 
@@ -1419,7 +1575,7 @@ function drawYou(){
   const p=byN[n], list=rankedIn(p.d), i=list.findIndex(x=>x.n===n);
   const prev=prevRanks(p.d), mv=(i>=0&&prev)?moveMark(p,i,prev).replace('class="mv nw"','class="mv nw" hidden'):"";
   const where=i>=0?ordinal(i+1)+" in "+longDiv(p.d):p.games>0?"still settling in":"no games yet this season";
-  box.innerHTML='<button id="youGo"><b>You</b>'+E(n)+' &middot; '+where+' &middot; '+p.r+mv+'<span class="chev">&#8250;</span></button>';
+  box.innerHTML='<button id="youGo"><b>You</b>'+E(n)+' &middot; '+where+' &middot; '+p.r+mv+'<span class="chev">&#8250;</span></button>'+standStrip(p,true);
   $("#youGo").onclick=()=>{ if(!scrollToMe()) openProfile(n) };
 }
 function scrollToMe(){
@@ -1462,13 +1618,14 @@ function drawRace(){
   const status=more>0
     ? played+' of them played, so <b>'+more+' more night'+(more===1?'':'s')+'</b> and you are in the running.'
     : left>0?'<b>'+left+' night'+(left===1?'':'s')+' left.</b>':'<b>Last night of the season.</b>';
-  box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2></div>'+
+  box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2>'+(ERAS?'<a class="howbtn shl" href="#/awards">Season awards &rsaquo;</a>':'')+'</div>'+
     '<p class="l">\uD83D\uDCB5 Top of your bracket wins a <b>Kava Social gift card</b>. Turn up to <b>'+need+' of the '+exp+' nights</b> to qualify. '+status+'</p>'+
-    '<div class="rcs">'+cards+'</div>';
+    '<div class="rcs">'+cards+regCard()+'</div>';
 }
 function showHistory(){
   CUR=null; RIVAL=null; document.title="Club history \u00b7 "+CLUB;
   $("#board").classList.add("hid"); $("#pv").classList.add("hid"); $("#hv").classList.remove("hid"); document.body.classList.add("sub");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
   scrollTo({top:0,behavior:"instant"});
 }
 function fitPodium(){
@@ -1484,6 +1641,7 @@ addEventListener("resize",()=>{ document.querySelectorAll("#pod .nm").forEach(e=
 function showBoard(){
   if(CUR){ CUR=null; RIVAL=null; document.title=PAGE_TITLE; }
   $("#hv").classList.add("hid"); $("#pv").classList.add("hid"); $("#board").classList.remove("hid"); document.body.classList.remove("sub");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
   draw();
   if(boardScroll){ scrollTo({top:boardScroll,behavior:"instant"}); boardScroll=0 }
 }
@@ -1506,7 +1664,7 @@ function drawLastNight(){
   const results=games.map(g=>{ const w=NAMES[g[1]], b=NAMES[g[2]], r=g[3];
     return '<tr><td class="'+(r==="w"?"win":"")+'">'+E(w)+'</td><td class="res">'+(r==="w"?"1–0":r==="b"?"0–1":"½–½")+'</td><td class="'+(r==="b"?"win":"")+'">'+E(b)+'</td></tr>' }).join("");
   const standings=N.table.map(r=>'<tr data-n="'+E(r[0])+'"><td class="n">'+N.place[r[0]]+'</td><td>'+E(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
-  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn" id="lnBtn" aria-expanded="false">Full results</button></div>'+
+  $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn" id="lnBtn" aria-expanded="false">Full results</button>'+(ERAS?'<a class="howbtn" href="#/night/'+DATES[ni]+'">Night page &rsaquo;</a>':'')+'</div>'+
     '<dl class="lg">'+tiles.join("")+'</dl>'+
     '<div class="recap"><div><h4>Standings on the night</h4><table>'+standings+'</table></div><div><h4>Results &middot; White first</h4><table>'+results+'</table></div></div>';
   $("#lnBtn").onclick=function(){ const o=$("#ln").classList.toggle("open"); this.setAttribute("aria-expanded",o); this.textContent=o?"Hide results":"Full results" };
@@ -2298,6 +2456,8 @@ function achBlock(p){
   return '<div class="achhead"><b>'+got+' of '+rows.length+'</b><span class="bar"><i style="width:'+pct+'%"></i></span>'+
     '<small>earned</small></div>'+
     achFeed(p)+
+    (function(){ const near=order.filter(r=>!r.got&&r.pr&&r.pr[1]>0&&r.pr[0]<r.pr[1]&&r.pr[0]/r.pr[1]>=.34).slice(0,3);
+      return near.length?'<div class="near"><b>Nearly there</b><div class="achs">'+near.map(tile).join("")+'</div></div>':"" })()+
     '<div class="achs" id="achWrap">'+huntTile()+order.slice(0,8).map(tile).join("")+'</div>'+
     '<div class="achs hid" id="achRest">'+order.slice(8).map(tile).join("")+'</div>'+
     '<div class="achinfo hid" id="achInfo"></div>'+
@@ -2515,7 +2675,7 @@ function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var nd={}, DT=dsOf(p).dates, cur=dsOf(p)===MAIN; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+(cur?fshort:fmid)(DT[l.ni])+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+(l.nr?'':'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span>')+'</td>'+
+    return '<tr><td class="d">'+(ERAS?'<a href="#/night/'+DT[l.ni]+'">'+(cur?fshort:fmid)(DT[l.ni])+'</a>':(cur?fshort:fmid)(DT[l.ni]))+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+(l.nr?'':'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span>')+'</td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n&&!n.nr?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had'+(dsOf(p).rated===false?'.':'; the last column is the rating change for that whole night.')+'</p>';
 }
@@ -2597,7 +2757,7 @@ function trophyHead(p){
     :"Has never won a section over a whole season";
   const crown='<div class="it crown'+(cr.length?'':' z')+'" title="'+esc(ctip)+'">'+
     '<span class="pic ts"></span><span class="n">\u00d7'+cr.length+'</span>'+
-    '<span class="lb">Section</span></div><div class="tsep" aria-hidden="true"></div>';
+    '<span class="lb">Section</span></div>'+regTile(p)+'<div class="tsep" aria-hidden="true"></div>';
   const cups='<div class="tset">'+crown+L.map(function(lab,i){
     return '<div class="it'+(counts[i]?'':' z')+'"><span class="pic t'+(i+1)+'"></span>'+
       '<span class="n">\u00d7'+counts[i]+'</span>'+
@@ -2657,7 +2817,7 @@ function comparePanel(p,R){
   return sel+'<div class="vsbar"><div class="side">'+av(p.n,"m")+'<b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
    '<div class="mid"><em>Head to head</em><div class="sc2">'+(a?('<span style="color:'+(net>0?"var(--gain)":"var(--ink-2)")+'">'+a[0]+'</span><span style="color:var(--ink-3)">–</span><span style="color:'+(net<0?"var(--gain)":"var(--ink-2)")+'">'+a[2]+'</span>'):'<span style="color:var(--ink-3);font-size:.9rem">never met</span>')+'</div></div>'+
    '<div class="side">'+av(R.n,"m")+'<b>'+esc(R.n)+'</b><span>'+(R.r||"")+'</span></div></div>'+
-   (a?'<p style="text-align:center;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fmid(DT[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+body;
+   (a?'<p style="text-align:center;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fmid(DT[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+oddsLine(p,R)+body;
 }
 
 /* ---------- eras: the same derivation, over any run of nights ----------
@@ -2819,7 +2979,9 @@ const achP=p=>scoped(p,ERAS?"all":"cur");   // achievements read the whole caree
 function kpiHTML(p){
   const S=dsOf(p), cur=S===MAIN;
   let rating;
-  if(S.rated===false) rating='<div><dt>Old rating</dt><dd>'+(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]:'&mdash;')+'<small>old system</small></dd></div>';
+  if(cur&&p.rd>RS){ const s=settleOf(p);
+    rating='<div><dt>Rating</dt><dd class="kset">Settling<span class="sbar"><i style="width:'+s.pct+'%"></i></span><small>'+s.txt+' \u00b7 now '+p.r+'</small></dd></div>' }
+  else if(S.rated===false) rating='<div><dt>Old rating</dt><dd>'+(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]:'&mdash;')+'<small>old system</small></dd></div>';
   else if(cur||S.key==="all") rating='<div><dt>Rating</dt><dd>'+p.r+'<small>probably '+(p.r-Math.round(1.96*p.rd))+'&ndash;'+(p.r+Math.round(1.96*p.rd))+'</small></dd></div>';
   else rating='<div><dt>Rating</dt><dd>'+(p.hist.length?p.r+'<small>at the end</small>':(S.oldR&&S.oldR[p.n]!=null?S.oldR[p.n]+'<small>old system</small>':'&mdash;<small>not rated</small>'))+'</dd></div>';
   return rating+
@@ -2836,17 +2998,26 @@ function scopeBar(p){
   $("#scopeSel").innerHTML=show.map(d=>{ const sp=scoped(p,d.k);
     return '<option value="'+d.k+'"'+(d.k===SCOPE?' selected':'')+'>'+d.label+(d.sub?' \u00b7 '+d.sub:'')+'</option>' }).join("");
   const sp=scoped(p,SCOPE), S=dsOf(sp);
+  { const rb=$("#recapBtn"), no=/^s[0-9]+$/.test(SCOPE)?+SCOPE.slice(1):null;
+    rb.classList.toggle("hid",!(no&&sp.games>0));
+    rb.textContent=no&&SEASON&&no===SEASON.no&&!D.arch?"Season so far":"Season recap";
+    rb.onclick=function(){ if(no) openRecap(p.n,no) }; }
   $("#scopeNote").textContent=sp.games?(sp.games+" games \u00b7 "+sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
   bar.classList.remove("hid");
   $("#scopeSel").onchange=function(){
     if(this.value==="live"){ location.href="./#/p/"+encodeURIComponent(CUR.n)+(RIVAL?"/vs/"+encodeURIComponent(RIVAL.n):""); return }
     SCOPE=this.value; renderScope(CUR); scopeBar(CUR) };
 }
+/* a row of the season strip picks that season, like the dropdown does */
+function pickScope(k){ if(!scopeDefs().some(d=>d.k===k)) return; SCOPE=k; scopeBar(CUR); renderScope(CUR);
+  const b=$("#scope"); if(b) scrollTo({top:b.getBoundingClientRect().top+scrollY-8,behavior:"instant"}) }
 /* everything on the profile below the name that the era picker redraws */
 function renderScope(p){
   const sp=scoped(p,SCOPE), S=dsOf(sp), cur=S===MAIN;
   $("#ptro").outerHTML=trophyHead(sp);
-  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+sp.games+' games'+(cur?'':' \u00b7 '+esc(S.label))+'</span>'+(p.rd>RS?'<span class="pill set">still settling \u00b7 \u00b1'+p.rd+'</span>':'')+(away(p)?'<span class="pill">away \u00b7 '+awayWhy(p)+'</span>':'');
+  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+sp.games+' games'+(cur?'':' \u00b7 '+esc(S.label))+'</span>'+(clubBadge(p.n)?'<span class="pclub">'+clubBadge(p.n)+'club</span>':'')+(p.rd>RS?'<span class="pill set">settling \u00b7 '+settleOf(p).txt+'</span>':'')+(away(p)?'<span class="pill">away \u00b7 '+awayWhy(p)+'</span>':'');
+  $("#upnext").innerHTML=(cur||S.key==="all")?upNextLine(p):"";
+  $("#stand").innerHTML=cur?standStrip(p):"";
   if(!cur&&!sp.games){
     $("#kpis").innerHTML=""; $("#facts").innerHTML=""; $("#factsH").textContent="";
     $("#graphs").innerHTML='<p class="cap" style="margin:0 0 1rem">'+esc(p.n)+' has no games in '+S.lower+'.</p>'; $("#graphs2").innerHTML="";
@@ -2857,6 +3028,486 @@ function renderScope(p){
   $("#facts").innerHTML=facts(sp).map(function(f){return '<div class="fact"><div class="ic">'+f[0]+'</div><div class="ft"><b>'+f[1]+'</b><span>'+f[2]+'</span></div></div>'}).join("");
   drawGraphs();
 }
+
+
+/* ---------- showing up: the clubs, the regular, settling in, what is next ----------
+   The best stats sites reward turning up as well as winning. Everything here
+   is worked out from the same games as the rest of the page. Art Harold has
+   drawn sits in trophies/; anything not drawn yet falls back to an emoji. */
+const TART=D.trophyart||[];
+const hasArt=k=>TART.indexOf(k)>=0;
+const CLUBS=[5,10,25,50,100];
+const GT=[25,50,100,150,200,250,300,400,500,750,1000];
+const WT=[10,25,50,75,100,150,200,250,300];
+const clubToday=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+const oldN=()=>(ERAS&&ERAS.old&&ERAS.old.dates)?ERAS.old.dates.length:0;
+const careerS=()=>ERAS?scopeOf("all"):null;
+function careerOf(n){ const S=careerS(); return S?(S.players[n]||null):(byN[n]||null) }
+function allSeasonOf(i){ const O=oldN(); return i<O?((ERAS.old.season||[])[i]):ERAS.season[i-O] }
+/* a member of the club: not a one-off visitor, not somebody who asked to be unlisted */
+const isMember=n=>!isVis(n)&&(byN[n]?!byN[n].gh:wasMember(n));
+const canOpen=n=>!!(byN[n]&&!byN[n].gh);
+const nameLink=n=>canOpen(n)?'<span class="nlk" data-n="'+E(n)+'" tabindex="0" role="button">'+E(n)+'</span>':E(anon(n));
+function clubOf(k){ let t=0; CLUBS.forEach(x=>{ if(k>=x) t=x }); return t }
+let NIGHTS_OF=null;
+function nightsOf(n){
+  if(!NIGHTS_OF){ NIGHTS_OF={}; const S=careerS();
+    if(S) Object.keys(S.players).forEach(k=>{ NIGHTS_OF[k]=Object.keys(S.players[k].att).filter(x=>!BATCH.has(S.dates[+x])).length }) }
+  if(NIGHTS_OF[n]!=null) return NIGHTS_OF[n];
+  const q=careerOf(n); return q?q.cons:0 }
+/* strongest bracket first, today's or the old era's, read from the name */
+function divOrder(d){ const i=DIVS.indexOf(d); if(i>=0) return i;
+  const num=parseInt(String(d).replace(/[^0-9]/g,""),10)||0; return /^over/i.test(String(d))?-1e5-num:-num }
+function clubBadge(n){
+  if(isVis(n)) return "";
+  const k=nightsOf(n), t=clubOf(k); if(!t) return "";
+  const art=hasArt("nights-"+t);
+  return '<span class="mc mc'+t+(art?' art':'')+'" title="'+t+' club: '+k+' club nights" aria-label="'+t+' club">'+
+    (art?'<i style="background-image:url(trophies/nights-'+t+'.png)"></i>':'<b>'+t+'</b>')+'</span>';
+}
+const artOr=(k,emo,cls)=>hasArt(k)?'<span class="'+cls+' art" style="background-image:url(trophies/'+k+'.png)"></span>':'<span class="'+cls+' emo">'+emo+'</span>';
+
+/* ---------- regular of the season: most nights, any rating ---------- */
+let REGS=null;
+function regulars(){
+  if(REGS) return REGS; REGS={}; if(!ERAS) return REGS;
+  const add=(no,key,n,g)=>{ if(no==null||isVis(n)) return;
+    const s=REGS[no]=REGS[no]||{nights:{},games:{},all:{}};
+    s.games[n]=(s.games[n]||0)+g;
+    const d=key.charAt?(key.charAt(0)==="o"?ERAS.old.dates[+key.slice(1)]:null):ERAS.dates[key];
+    if(d&&BATCH.has(d)) return;   // a backlog date: games, not a night anyone came to
+    s.all[key]=1; (s.nights[n]=s.nights[n]||{})[key]=1 };
+  const OS=(ERAS.old&&ERAS.old.season)||[];
+  ((ERAS.old&&ERAS.old.games)||[]).forEach(g=>{ const no=OS[g[0]]; add(no,"o"+g[0],NAMES[g[1]],1); add(no,"o"+g[0],NAMES[g[2]],1) });
+  ERAS.games.forEach(g=>{ const no=ERAS.season[g[0]]; add(no,g[0],NAMES[g[1]],1); add(no,g[0],NAMES[g[2]],1) });
+  ERAS.byes.forEach(b=>{ add(ERAS.season[b[0]],b[0],NAMES[b[1]],0) });
+  Object.keys(REGS).forEach(no=>{ const s=REGS[no];
+    s.total=Object.keys(s.all).length;
+    s.rows=Object.keys(s.nights).filter(isMember).map(n=>({n:n,k:Object.keys(s.nights[n]).length,g:s.games[n]||0}))
+      .sort((a,b)=>b.k-a.k||b.g-a.g||a.n.localeCompare(b.n));
+    const t=s.rows[0]; s.win=t?s.rows.filter(r=>r.k===t.k&&r.g===t.g).map(r=>r.n):[] });
+  return REGS;
+}
+/* a season counts once it is over: on a frozen page, that season and every one before it */
+const seasonDone=no=>D.arch?no<=D.arch:(SEASON?no<SEASON.no:true);
+function regSeasons(n){ const R=regulars(); return Object.keys(R).map(Number).filter(no=>seasonDone(no)&&R[no].win.indexOf(n)>=0).sort((a,b)=>a-b) }
+
+/* ---------- settling in ----------
+   A new rating is a guess until it has a few nights behind it. The number
+   of nights that takes is read from everyone who has already settled. */
+let SETTLE_N=null;
+function settleNights(){
+  if(SETTLE_N) return SETTLE_N; const c=[];
+  if(ERAS){ const S=careerS(), O=oldN();
+    Object.keys(ERAS.hist).forEach(n=>{ const p=S.players[n]; if(!p) return;
+      const played={}; Object.keys(p.att).forEach(x=>{ if(+x>=O) played[+x-O]=1 });
+      let k=0, got=0; ERAS.hist[n].forEach(x=>{ if(got||!played[x[0]]) return; k++; if(x[2]<=RS) got=k });
+      if(got) c.push(got) }) }
+  c.sort((a,b)=>a-b); SETTLE_N=c.length?c[Math.floor(c.length/2)]:3; return SETTLE_N;
+}
+function settleOf(p){
+  const pct=Math.max(5,Math.min(95,Math.round((350-p.rd)/(350-RS)*100)));
+  let k=p.cons; if(ERAS){ const q=careerOf(p.n), O=oldN(); if(q) k=Object.keys(q.att).filter(x=>+x>=O).length }
+  const left=Math.max(1,settleNights()-k);
+  return {pct:pct,left:left,txt:left===1?"about 1 more night":"about "+left+" more nights"};
+}
+function settleCell(p){ const s=settleOf(p);
+  return '<span class="setl" title="Rating so far: '+p.r+' ±'+p.rd+'"><b>Settling</b><span class="sbar"><i style="width:'+s.pct+'%"></i></span><em>'+s.txt+'</em></span>' }
+
+/* ---------- win chances ----------
+   The expected score of one game, from both ratings and how sure the system
+   is of each - Glickman's formula. A draw counts as half. */
+function winChance(r1,rd1,r2,rd2){
+  const q=Math.log(10)/400, rd=Math.sqrt(rd1*rd1+rd2*rd2), g=1/Math.sqrt(1+3*q*q*rd*rd/(Math.PI*Math.PI));
+  return 1/(1+Math.pow(10,-g*(r1-r2)/400));
+}
+/* what one win against somebody of your own rating is worth, about */
+function winWorth(p){
+  const q=Math.log(10)/400, rd=Math.max(p.rd,30), ro=60, g=1/Math.sqrt(1+3*q*q*ro*ro/(Math.PI*Math.PI));
+  const d2=1/(q*q*g*g*.25); return Math.max(1,Math.round(q/(1/(rd*rd)+1/d2)*g*.5));
+}
+
+/* ---------- what is coming up: the next milestone within reach ---------- */
+function nextOf(list,v){ for(let i=0;i<list.length;i++) if(list[i]>v) return list[i]; return null }
+function careerCups(){ const S=careerS(), out={};
+  if(!S) return out;
+  S.list.forEach(q=>{ if(!isMember(q.n)) return; const t=q.trophies[0]+q.trophies[1]+q.trophies[2]; if(t) out[q.n]=t });
+  return out }
+function upNextFor(n,loose){
+  const q=careerOf(n); if(!q) return [];
+  const out=[], k=nightsOf(n), g=q.games, w=q.rec[0];
+  const c=nextOf(CLUBS,k); if(c&&(loose||c-k<=2)) out.push({n:n,s:(c-k)/c,ic:"🎟️",t:(c-k)+" night"+(c-k===1?"":"s")+" to the "+c+" club"});
+  const gg=nextOf(GT,g); if(gg&&(loose||gg-g<=5)) out.push({n:n,s:(gg-g)/gg,ic:"♟️",t:(gg-g)+" game"+(gg-g===1?"":"s")+" to "+gg});
+  const ww=nextOf(WT,w); if(ww&&(loose||ww-w<=3)) out.push({n:n,s:(ww-w)/ww,ic:"⭐",t:(ww-w)+" win"+(ww-w===1?"":"s")+" to "+ww});
+  const cc=careerCups(), mine=cc[n]||0;
+  let above=null; Object.keys(cc).forEach(o=>{ if(o!==n&&cc[o]>mine&&(!above||cc[o]<cc[above])) above=o });
+  if(above&&(loose||cc[above]-mine<=2)) out.push({n:n,s:(cc[above]-mine)/Math.max(4,cc[above]),ic:"🏆",
+    t:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to catch "+E(above)+" ("+cc[above]+")"});
+  return out;
+}
+function drawSoon(){
+  const box=$("#soon"); if(!box) return;
+  if(D.arch||!ERAS){ box.innerHTML=""; return }
+  const who=P.filter(p=>!p.gh&&!away(p)&&(p.games>0||(PRESEASON&&p.ls>0))&&(div==="all"||p.d===div));
+  let items=[]; who.forEach(p=>{ items=items.concat(upNextFor(p.n,false)) });
+  items.sort((a,b)=>a.s-b.s||a.n.localeCompare(b.n));
+  if(!items.length){ box.innerHTML=""; return }
+  const li=x=>'<li data-n="'+E(x.n)+'" tabindex="0" role="button"><span class="si">'+x.ic+'</span>'+av(x.n,"s")+'<b>'+E(x.n)+'</b><span>'+x.t+'</span></li>';
+  box.innerHTML='<div class="sh"><h2>Coming <span>up</span></h2></div>'+
+    '<p class="l">Close to something. One good night gets them there.</p>'+
+    '<ul class="soon">'+items.slice(0,6).map(li).join("")+'</ul>'+
+    (items.length>6?'<ul class="soon hid" id="soonRest">'+items.slice(6).map(li).join("")+'</ul><button class="achmore" id="soonMore">Show all '+items.length+'</button>':'');
+  const m=$("#soonMore"); if(m) m.onclick=function(){ const o=$("#soonRest").classList.toggle("hid")===false; this.textContent=o?"Show fewer":"Show all "+items.length };
+}
+function upNextLine(p){
+  if(D.arch||!ERAS||p.gh) return "";
+  const it=upNextFor(p.n,true).sort((a,b)=>a.s-b.s).slice(0,3);
+  const worth=p.rd<=RS?'<span class="un"><i>🎯</i>A win against an equal: about <b>+'+winWorth(p)+'</b></span>':'';
+  if(!it.length&&!worth) return "";
+  return '<div class="upnext"><b>Up next</b>'+it.map(x=>'<span class="un"><i>'+x.ic+'</i>'+x.t+'</span>').join("")+worth+'</div>';
+}
+
+/* ---------- where you stand: every settled player on one line ---------- */
+const BCOL=["#FE273A","#8FB0F5","#B3ABA0","#5CC8B8"];
+function standStrip(p,compact){
+  if(D.arch||!p) return "";
+  const list=P.filter(x=>x.games>0&&!x.gh&&!away(x)&&x.rd<=RS).sort((a,b)=>a.r-b.r);
+  if(list.length<4) return "";
+  const W=640, H=compact?58:70, L=14, R=14, mn=list[0].r, mx=list[list.length-1].r, span=Math.max(1,mx-mn);
+  const X=r=>L+(Math.max(mn,Math.min(mx,r))-mn)/span*(W-L-R);
+  const lastX=[-99,-99,-99,-99], ys=[26,17,35,8];
+  let dots="";
+  list.forEach(x=>{ const cx=X(x.r); let row=0; while(row<3&&cx-lastX[row]<7) row++; lastX[row]=cx;
+    const me=x.n===p.n, col=BCOL[Math.max(0,divRank(x.d))%BCOL.length];
+    dots+='<circle cx="'+cx.toFixed(1)+'" cy="'+ys[row]+'" r="'+(me?6:3.4)+'" fill="'+col+'"'+(me?' stroke="#FFF6E8" stroke-width="2"':' fill-opacity=".8"')+'><title>'+E(x.n)+' '+x.r+'</title></circle>' });
+  let lines="", labs="";
+  const cuts=DIVFLOOR.filter(f=>isFinite(f)&&f>mn&&f<mx);
+  cuts.forEach(f=>{ lines+='<line x1="'+X(f).toFixed(1)+'" x2="'+X(f).toFixed(1)+'" y1="2" y2="'+(H-18)+'" stroke="#343A40" stroke-dasharray="3 3"/>' });
+  D.divisions.forEach((d,k)=>{
+    const lo=Math.max(mn,isFinite(DIVFLOOR[k])?DIVFLOOR[k]:mn), hi=Math.min(mx,k===0?mx:DIVFLOOR[k-1]);
+    if(hi<=lo) return;
+    const n=list.filter(x=>x.d===d).length, cx=(X(lo)+X(hi))/2;
+    labs+='<text x="'+cx.toFixed(1)+'" y="'+(H-4)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="10.5" fill="#8A8276">'+E(shortDiv(d))+' · '+n+'</text>' });
+  const at=list.findIndex(x=>x.n===p.n);
+  if(at<0&&p.games>0) dots+='<circle cx="'+X(p.r).toFixed(1)+'" cy="26" r="6" fill="none" stroke="#FFF6E8" stroke-width="2" stroke-dasharray="3 2"><title>'+E(p.n)+' '+p.r+' (settling)</title></circle>';
+  const pos=at>=0?ordinal(list.length-at)+' of '+list.length+' settled players':'Still settling · dashed ring is where the number sits now';
+  return '<div class="stand'+(compact?' cp':'')+'"><p><b>Where '+(compact?'you':E(p.n))+' stand'+(compact?'':'s')+'</b><span>'+pos+'</span></p>'+
+    svgWrap(lines+dots+labs,W,H,"Every settled rating on the ladder, "+p.n+" marked")+'</div>';
+}
+
+/* ---------- a page for every night ---------- */
+function sysHist(n,i){
+  const O=oldN();
+  if(i<O) return {h:((ERAS.old&&ERAS.old.hist)||{})[n]||[],seed:1000};
+  return {h:(ERAS.hist[n]||[]).map(x=>[x[0]+O,x[1],x[2]]),seed:ERAS.seed[n]!=null?ERAS.seed[n]:1000};
+}
+function nightFacts(i){
+  const S=careerS(), d=S.dates[i], N=S.night[i], no=allSeasonOf(i);
+  const out={i:i,d:d,no:no,batch:BATCH.has(d),players:N.table.length,games:S.games.filter(g=>g[0]===i),
+    firsts:[],pbs:[],clubs:[],gms:[],climb:null,upset:null,sweeps:[],win:[],cups:{},sn:null,of:null};
+  const before={};
+  N.table.forEach(row=>{ const n=row[0], p=S.players[n]; if(!p) return;
+    const H=sysHist(n,i), at=H.h.findIndex(x=>x[0]===i);
+    before[n]={r:at>0?H.h[at-1][1]:(at===0?H.seed:null),fresh:at<=0};
+    if(isVis(n)) return;
+    const nis=Object.keys(p.att).map(Number).sort((a,b)=>a-b), k=nis.indexOf(i);
+    if(k===0) out.firsts.push(n);
+    if(isMember(n)&&CLUBS.indexOf(k+1)>=0) out.clubs.push([n,k+1]);
+    const gb=p.log.filter(l=>l.ni<i).length, ga=gb+p.log.filter(l=>l.ni===i).length;
+    if(isMember(n)) GT.forEach(t=>{ if(gb<t&&ga>=t) out.gms.push([n,t]) });
+    if(at>0){ const a=H.h[at][1], b=H.h[at-1][1];
+      if(isMember(n)&&(!out.climb||a-b>out.climb[1])) out.climb=[n,a-b];
+      const prior=H.h.slice(0,at);
+      if(isMember(n)&&prior.length>=3&&a>Math.max.apply(null,prior.map(x=>x[1]))) out.pbs.push([n,a]) }
+    const lg=p.log.filter(l=>l.ni===i);
+    if(lg.length>=3&&lg.every(l=>l.s===1)) out.sweeps.push(n);
+  });
+  out.games.forEach(g=>{ if(g[3]==="d") return; const w=g[3]==="w"?g[1]:g[2], l=g[3]==="w"?g[2]:g[1];
+    const bw=before[w], bl=before[l]; if(!bw||!bl||bw.fresh||bl.fresh||bw.r==null||bl.r==null||isVis(w)) return;
+    const gap=bl.r-bw.r; if(gap>=100&&(!out.upset||gap>out.upset[2])) out.upset=[w,l,gap] });
+  const top=N.table.filter(r=>r[2]>=3); out.win=top.length?top.filter(r=>r[1]===top[0][1]):[];
+  if(no!=null){ const S2=scopeOf("s"+no), j=S2.dates.indexOf(d);
+    if(j>=0){ const real=S2.dates.filter(x=>!BATCH.has(x)); out.sn=real.indexOf(d)+1; out.of=real.length; const N2=S2.night[j];
+      Object.keys(N2.sec).forEach(n=>{ const pl=N2.sec[n]; if(pl>3) return; const dv=N2.secDiv[n]||"all";
+        (out.cups[dv]=out.cups[dv]||[]).push([pl,n]) });
+      Object.keys(out.cups).forEach(dv=>out.cups[dv].sort((a,b)=>a[0]-b[0]||a[1].localeCompare(b[1]))) } }
+  return out;
+}
+/* the season's table as it stood after one night: a time machine */
+function tableAfter(i){
+  const S=careerS(), no=allSeasonOf(i); if(no==null) return null;
+  const S2=scopeOf("s"+no), d=S.dates[i], j=S2.dates.indexOf(d); if(j<0) return null;
+  const at=(jj)=>{ const ii=S.dates.indexOf(S2.dates[jj]), dd=S2.dates[jj], rows=[];
+    Object.keys(S2.players).forEach(n=>{ const q=S2.players[n]; if(q.gh||isVis(n)||!isMember(n)) return;
+      const nis=Object.keys(q.att).map(Number).filter(x=>x<=jj); if(!nis.length) return;
+      if(daysBetween(S2.dates[Math.max.apply(null,nis)],dd)>IDLE) return;
+      let e=null; sysHist(n,ii).h.forEach(x=>{ if(x[0]<=ii) e=x }); if(!e) return;
+      rows.push({n:n,r:e[1],rd:e[2],b:(S2.bandAt&&S2.bandAt(n,jj,e[1]))||"all"}) });
+    return rows };
+  const now=at(j), prev=j>0?at(j-1):null, byB={};
+  now.forEach(x=>{ (byB[x.b]=byB[x.b]||[]).push(x) });
+  const rankIn=(rows,b)=>{ const o={}; rows.filter(x=>x.b===b&&x.rd<=RS).sort((a,c)=>c.r-a.r||a.n.localeCompare(c.n)).forEach((x,k)=>o[x.n]=k+1); return o };
+  const bs=Object.keys(byB).sort((a,c)=>Math.max.apply(null,byB[c].map(x=>x.r))-Math.max.apply(null,byB[a].map(x=>x.r)));
+  return bs.map(b=>{ const was=prev?rankIn(prev,b):{};
+    const set=byB[b].filter(x=>x.rd<=RS).sort((a,c)=>c.r-a.r||a.n.localeCompare(c.n)), un=byB[b].filter(x=>x.rd>RS).sort((a,c)=>c.r-a.r);
+    return {b:b,rows:set.map((x,k)=>Object.assign({k:k+1,mv:was[x.n]?was[x.n]-(k+1):null,nw:!!prev&&!was[x.n]},x)).concat(un.map(x=>Object.assign({k:0},x)))} });
+}
+function openNight(d){ if(!CUR&&!$("#board").classList.contains("hid")){ boardHash=stateHash(); boardScroll=scrollY } location.hash="#/night/"+d }
+function showOnly(id){
+  ["#board","#hv","#pv","#nv","#aw"].forEach(s=>{ const el=$(s); if(el) el.classList.toggle("hid",s!==id) });
+  document.body.classList.toggle("sub",id!=="#board");
+}
+const cupIc=k=>'<i class="cupi t'+k+'"></i>';
+function showNight(d){
+  if(!ERAS){ go(""); return }
+  const S=careerS(), i=S.dates.indexOf(d); if(i<0){ go(""); return }
+  CUR=null; RIVAL=null; showOnly("#nv"); scrollTo({top:0,behavior:"instant"});
+  const F=nightFacts(i), wd=new Date(d+"T12:00").toLocaleDateString("en-GB",{weekday:"long"});
+  document.title="Night of "+fd(d)+" · "+CLUB;
+  const sum=[F.players+" players",F.games.length+" games"];
+  if(F.firsts.length) sum.push(F.firsts.length+" first-timer"+(F.firsts.length===1?"":"s"));
+  if(F.pbs.length) sum.push(F.pbs.length+" new personal best"+(F.pbs.length===1?"":"s"));
+  // the picker: every night, newest first, grouped by season
+  const idx=S.dates.map((x,k)=>({d:x,k:k,no:allSeasonOf(k)})).filter(x=>!BATCH.has(x.d)||x.k===i).reverse();
+  let opts="", grp=null;
+  idx.forEach(x=>{ const g=x.no!=null?seasonName(x.no):"Earlier"; if(g!==grp){ opts+=(grp?'</optgroup>':'')+'<optgroup label="'+g+'">'; grp=g }
+    opts+='<option value="'+x.d+'"'+(x.k===i?' selected':'')+'>'+fmid(x.d)+'</option>' });
+  opts+='</optgroup>';
+  const near=k=>{ let j=k; while(j>=0&&j<S.dates.length&&BATCH.has(S.dates[j])&&j!==i) j+=(k<i?-1:1); return (j>=0&&j<S.dates.length)?S.dates[j]:null };
+  const pv=i>0?near(i-1):null, nx=i<S.dates.length-1?near(i+1):null;
+  const tiles=[];
+  if(F.win.length) tiles.push('<div><dt>'+(F.win.length>1?"Shared the night":"Won the night")+'</dt><dd>'+F.win.map(r=>nameLink(r[0])).join(" & ")+'<small>'+F.win[0][1]+' of '+F.win[0][2]+' points</small></dd></div>');
+  if(F.climb&&F.climb[1]>0) tiles.push('<div><dt>Biggest climb</dt><dd>'+nameLink(F.climb[0])+'<small><span class="u">+'+F.climb[1]+'</span> rating points</small></dd></div>');
+  if(F.upset) tiles.push('<div><dt>Upset of the night</dt><dd>'+nameLink(F.upset[0])+'<small>beat '+E(anon(F.upset[1]))+', rated '+F.upset[2]+' higher</small></dd></div>');
+  // a lone winner who swept is the same story twice
+  if(F.sweeps.length&&!(F.win.length===1&&F.sweeps.length===1&&F.sweeps[0]===F.win[0][0])) tiles.push('<div><dt>Clean sweep</dt><dd>'+F.sweeps.map(nameLink).join(", ")+'<small>every game won</small></dd></div>');
+  const cupDivs=Object.keys(F.cups).sort((a,b)=>divOrder(a)-divOrder(b));
+  const cups=cupDivs.length?'<div class="card"><h3>Cups on the night</h3><div class="ncups">'+cupDivs.map(dv=>
+    '<div><b>'+E(dv==="all"?"Whole room":longDiv(dv))+'</b>'+F.cups[dv].map(c=>'<span>'+cupIc(c[0])+nameLink(c[1])+'</span>').join("")+'</div>').join("")+'</div></div>':'';
+  const chips=[];
+  F.clubs.forEach(c=>chips.push('🎟️ '+nameLink(c[0])+' joined the <b>'+c[1]+' club</b>'));
+  F.gms.forEach(c=>chips.push('♟️ '+nameLink(c[0])+' played game <b>'+c[1]+'</b>'));
+  F.pbs.forEach(c=>chips.push('📈 '+nameLink(c[0])+' hit a new best, <b>'+c[1]+'</b>'));
+  const res=F.games.map(g=>'<tr><td class="'+(g[3]==="w"?"win":"")+'">'+nameLink(g[1])+'</td><td class="res">'+(g[3]==="w"?"1–0":g[3]==="b"?"0–1":"½–½")+'</td><td class="'+(g[3]==="b"?"win":"")+'">'+nameLink(g[2])+'</td></tr>').join("");
+  const N=S.night[i];
+  const st=N.table.map(r=>'<tr><td class="n">'+N.place[r[0]]+'</td><td>'+nameLink(r[0])+clubBadge(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
+  const T=F.batch?null:tableAfter(i);
+  const tbl=T&&T.length?'<div class="sh"><h2>The <span>ladder</span></h2><p>after this night</p></div>'+
+    '<p class="l">Where everyone stood once the night was done'+(i<oldN()?', on the old system':'')+'. Arrows are places moved in their bracket.</p>'+
+    '<div class="tafter">'+T.map(g=>'<div class="box"><table><thead><tr><th colspan="3" class="tb">'+E(g.b==="all"?"Everyone":longDiv(g.b))+'</th></tr></thead><tbody>'+
+      g.rows.map(x=>'<tr><td class="n">'+(x.k||"·")+(x.mv>0?'<i class="mv up">&#8593;'+x.mv+'</i>':x.mv<0?'<i class="mv dn">&#8595;'+(-x.mv)+'</i>':x.nw?'<i class="mv nw">new</i>':'')+'</td><td>'+nameLink(x.n)+'</td><td class="n">'+(x.k?x.r:'<span class="dim">settling</span>')+'</td></tr>').join("")+
+      '</tbody></table></div>').join("")+'</div>':'';
+  $("#nv").innerHTML='<button class="back" id="nbk">&larr; Back to the ladder</button>'+
+    '<div class="nhead"><div class="nt"><small>'+(F.no!=null?seasonName(F.no)+(F.sn?' · night '+F.sn+' of '+F.of:''):'Club night')+'</small>'+
+      '<h1>'+wd+' '+fd(d)+'</h1><p class="nsum">'+sum.join(' · ')+'</p></div>'+
+      '<div class="nnav">'+(pv?'<a class="howbtn" href="#/night/'+pv+'" aria-label="Night before">&lsaquo;</a>':'')+
+      '<select class="seasel" id="nPick" aria-label="Pick a night">'+opts+'</select>'+
+      (nx?'<a class="howbtn" href="#/night/'+nx+'" aria-label="Night after">&rsaquo;</a>':'')+
+      '<button class="howbtn" id="nShare">Share</button></div></div>'+
+    (F.batch?'<p class="bnote">A backlog: games from more than one night, entered under this date.</p>':'')+
+    (F.firsts.length&&!F.batch?'<div class="welcome"><b>👋 Welcome</b><span>First night at the club for '+F.firsts.map(nameLink).join(", ")+'. Come back soon.</span></div>':'')+
+    (tiles.length?'<dl class="lg nlg">'+tiles.join("")+'</dl>':'')+
+    (chips.length&&!F.batch?'<div class="nchips">'+chips.map(c=>'<span>'+c+'</span>').join("")+'</div>':'')+
+    '<div class="gwrap">'+cups+
+    '<div class="card"><h3>Standings on the night</h3><table class="ntab">'+st+'</table></div>'+
+    '<div class="card"><h3>Results · White first</h3><table class="ntab">'+res+'</table></div></div>'+
+    tbl+
+    (F.no!=null?'<p class="nfoot"><a class="howbtn" href="#/awards/'+F.no+'">'+seasonName(F.no)+' awards &rsaquo;</a></p>':'');
+  $("#nbk").onclick=()=>go(boardHash||"");
+  $("#nPick").onchange=function(){ location.hash="#/night/"+this.value };
+  $("#nShare").onclick=function(){ const url=location.href, b=this;
+    const done=()=>{ b.textContent="Link copied"; setTimeout(()=>{ b.textContent="Share" },1800) };
+    if(navigator.share) navigator.share({title:"KAVA chess, "+fd(d),url:url}).catch(()=>{});
+    else if(navigator.clipboard) navigator.clipboard.writeText(url).then(done,()=>{});
+  };
+}
+/* a year ago tonight, and the years before: one line each, newest first */
+function drawYearAgo(){
+  const box=$("#ago"); if(!box) return;
+  if(D.arch||!ERAS){ box.innerHTML=""; return }
+  const S=careerS(), today=clubToday(), lines=[];
+  for(let y=1;y<=4&&lines.length<2;y++){
+    const t=new Date(today+"T12:00"); t.setFullYear(t.getFullYear()-y); const ts=t.toISOString().slice(0,10);
+    let best=-1, gap=99; S.dates.forEach((d,k)=>{ if(BATCH.has(d)) return; const g=Math.abs(daysBetween(d,ts)); if(g<=7&&g<gap){ gap=g; best=k } });
+    if(best<0) continue;
+    const N=S.night[best], top=N.table.filter(r=>r[2]>=3), w=top.length?top[0][0]:null;
+    lines.push('<a class="agol" href="#/night/'+S.dates[best]+'"><b>'+(y===1?"A year ago":y+" years ago")+'</b><span>'+fmid(S.dates[best])+' · '+N.table.length+' players'+
+      (w&&!isVis(w)?' · '+E(w)+' won the night':'')+'</span><i>&rsaquo;</i></a>');
+  }
+  box.innerHTML=lines.join("");
+}
+
+/* ---------- season awards ---------- */
+function allSeasons(){
+  if(!ERAS) return SEASON?[SEASON.no]:[];
+  const s={}; ERAS.season.forEach(x=>{ if(x!=null) s[x]=1 }); ((ERAS.old&&ERAS.old.season)||[]).forEach(x=>{ if(x!=null) s[x]=1 });
+  return Object.keys(s).map(Number).filter(no=>!D.arch||no<=D.arch).sort((a,b)=>b-a);
+}
+function awardList(no){
+  const S=scopeOf("s"+no), total=S.dates.length, out=[], C=careerS();
+  const L=S.list.filter(p=>p.games>0&&isMember(p.n));
+  if(!total||!L.length) return out;
+  const done=seasonDone(no), first=S.dates[0], last=S.dates[total-1];
+  const champs=[]; Object.keys(CROWNS).forEach(n=>CROWNS[n].forEach(c=>{ if(c.no===no) champs.push([c.d,n]) }));
+  if(champs.length) out.push({k:"champion",ic:"👑",t:"Section champions",rows:champs.sort((a,b)=>divOrder(a[0])-divOrder(b[0]))});
+  const R=regulars()[no];
+  if(R&&R.win.length) out.push({k:"regular",ic:"🪑",t:"Regular of the season",who:R.win,line:R.rows[0].k+" of "+R.total+" nights · any rating wins this"});
+  const real=S.dates.filter(d=>!BATCH.has(d)).length;
+  const ever=L.filter(p=>Object.keys(p.att).filter(x=>!BATCH.has(S.dates[+x])).length>=real&&real>=3).map(p=>p.n);
+  // the same people as the Regular: one card says it
+  if(ever.length&&!(R&&R.win.length===ever.length&&ever.every(n=>R.win.indexOf(n)>=0))) out.push({k:"ever",ic:"🏛️",t:"Ever-present",who:ever,line:"Every one of the "+real+" nights"});
+  const newc=n=>{ const q=C&&C.players[n]; return !!(q&&q.first&&q.first>=first&&q.first<=last) };
+  const minN=Math.max(3,Math.ceil(total/3));
+  let imp=null; if(S.rated) L.forEach(p=>{ if(newc(p.n)||!p.hist.length||p.cons<minN||p.rd>RS) return; const dd=p.r-p.seed; if(dd>0&&(!imp||dd>imp[1])) imp=[p.n,dd,p.seed,p.r] });
+  if(imp) out.push({k:"improved",ic:"📈",t:"Most improved",who:[imp[0]],line:"+"+imp[1]+" · "+imp[2]+" to "+imp[3]});
+  let rk=null; L.forEach(p=>{ if(!newc(p.n)||p.cons<2) return;
+    if(!rk||p.cons>rk[1]||(p.cons===rk[1]&&p.games>rk[2])) rk=[p.n,p.cons,p.games] });
+  if(rk) out.push({k:"rookie",ic:"🌱",t:"Rookie of the season",who:[rk[0]],line:rk[1]+" nights and "+rk[2]+" games in their first season"});
+  let up=null; if(S.rated) L.forEach(p=>p.log.forEach(l=>{ if(l.s!==1||l.nr||(l.first&&newc(p.n))||BATCH.has(S.dates[l.ni])) return; const g=l.orat-l.mrat; if(g>=100&&(!up||g>up[1])) up=[p.n,g,l.o,S.dates[l.ni]] }));
+  if(up) out.push({k:"upset",ic:"⚡",t:"Upset of the season",who:[up[0]],line:"Beat "+E(anon(up[2]))+", rated "+up[1]+" higher · "+fmid(up[3]),night:up[3]});
+  let bn=null; if(S.rated) L.forEach(p=>p.nightly.forEach(x=>{ if(x.first||x.nr||BATCH.has(x.d)) return; if(!bn||x.delta>bn[1]) bn=[p.n,x.delta,x.d] }));
+  if(bn&&bn[1]>0) out.push({k:"bestnight",ic:"🚀",t:"Best night",who:[bn[0]],line:"+"+bn[1]+" in one night · "+fmid(bn[2]),night:bn[2]});
+  const sk=Math.max.apply(null,L.map(p=>p.streak[0]));
+  if(sk>=3) out.push({k:"streak",ic:"🔥",t:"Longest winning run",who:L.filter(p=>p.streak[0]===sk).map(p=>p.n),line:sk+" wins in a row"});
+  const mg=Math.max.apply(null,L.map(p=>p.games));
+  out.push({k:"workhorse",ic:"♟️",t:"Most games",who:L.filter(p=>p.games===mg).map(p=>p.n),line:mg+" games"});
+  out.forEach(a=>{ a.done=done });
+  return out;
+}
+function showAwards(no){
+  const list=allSeasons(); if(!list.length){ go(""); return }
+  if(no==null||list.indexOf(no)<0) no=D.arch||(SEASON&&list.indexOf(SEASON.no)>=0?SEASON.no:list[0]);
+  CUR=null; RIVAL=null; showOnly("#aw"); scrollTo({top:0,behavior:"instant"});
+  document.title=seasonName(no)+" awards · "+CLUB;
+  const A=awardList(no), done=seasonDone(no), S=scopeOf("s"+no);
+  const who=a=>a.rows?a.rows.map(r=>'<span class="awr"><em>'+E(longDiv(r[0]))+'</em>'+nameLink(r[1])+'</span>').join(""):a.who.map(nameLink).join(", ");
+  $("#aw").innerHTML='<button class="back" id="abk">&larr; Back to the ladder</button>'+
+    '<div class="nhead"><div class="nt"><small>'+(done?'Final':'So far · '+S.dates.length+' night'+(S.dates.length===1?'':'s')+' in')+'</small><h1>'+seasonName(no)+' <span>awards</span></h1>'+
+    '<p class="nsum">'+(done?'How the season went, beyond the top of the table.':'Still being decided. The section titles are settled on the last night.')+'</p></div>'+
+    '<div class="nnav"><select class="seasel" id="aPick" aria-label="Pick a season">'+list.map(n=>'<option value="'+n+'"'+(n===no?' selected':'')+'>'+seasonName(n)+'</option>').join("")+'</select></div></div>'+
+    (A.length?'<div class="awg">'+A.map(a=>'<div class="awc aw-'+a.k+'">'+artOr("award-"+a.k,a.ic,"awi")+
+      '<div class="awt"><h4>'+a.t+'</h4><p>'+who(a)+'</p>'+(a.line?'<small>'+(a.night?'<a href="#/night/'+a.night+'">'+a.line+'</a>':a.line)+'</small>':'')+'</div></div>').join("")+'</div>'
+      :'<p class="l">Nothing to award yet.</p>');
+  $("#abk").onclick=()=>go(boardHash||"");
+  $("#aPick").onchange=function(){ location.hash="#/awards/"+this.value };
+}
+
+/* ---------- a season on one line each ---------- */
+function finishIn(S,q){
+  if(!S.rated||!q.hist.length||q.rd>RS) return null;
+  const b=S.bandAt?S.bandAt(q.n,q.nightly.length?q.nightly[0].ni:0,q.seed):null;
+  const peers=S.list.filter(x=>x.games>0&&isMember(x.n)&&x.hist.length&&x.rd<=RS&&(!S.bandAt||S.bandAt(x.n,x.nightly.length?x.nightly[0].ni:0,x.seed)===b))
+    .sort((a,c)=>c.r-a.r);
+  const k=peers.findIndex(x=>x.n===q.n); return k<0?null:[k+1,peers.length,b];
+}
+function seasonsCard(p){
+  if(!ERAS) return "";
+  const nos=allSeasons().filter(no=>{ const q=scopeOf("s"+no).players[p.n]; return q&&q.games>0 });
+  if(!nos.length) return "";
+  const cr=crownList(p).map(c=>c.no), rg=regSeasons(p.n);
+  const rows=nos.map(no=>{ const S=scopeOf("s"+no), q=S.players[p.n], f=finishIn(S,q), live=SEASON&&no===SEASON.no&&!D.arch;
+    const b=f?f[2]:(S.bandAt?S.bandAt(p.n,q.nightly.length?q.nightly[0].ni:0,q.seed):null);
+    const marks=(cr.indexOf(no)>=0?'<i title="Section champion">👑</i>':'')+(rg.indexOf(no)>=0?'<i title="Regular of the season">🪑</i>':'');
+    return '<tr data-sc="s'+no+'" tabindex="0" role="button"'+(("s"+no)===SCOPE?' class="on"':'')+'><td class="sn">'+no+'</td><td>'+(b&&b!=="all"?E(shortDiv(b)):'<span class="dim">—</span>')+'</td>'+
+      '<td class="n">'+Object.keys(q.att).filter(x=>!BATCH.has(S.dates[+x])).length+'<small>/'+S.dates.filter(d=>!BATCH.has(d)).length+'</small></td><td class="n hm">'+q.rec.join("–")+'</td>'+
+      '<td class="n">'+(f?(live?'now ':'')+ordinal(f[0])+'<small> of '+f[1]+'</small>':'<span class="dim">—</span>')+'</td>'+
+      '<td>'+trophyLine(q)+'</td><td class="mk">'+marks+'</td></tr>' }).join("");
+  return '<div class="rg-wrap"><table class="seas"><thead><tr><th>Season</th><th>Bracket</th><th class="n">Nights</th><th class="n hm">W–D–L</th><th class="n">Finish</th><th>Cups</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+    '<p class="cap">Finish is rank in their bracket among settled players, on the last night. Tap a season to see it.</p>';
+}
+
+/* ---------- a season recap to share ---------- */
+function recapFor(n,no){
+  const S=scopeOf("s"+no), q=S.players[n]; if(!q||!q.games) return null;
+  let bw=null; q.log.forEach(l=>{ if(l.s===1&&!l.nr&&!isVis(l.o)&&(!bw||l.orat>bw[1])) bw=[l.o,l.orat] });
+  let mp=null; Object.keys(q.opp).forEach(o=>{ if(isVis(o)) return; const g=q.opp[o][0]+q.opp[o][1]+q.opp[o][2]; if(!mp||g>mp[1]) mp=[o,g] });
+  const C=careerS(), cq=C&&C.players[n], endI=C?C.dates.indexOf(S.dates[S.dates.length-1]):-1;
+  const nightsThen=cq?Object.keys(cq.att).filter(x=>+x<=endI).length:0;
+  const rated=S.rated&&q.hist.length;
+  return {n:n,no:no,live:SEASON&&no===SEASON.no&&!D.arch,nights:q.cons,total:S.dates.length,games:q.games,rec:q.rec,
+    from:rated?(q.nightly.length&&q.nightly[0].first&&C&&cq&&cq.first===q.first?q.hist[0][1]:q.seed):null,to:rated?q.r:null,
+    cups:q.trophies,best:bw,most:mp,club:clubOf(nightsThen),
+    awards:awardList(no).filter(a=>(a.who||[]).indexOf(n)>=0||(a.rows||[]).some(r=>r[1]===n)).map(a=>a.k==="champion"?a.ic+" Section champion":a.ic+" "+a.t)};
+}
+function drawRecap(cv,R,done){
+  const x=cv.getContext("2d"), W=cv.width, H=cv.height, F='"Archivo",system-ui,sans-serif', M='"JetBrains Mono",monospace';
+  const bg=x.createLinearGradient(0,0,0,H); bg.addColorStop(0,"#1B0E11"); bg.addColorStop(.45,"#111214"); bg.addColorStop(1,"#0C0D0E");
+  x.fillStyle=bg; x.fillRect(0,0,W,H);
+  const gl=x.createRadialGradient(W*.15,0,10,W*.15,0,W*.9); gl.addColorStop(0,"rgba(254,39,58,.35)"); gl.addColorStop(1,"rgba(254,39,58,0)");
+  x.fillStyle=gl; x.fillRect(0,0,W,H);
+  const txt=(s,px,y,sz,wt,col,fam,al)=>{ x.font=wt+" "+sz+"px "+(fam||F); x.fillStyle=col; x.textAlign=al||"left"; x.fillText(s,px,y) };
+  const fit=(s,max,sz,wt)=>{ let z=sz; x.font=wt+" "+z+"px "+F; while(x.measureText(s).width>max&&z>30){ z-=4; x.font=wt+" "+z+"px "+F } return z };
+  const logo=new Image(), pic=new Image(); let left=2;
+  const go2=()=>{ if(--left>0) return;
+    try{ x.save(); x.beginPath(); x.arc(126,126,62,0,Math.PI*2); x.clip(); x.drawImage(logo,64,64,124,124); x.restore() }catch(e){}
+    txt("KAVA SOCIAL CHESS CLUB",214,114,30,"800","#FFF6E8");
+    txt(seasonName(R.no).toUpperCase()+(R.live?" · SO FAR":" · RECAP"),214,158,28,"700","#FE273A",M);
+    let y=330;
+    if(pic.width){ try{ x.save(); x.beginPath(); x.arc(W-190,y-80,110,0,Math.PI*2); x.clip(); const s=Math.max(220/pic.width,220/pic.height);
+      x.drawImage(pic,W-190-pic.width*s/2,y-80-pic.height*s/2,pic.width*s,pic.height*s); x.restore() }catch(e){} }
+    const nz=fit(R.n.toUpperCase(),pic.width?W-420:W-128,120,"900");
+    txt(R.n.toUpperCase(),64,y,nz,"900","#FFF6E8");
+    txt(R.club?(R.club+" CLUB · "+R.nights+" OF "+R.total+" NIGHTS"):(R.nights+" OF "+R.total+" NIGHTS"),64,y+56,28,"700","#B3ABA0",M);
+    const stats=[["GAMES",String(R.games)],["RECORD",R.rec.join("–")],
+      ["RATING",R.to!=null?(R.from!=null&&R.from!==R.to?R.from+" → "+R.to:String(R.to)):"—"],
+      ["CUPS",R.cups[0]+" · "+R.cups[1]+" · "+R.cups[2]],
+      ["BEST WIN",R.best?(isVis(R.best[0])?"Visitor":R.best[0])+" ("+R.best[1]+")":"—"],
+      ["MOST PLAYED",R.most?R.most[0]+" ×"+R.most[1]:"—"]];
+    y=500; stats.forEach((s,k)=>{ const cx=64+(k%2)*(W/2-32), cy=y+Math.floor(k/2)*190;
+      x.fillStyle="rgba(255,246,232,.05)"; x.fillRect(cx,cy,W/2-96,160); x.fillStyle="#FE273A"; x.fillRect(cx,cy,6,160);
+      txt(s[0],cx+32,cy+50,24,"700","#8A8276",M);
+      const z=fit(s[1],W/2-160,s[1].length>12?48:68,"900"); txt(s[1],cx+32,cy+122,z,"900","#FFF6E8") });
+    y=1100; if(R.awards.length){ txt("AWARDS",64,y,24,"700","#8A8276",M); R.awards.slice(0,3).forEach((a,k)=>txt(a,64,y+50+k*48,36,"800","#FFF6E8")) }
+    txt("ladder.kavasocialchessclub.com",W-64,H-56,26,"700","#8A8276",M,"right");
+    if(done) done();
+  };
+  logo.onload=go2; logo.onerror=go2; logo.src="logo.png";
+  if(hasPic(R.n)){ pic.onload=go2; pic.onerror=go2; pic.src="photos/"+slug(R.n)+".jpg" } else go2();
+}
+function openRecap(n,no){
+  const R=recapFor(n,no); if(!R) return;
+  const m=$("#recapM"), cv=$("#recapC");
+  m.classList.add("open");
+  const go3=()=>drawRecap(cv,R);
+  if(document.fonts&&document.fonts.load) Promise.all([document.fonts.load('900 60px "Archivo"'),document.fonts.load('700 20px "JetBrains Mono"')]).then(go3,go3); else go3();
+  const file=cb=>cv.toBlob(b=>cb(new File([b],"kava-"+slug(n)+"-season-"+no+".png",{type:"image/png"})),"image/png");
+  $("#recapSave").onclick=()=>file(f=>{ const a=document.createElement("a"); a.href=URL.createObjectURL(f); a.download=f.name; document.body.appendChild(a); a.click(); a.remove() });
+  const sh=$("#recapShare");
+  sh.style.display=(navigator.canShare&&navigator.share)?"":"none";
+  sh.onclick=()=>file(f=>{ if(navigator.canShare({files:[f]})) navigator.share({files:[f],title:n+", "+seasonName(no)}).catch(()=>{}) });
+  $("#recapX").focus();
+}
+function regCard(){
+  if(!ERAS||!SEASON) return "";
+  const R=regulars()[SEASON.no]; if(!R||!R.rows.length) return "";
+  const rows=R.rows.slice(0,3).map((x,i)=>'<li'+(i?'':' class="lead"')+' data-n="'+E(x.n)+'" tabindex="0" role="button">'+
+    '<span class="pos'+(i?'':' cup')+'">'+(i?i+1:'\uD83E\uDE91')+'</span><span class="who">'+av(x.n,"s")+'<b>'+E(x.n)+'</b></span>'+
+    '<span class="nq ok" title="'+x.k+' of the '+R.total+' nights so far">'+x.k+'/'+R.total+'</span><span class="rt">'+x.g+'<em>games</em></span></li>').join("");
+  return '<div class="rc reg"><h4 class="rch"><i>\uD83E\uDE91</i><b>Regular of the season</b><span class="rcp rg" title="The Regular crown">'+
+    (hasArt("regular")?'<em class="rgi" style="background-image:url(trophies/regular.png)"></em>':'<em>\uD83D\uDC51</em>')+'Crown</span></h4>'+
+    '<ol class="rcr">'+rows+'</ol><p class="rcn rgn">Most nights played wins it. Any rating.</p></div>';
+}
+function regTile(p){
+  const rs=regSeasons(p.n);
+  const tip=rs.length?"Regular of the season (most nights played) in "+(rs.length===1?"season ":"seasons ")+rs.join(", "):"Not the Regular yet. Most nights played in a season wins it";
+  return '<div class="it reg'+(rs.length?'':' z')+'" title="'+esc(tip)+'">'+
+    (hasArt("regular")?'<span class="pic tr" style="background-image:url(trophies/regular.png)"></span>':'<span class="pic tr emo">\uD83E\uDE91</span>')+
+    '<span class="n">\u00d7'+rs.length+'</span><span class="lb">Regular</span></div>';
+}
+function oddsLine(p,R){
+  const a=byN[p.n], b=byN[R.n]; if(!a||!b||!a.hist.length||!b.hist.length||D.arch) return "";
+  const pa=Math.round(winChance(a.r,a.rd,b.r,b.rd)*100);
+  return '<p class="odds">Next time they meet: <b>'+esc(p.n)+' '+pa+'%</b> \u00b7 <b>'+esc(R.n)+' '+(100-pa)+'%</b><small>From today\u2019s ratings. A draw counts as half.</small></p>';
+}
+["#nv","#aw","#soon"].forEach(function(s){ const el=$(s); if(!el) return;
+  el.addEventListener("click",function(e){ const t=e.target.closest("[data-n]"); if(t&&canOpen(t.dataset.n)) openProfile(t.dataset.n) });
+  el.addEventListener("keydown",function(e){ if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-n]")&&canOpen(e.target.dataset.n)){ e.preventDefault(); openProfile(e.target.dataset.n) } }) });
+(function(){ const m=$("#recapM"); if(!m) return;
+  const shut=()=>m.classList.remove("open");
+  $("#recapX").onclick=shut; m.onclick=e=>{ if(e.target===m) shut() };
+  document.addEventListener("keydown",e=>{ if(e.key==="Escape") shut() }); })();
+(function(){ const el=$("#nightsLink"); if(!el||!ERAS||!D.date) return;
+  el.innerHTML='<a class="howbtn" href="#/night/'+D.date+'">Browse every night &rsaquo;</a><a class="howbtn" href="#/awards">Season awards &rsaquo;</a>'; })();
 
 /* ---------- profile ---------- */
 function openProfile(n,rival){ if(!byN[n]||byN[n].gh) return; if(!CUR){ boardHash=stateHash(); boardScroll=scrollY } location.hash="#/p/"+encodeURIComponent(n)+(rival&&byN[rival]&&rival!==n?"/vs/"+encodeURIComponent(rival):"") }
@@ -2882,6 +3533,7 @@ function showProfile(n,rival){
   scopeBar(p);
   renderScope(p);
   $("#board").classList.add("hid"); $("#hv").classList.add("hid"); $("#pv").classList.remove("hid"); document.body.classList.add("sub");
+  $("#nv").classList.add("hid"); $("#aw").classList.add("hid");
   if(!same) scrollTo({top:0,behavior:"instant"});
   $("#live").textContent=p.n+", "+tt.name;
   try{ profileEggs(p) }catch(e){}
@@ -2900,6 +3552,7 @@ function drawGraphs(){
   // stopped reading. A rival in the address opens it, since that is where it lives.
   $("#graphs2").innerHTML=
     '<div class="gwrap">'+
+    (function(){ const sc=seasonsCard(p); return sc?card("Season by season", sc, "gwide"):"" })()+
     card("Record against everyone", opponents(p))+
     card("Compare with a rival", comparePanel(p,R), "", "cmpCard")+
     '</div><div class="gwrap">'+
@@ -2925,12 +3578,14 @@ function drawGraphs(){
 }
 $("#pv").onkeydown=function(e){
   if(e.key!=="Enter"&&e.key!==" ") return;
+  const sc=e.target.closest("[data-sc]"); if(sc&&CUR){ e.preventDefault(); pickScope(sc.dataset.sc); return }
   const at=e.target.closest(".ach[data-ach]"); if(at){ e.preventDefault(); achToggle(at); return }
   const o=e.target.closest("[data-o]"); if(!o||!CUR) return;
   e.preventDefault(); if(e.target.closest(".riv,.rg")) openProfile(CUR.n,o.dataset.o); else openProfile(o.dataset.o);
 };
 $("#pv").onclick=function(e){
   const at=e.target.closest(".ach[data-ach]"); if(at){ achToggle(at); return }
+  const sc=e.target.closest("[data-sc]"); if(sc&&CUR){ pickScope(sc.dataset.sc); return }
   var chip=e.target.closest("[data-r]"); if(chip&&CUR){ openProfile(CUR.n, chip.dataset.r); return }
   var o=e.target.closest("[data-o]"); if(o&&CUR){ if(e.target.closest(".riv,.rg")) openProfile(CUR.n, o.dataset.o); else openProfile(o.dataset.o) }
 };

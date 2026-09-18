@@ -68,6 +68,7 @@ for p in roster["roster"]:
     r = rated.get(p["n"])
     if r and r["n"] > 0:
         q["r"] = round(r["r"])
+        q["rd"] = round(r["rd"])     # for the win chances on each board
         q["d"] = BANDS.get(p["n"]) or band_of(q["r"], roster["divisions"])
     board.append(q)
 board.sort(key=lambda p: -p["r"])

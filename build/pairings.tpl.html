@@ -438,6 +438,9 @@ const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const R=DATA.roster.map((p,i)=>({...p,id:i}));
 const byId=Object.fromEntries(R.map(p=>[p.id,p]));
+/* White's expected score on a board, draws as half: the site's formula */
+function winPct(a,b){ const q=Math.log(10)/400, ra=a.rd||200, rb=b.rd||200, rd=Math.sqrt(ra*ra+rb*rb),
+  g=1/Math.sqrt(1+3*q*q*rd*rd/(Math.PI*Math.PI)); return Math.round(100/(1+Math.pow(10,-g*(a.r-b.r)/400))) }
 
 let view="in", playing=new Set(), gone=new Set(), rounds=[], cur=0, filter="";
 /* What is in #pairings: pairMsgs[i] is the message for round i+1. Declared here,
@@ -649,7 +652,7 @@ function renderRound(){
   $("#boards").innerHTML=(rd.bye!=null?`<div class="byecard"><span class="nm">${esc(byId[rd.bye].n)}</span><span class="tag">Bye · 1 point</span></div>`:"")
    + rd.boards.map((b,i)=>`
     <div class="board ${b.res?"done":""}" data-i="${i}">
-      <div class="bnum">Board <b>${i+1}</b><span class="why">${scoreTxt(b.sw??0)} v ${scoreTxt(b.sb??0)} · ${Math.abs(byId[b.w].r-byId[b.b].r)} apart</span></div>
+      <div class="bnum">Board <b>${i+1}</b><span class="why">${scoreTxt(b.sw??0)} v ${scoreTxt(b.sb??0)} · ${Math.abs(byId[b.w].r-byId[b.b].r)} apart · ${winPct(byId[b.w],byId[b.b])}–${100-winPct(byId[b.w],byId[b.b])}</span></div>
       <div class="seat"><span class="pc w">W</span><span class="nm">${esc(byId[b.w].n)}</span><span class="el">${byId[b.w].r}</span>
         <button class="win ${b.res==="w"?"sel":""}" data-r="w">Won</button></div>
       <div class="seat"><span class="pc b">B</span><span class="nm">${esc(byId[b.b].n)}</span><span class="el">${byId[b.b].r}</span>
@@ -4747,11 +4750,11 @@ function pairName(id){ return String(byId[id]?byId[id].n:"?").replace(/([*_~|])/
 function pairEmbed(i,m){
   const rd=rounds[i];
   const lines=rd.boards.map((b,j)=>
-    "`"+String(j+1).padStart(2)+"`  \u26AA **"+pairName(b.w)+"**  vs  \u26AB **"+pairName(b.b)+"**");
+    "`"+String(j+1).padStart(2)+"`  \u26AA **"+pairName(b.w)+"** "+winPct(byId[b.w],byId[b.b])+"%  vs  \u26AB **"+pairName(b.b)+"** "+(100-winPct(byId[b.w],byId[b.b]))+"%");
   if(rd.bye!=null) lines.push("","Bye: **"+pairName(rd.bye)+"** \u2014 1 point");
   return {title:"\u265F\uFE0F  Round "+(i+1)+(m&&m.upd?"  \u00b7  updated":""),
           color:DSC_RED, description:lines.join(NL),
-          footer:{text:"White listed first"+(m&&m.day?"  \u00b7  "+m.day:"")}};
+          footer:{text:"White listed first \u00b7 % = chance, draws count half"+(m&&m.day?"  \u00b7  "+m.day:"")}};
 }
 
 async function pairReq(method,url,payload){

@@ -17,6 +17,12 @@ def tab_art():
     d=os.path.join(ROOT,'tabs')
     if not os.path.isdir(d): return []
     return sorted(f[:-4] for f in os.listdir(d) if f.endswith('.png'))
+def trophy_art():
+    """The trophy and award art drawn so far. The page falls back to an emoji
+    for anything not in the folder yet, so art can arrive one piece at a time."""
+    d=os.path.join(ROOT,'trophies')
+    if not os.path.isdir(d): return []
+    return sorted(f[:-4] for f in os.listdir(d) if f.endswith('.png'))
 def photo_slugs():
     d=os.path.join(ROOT,'photos')
     if not os.path.isdir(d): return []
@@ -641,6 +647,7 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True
     D["divhist"]=[{**s,"div":{k:v for k,v in s["div"].items() if k not in HIDDEN}} for s in DIVH]
     D["tabart"]=tab_art()
     D["achart"]=ach_art()
+    D["trophyart"]=trophy_art()
     D["batch"]=sorted(batch_dates())
     # games each player had last season: before a season's first night the board
     # is last season's players, and a rating alone cannot tell who they were -
