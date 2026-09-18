@@ -790,7 +790,7 @@ border-radius:9px;border:1px solid currentColor;font-family:var(--fm);font-size:
 .avw{position:relative;display:inline-block;vertical-align:middle}
 /* on a phone the name has no room beside it, so the badge sits on the photo's corner */
 @media(max-width:640px){td.nmc2 .mc{display:none}td.nmc2 .av.s{margin-right:.35rem}
-  td.nmc2 .mc.mcp{display:inline-flex!important;position:absolute;left:17px;top:15px;margin:0;height:15px;min-width:18px;padding:0 .18rem;
+  td.nmc2 .mc.mcp{display:inline-flex!important;position:absolute;left:-3px;top:17px;margin:0;height:15px;min-width:18px;padding:0 .18rem;
   background:var(--void);border-radius:8px}
   td.nmc2 .mc.mcp.art{background:none;width:18px;height:18px;padding:0}}
 .pclub{display:inline-flex;align-items:center;gap:.3rem}.pclub .mc{margin-left:0}
@@ -1042,6 +1042,7 @@ the club is older than its paperwork.</p>
 <li>Your bracket is set on your first night and lasts the season.</li>
 <li>No games for 90 days puts you on the away list. Play once and you are back.</li>
 <li>Cups: top three in your bracket on a night. Three games needed.</li>
+<li>The <b>10+</b>, <b>25+</b>, <b>50+</b> tag by a name: club nights they have come to.</li>
 </ul></div></div>
 <div class="modal" id="recapM" role="dialog" aria-modal="true" aria-label="Season recap"><div class="mbox rbox">
 <button class="x" id="recapX" aria-label="Close">&times;</button>
@@ -2962,7 +2963,7 @@ function pickScope(k){ if(!scopeDefs().some(d=>d.k===k)) return; SCOPE=k; scopeB
 function renderScope(p){
   const sp=scoped(p,SCOPE), S=dsOf(sp), cur=S===MAIN;
   $("#ptro").outerHTML=trophyHead(sp);
-  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+sp.games+' games'+(cur?'':' \u00b7 '+esc(S.label))+'</span>'+(clubBadge(p.n)?'<span class="pclub">'+clubBadge(p.n)+'club</span>':'')+(p.rd>RS?'<span class="pill set">settling \u00b7 '+settleOf(p).txt+'</span>':'')+(away(p)?'<span class="pill">away \u00b7 '+awayWhy(p)+'</span>':'');
+  $("#psub").innerHTML='<span>'+esc(longDiv(p.d))+'</span><span>'+sp.games+' games'+(cur?'':' \u00b7 '+esc(S.label))+'</span>'+(clubBadge(p.n)?'<span class="pclub">'+clubBadge(p.n)+'nights</span>':'')+(p.rd>RS?'<span class="pill set">settling \u00b7 '+settleOf(p).txt+'</span>':'')+(away(p)?'<span class="pill">away \u00b7 '+awayWhy(p)+'</span>':'');
   $("#upnext").innerHTML=(cur||S.key==="all")?upNextLine(p):"";
   $("#stand").innerHTML=cur?standStrip(p):"";
   if(!cur&&!sp.games){
@@ -3009,8 +3010,8 @@ function clubBadge(n){
   if(isVis(n)) return "";
   const k=nightsOf(n), t=clubOf(k); if(!t) return "";
   const art=hasArt("nights-"+t);
-  return '<span class="mc mc'+t+(art?' art':'')+'" title="'+t+' club: '+k+' club nights" aria-label="'+t+' club">'+
-    (art?'<i style="background-image:url(trophies/nights-'+t+'.png)"></i>':'<b>'+t+'</b>')+'</span>';
+  return '<span class="mc mc'+t+(art?' art':'')+'" title="Has come to '+k+' club nights" aria-label="'+t+' or more club nights">'+
+    (art?'<i style="background-image:url(trophies/nights-'+t+'.png)"></i>':'<b>'+t+'+</b>')+'</span>';
 }
 const artOr=(k,emo,cls)=>hasArt(k)?'<span class="'+cls+' art" style="background-image:url(trophies/'+k+'.png)"></span>':'<span class="'+cls+' emo">'+emo+'</span>';
 
