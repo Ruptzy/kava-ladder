@@ -879,6 +879,7 @@ border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,
 .nchips b{color:var(--cream)}
 .nlk{cursor:pointer;color:inherit;text-decoration:underline;text-decoration-color:var(--rule-2);text-underline-offset:3px}
 .nlk:hover{color:var(--scarlet);text-decoration-color:var(--scarlet)}
+.recap .nlk,.ntab .nlk,.xrow .nlk,.tafter .nlk,.side .nlk,.awr .nlk{text-decoration:none}
 .ntab{width:100%;border-collapse:collapse;font-size:.86rem}
 .ntab td{padding:.32rem .3rem;border-bottom:1px solid var(--rule)}
 .ntab td.n{font-family:var(--fm);font-size:.76rem;color:var(--ink-3);text-align:right;white-space:nowrap}
@@ -1647,11 +1648,11 @@ function drawLastNight(){
   const tiles=[];
   if(win.length) tiles.push('<div data-n="'+E(win[0][0])+'" tabindex="0" role="button"><dt>'+(win.length>1?"Shared the night":"Won the night")+'</dt><dd>'+E(win.map(r=>r[0]).join(" & "))+'<small>'+win[0][1]+' of '+win[0][2]+' points</small></dd></div>');
   if(riser) tiles.push('<div data-n="'+E(riser.n)+'" tabindex="0" role="button"><dt>Biggest climb</dt><dd>'+E(riser.n)+'<small><span class="u">+'+riser.delta+'</span> rating points</small></dd></div>');
-  if(up) tiles.push('<div data-n="'+E(up.p.n)+'" tabindex="0" role="button"><dt>Upset of the night</dt><dd>'+E(up.p.n)+'<small>beat '+E(anon(up.o))+', rated '+up.gap+' higher</small></dd></div>');
+  if(up) tiles.push('<div data-n="'+E(up.p.n)+'" tabindex="0" role="button"><dt>Upset of the night</dt><dd>'+E(up.p.n)+'<small>beat '+nameLink(up.o)+', rated '+up.gap+' higher</small></dd></div>');
   if(sweeps.length&&!(win.length===1&&sweeps.length===1&&sweeps[0].n===win[0][0])) tiles.push('<div data-n="'+E(sweeps[0].n)+'" tabindex="0" role="button"><dt>Clean sweep</dt><dd>'+E(sweeps.map(p=>p.n).join(", "))+'<small>every game won</small></dd></div>');
   tiles.push('<div><dt>Turnout</dt><dd>'+N.table.length+' players<small>'+games.length+' games played</small></dd></div>');
   const results=games.map(g=>{ const w=NAMES[g[1]], b=NAMES[g[2]], r=g[3];
-    return '<tr><td class="'+(r==="w"?"win":"")+'">'+E(w)+'</td><td class="res">'+(r==="w"?"1–0":r==="b"?"0–1":"½–½")+'</td><td class="'+(r==="b"?"win":"")+'">'+E(b)+'</td></tr>' }).join("");
+    return '<tr><td class="'+(r==="w"?"win":"")+'">'+nameLink(w)+'</td><td class="res">'+(r==="w"?"1–0":r==="b"?"0–1":"½–½")+'</td><td class="'+(r==="b"?"win":"")+'">'+nameLink(b)+'</td></tr>' }).join("");
   const standings=N.table.map(r=>'<tr data-n="'+E(r[0])+'"><td class="n">'+N.place[r[0]]+'</td><td>'+E(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
   $("#ln").innerHTML='<div class="lh"><b>Last <span>night</span></b><small>'+fd(DATES[ni])+'</small><button class="howbtn" id="lnBtn" aria-expanded="false">Full results</button>'+(ERAS?'<a class="howbtn" href="#/night/'+DATES[ni]+'">Night page &rsaquo;</a>':'')+'</div>'+
     '<dl class="lg">'+tiles.join("")+'</dl>'+
@@ -1668,7 +1669,7 @@ function cellCls(a){ const net=a[0]-a[2], mag=Math.min(4,Math.abs(net)); return 
 function cross(){
   const list=crossList();
   if(list.length<2){ $("#xt").innerHTML='<p style="padding:1rem;color:var(--ink-3)">Not enough players yet.</p>'; $("#xl").innerHTML=""; return }
-  const head=list.map((p,i)=>'<th><div class="vt"><b>'+(i+1)+'</b>'+E(p.n)+'</div></th>').join("");
+  const head=list.map((p,i)=>'<th data-n="'+E(p.n)+'" style="cursor:pointer"><div class="vt"><b>'+(i+1)+'</b>'+E(p.n)+'</div></th>').join("");
   const rows=list.map((p,i)=>{
     const cells=list.map(o=>{
       if(o.n===p.n) return '<td class="self"></td>';
@@ -1681,7 +1682,8 @@ function cross(){
   }).join("");
   $("#xt").innerHTML='<table><thead><tr><th class="c">Row v column<br>ahead / behind</th>'+head+'</tr></thead><tbody>'+rows+'</tbody></table>';
   const tbl=$("#xt").querySelector("table");
-  tbl.onclick=e=>{ const td=e.target.closest("td[data-o]"), tr=e.target.closest("tr[data-n]"); if(!tr) return;
+  tbl.onclick=e=>{ const th=e.target.closest("thead th[data-n]"); if(th){ openProfile(th.dataset.n); return }
+    const td=e.target.closest("td[data-o]"), tr=e.target.closest("tr[data-n]"); if(!tr) return;
     if(td) openProfile(tr.dataset.n, td.dataset.o); else openProfile(tr.dataset.n) };
   tbl.onmouseover=e=>{ const td=e.target.closest("td"); if(!td) return; tbl.dataset.c=td.cellIndex };
   tbl.onmouseleave=()=>{ delete tbl.dataset.c };
@@ -1693,10 +1695,10 @@ function cross(){
   const sel='<div class="xsel"><select id="xtPick" aria-label="Pick a player"><option value="">Pick a player…</option>'+list.map(p=>'<option value="'+E(p.n)+'"'+(XL_PICK===p.n?" selected":"")+'>'+E(p.n)+' — '+p.r+'</option>').join("")+'</select></div>';
   const me=XL_PICK&&byN[XL_PICK];
   $("#xl").innerHTML=sel+(me?list.filter(o=>o.n!==me.n).map(o=>{ const a=me.opp[o.n];
-     if(!a) return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+E(o.n)+'</b><span class="net" style="color:#3A4046">·</span><span class="rc">never played</span></div>';
-     const net=a[0]-a[2]; return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+E(o.n)+'</b><span class="net '+cellCls(a)+'">'+(net>0?"+"+net:net<0?net:"=")+'</span><span class="rc">'+a[0]+'–'+a[1]+'–'+a[2]+'</span></div>' }).join("")
+     if(!a) return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+nameLink(o.n)+'</b><span class="net" style="color:#3A4046">·</span><span class="rc">never played</span></div>';
+     const net=a[0]-a[2]; return '<div class="xrow" data-o="'+E(o.n)+'"><b>'+nameLink(o.n)+'</b><span class="net '+cellCls(a)+'">'+(net>0?"+"+net:net<0?net:"=")+'</span><span class="rc">'+a[0]+'–'+a[1]+'–'+a[2]+'</span></div>' }).join("")
     :'<p style="color:var(--ink-3);font-size:.88rem;margin:0">Pick a name to see their record against everyone.</p>')+
-    '<p class="cap" style="margin-top:.6rem">Tap a row to open that head to head.</p>';
+    '<p class="cap" style="margin-top:.6rem">Tap a name for their page, the rest of the row for the head to head.</p>';
   $("#xtPick").onchange=function(){ XL_PICK=this.value||null; cross() };
   $("#xl").onclick=e=>{ const r=e.target.closest(".xrow"); if(r&&me) openProfile(me.n, r.dataset.o) };
 }
@@ -2487,8 +2489,8 @@ function facts(p){
   if(p.peak&&p.games>=8) c.push([surprise(function(x){return x.peak?x.peak[0]:0},p.peak[0]),"🏔️",p.peak[0],"Career-high rating, reached "+fd(p.peak[1])+"."]);
   if(p.streak[0]>=3) c.push([surprise(function(x){return x.streak[0]},p.streak[0])+.05,"🔥",p.streak[0]+" in a row","Their longest winning run to date."]);
   if(p.upsets>=1) c.push([surprise(function(x){return x.upsets},p.upsets)+.1,"⚡",p.upsets+(p.upsets===1?" upset":" upsets"),"Wins over players rated 150 or more above them."]);
-  if(p.vic&&p.vic[1]-p.vic[3]>=2) c.push([surprise(function(x){return x.vic?x.vic[1]-x.vic[3]:0},p.vic[1]-p.vic[3]),"🎯",p.vic[1]+"–"+p.vic[2]+"–"+p.vic[3],"Their best record against anyone — "+esc(anon(p.vic[0]))+"."]);
-  if(p.nem&&p.nem[3]-p.nem[1]>=2) c.push([surprise(function(x){return x.nem?x.nem[3]-x.nem[1]:0},p.nem[3]-p.nem[1]),"🧱",p.nem[1]+"–"+p.nem[2]+"–"+p.nem[3],esc(anon(p.nem[0]))+" has their number."]);
+  if(p.vic&&p.vic[1]-p.vic[3]>=2) c.push([surprise(function(x){return x.vic?x.vic[1]-x.vic[3]:0},p.vic[1]-p.vic[3]),"🎯",p.vic[1]+"–"+p.vic[2]+"–"+p.vic[3],"Their best record against anyone — "+nameLink(p.vic[0])+"."]);
+  if(p.nem&&p.nem[3]-p.nem[1]>=2) c.push([surprise(function(x){return x.nem?x.nem[3]-x.nem[1]:0},p.nem[3]-p.nem[1]),"🧱",p.nem[1]+"–"+p.nem[2]+"–"+p.nem[3],nameLink(p.nem[0])+" has their number."]);
   if(bestNight&&bestNight.delta>=15) c.push([surprise(function(x){return x.bigNight},bestNight.delta),"🚀","+"+bestNight.delta,"Biggest single night, on "+fd(bestNight.d)+"."]);
   if(p.cons>=2) c.push([surprise(function(x){return x.cons},p.cons),"🪑",p.cons+" of "+S.dates.length,"Club nights turned up to."]);
   if(Math.abs(wpc-bpc)>=10&&p.games>=10) c.push([surprise(function(x){return Math.abs(cpct(x.wh)-cpct(x.bl))},Math.abs(wpc-bpc)),"♟️",(bpc>wpc?bpc:wpc)+"%","Better with "+(bpc>wpc?"Black":"White")+" — "+wpc+"% as White, "+bpc+"% as Black."]);
@@ -2653,7 +2655,7 @@ function opponents(p){
   return '<div>'+top.map(line).join("")+'</div>'+
     (rest.length?'<div class="hid" id="oppRest">'+rest.map(line).join("")+'</div>'+
       '<button class="achmore" id="oppMore">Show all '+rows.length+'</button>':'')+
-    '<p class="cap">Most played first, then the record: won, drawn, lost. The bar is how far ahead or behind. Tap one to compare.</p>';
+    '<p class="cap">Most played first, then the record: won, drawn, lost. The bar is how far ahead or behind. Tap a name for their page.</p>';
 }
 function attendance(p){
   var DT=dsOf(p).dates;
@@ -2664,7 +2666,7 @@ function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
   var nd={}, DT=dsOf(p).dates, cur=dsOf(p)===MAIN; p.nightly.forEach(function(n){nd[n.ni]=n});
   return '<div class="rg-wrap"><table class="rg"><tbody>'+p.recent.map(function(l){ var n=nd[l.ni], r=res(l);
-    return '<tr><td class="d">'+(ERAS?'<a href="#/night/'+DT[l.ni]+'">'+(cur?fshort:fmid)(DT[l.ni])+'</a>':(cur?fshort:fmid)(DT[l.ni]))+'</td><td class="o" data-o="'+esc(l.o)+'" tabindex="0" role="button"><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+(l.nr?'':'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span>')+'</td>'+
+    return '<tr><td class="d">'+(ERAS?'<a href="#/night/'+DT[l.ni]+'">'+(cur?fshort:fmid)(DT[l.ni])+'</a>':(cur?fshort:fmid)(DT[l.ni]))+'</td><td class="o"'+(canOpen(l.o)?' data-o="'+esc(l.o)+'" tabindex="0" role="button"':'')+'><i class="cc c'+l.c+'"></i>'+esc(anon(l.o))+(l.s===1&&l.orat-l.mrat>=200?'<i class="zap" title="Upset alert: '+(l.orat-l.mrat)+' points up">&#9889;</i>':'')+(l.nr?'':'<span style="font-family:var(--fm);font-size:.7rem;color:var(--ink-3)"> '+l.orat+'</span>')+'</td>'+
       '<td class="rs '+r+'">'+r+'</td><td class="dl2" style="color:'+(n&&n.delta>0?"var(--gain)":n&&n.delta<0?"var(--loss)":"var(--ink-3)")+'">'+(n&&!n.nr?(n.delta>0?"+":"")+n.delta:"")+'</td></tr>' }).join("")+'</tbody></table></div>'+
     '<p class="cap">Newest first. The block is the side they had'+(dsOf(p).rated===false?'.':'; the last column is the rating change for that whole night.')+'</p>';
 }
@@ -2805,7 +2807,7 @@ function comparePanel(p,R){
       '<span class="vb'+(bw?" win":"")+'">'+B+suf+'</span></div></div>' }).join("") }).join("");
   return sel+'<div class="vsbar"><div class="side">'+av(p.n,"m")+'<b>'+esc(p.n)+'</b><span>'+p.r+'</span><em>this page</em></div>'+
    '<div class="mid"><em>Head to head</em><div class="sc2">'+(a?('<span style="color:'+(net>0?"var(--gain)":"var(--ink-2)")+'">'+a[0]+'</span><span style="color:var(--ink-3)">–</span><span style="color:'+(net<0?"var(--gain)":"var(--ink-2)")+'">'+a[2]+'</span>'):'<span style="color:var(--ink-3);font-size:.9rem">never met</span>')+'</div></div>'+
-   '<div class="side">'+av(R.n,"m")+'<b>'+esc(R.n)+'</b><span>'+(R.r||"")+'</span></div></div>'+
+   '<div class="side">'+av(R.n,"m")+'<b>'+nameLink(R.n)+'</b><span>'+(R.r||"")+'</span></div></div>'+
    (a?'<p style="text-align:center;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin:-.6rem 0 1rem">'+(a[1]?a[1]+' drawn &middot; ':'')+'last met '+fmid(DT[lastMeet.ni])+', '+esc(p.n)+' '+(lastMeet.s===1?"won":lastMeet.s===.5?"drew":"lost")+'</p>':'')+oddsLine(p,R)+body;
 }
 
@@ -3130,8 +3132,8 @@ function upNextFor(n,loose){
   const ww=nextOf(WT,w); if(ww&&(loose||ww-w<=3)) out.push({n:n,s:(ww-w)/ww,ic:"⭐",goal:ww+" wins",left:(ww-w)+" to go",cur:w,tgt:ww,t:(ww-w)+" win"+(ww-w===1?"":"s")+" to "+ww});
   const cc=careerCups(), mine=cc[n]||0;
   let above=null; Object.keys(cc).forEach(o=>{ if(o!==n&&cc[o]>mine&&(!above||cc[o]<cc[above])) above=o });
-  if(above&&(loose||cc[above]-mine<=2)) out.push({n:n,s:(cc[above]-mine)/Math.max(4,cc[above]),ic:"🏆",goal:"Catch "+E(above),left:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to go",cur:mine,tgt:cc[above],
-    t:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to catch "+E(above)+" ("+cc[above]+")"});
+  if(above&&(loose||cc[above]-mine<=2)) out.push({n:n,s:(cc[above]-mine)/Math.max(4,cc[above]),ic:"🏆",goal:"Catch "+nameLink(above),left:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to go",cur:mine,tgt:cc[above],
+    t:(cc[above]-mine)+" cup"+(cc[above]-mine===1?"":"s")+" to catch "+nameLink(above)+" ("+cc[above]+")"});
   return out;
 }
 function drawSoon(){
@@ -3270,7 +3272,7 @@ function showNight(d){
   const tiles=[];
   if(F.win.length) tiles.push('<div><dt>'+(F.win.length>1?"Shared the night":"Won the night")+'</dt><dd>'+F.win.map(r=>nameLink(r[0])).join(" & ")+'<small>'+F.win[0][1]+' of '+F.win[0][2]+' points</small></dd></div>');
   if(F.climb&&F.climb[1]>0) tiles.push('<div><dt>Biggest climb</dt><dd>'+nameLink(F.climb[0])+'<small><span class="u">+'+F.climb[1]+'</span> rating points</small></dd></div>');
-  if(F.upset) tiles.push('<div><dt>Upset of the night</dt><dd>'+nameLink(F.upset[0])+'<small>beat '+E(anon(F.upset[1]))+', rated '+F.upset[2]+' higher</small></dd></div>');
+  if(F.upset) tiles.push('<div><dt>Upset of the night</dt><dd>'+nameLink(F.upset[0])+'<small>beat '+nameLink(F.upset[1])+', rated '+F.upset[2]+' higher</small></dd></div>');
   // a lone winner who swept is the same story twice
   if(F.sweeps.length&&!(F.win.length===1&&F.sweeps.length===1&&F.sweeps[0]===F.win[0][0])) tiles.push('<div><dt>Clean sweep</dt><dd>'+F.sweeps.map(nameLink).join(", ")+'<small>every game won</small></dd></div>');
   const cupDivs=Object.keys(F.cups).sort((a,b)=>divOrder(a)-divOrder(b));
@@ -3359,7 +3361,7 @@ function awardList(no){
     if(!rk||p.cons>rk[1]||(p.cons===rk[1]&&p.games>rk[2])) rk=[p.n,p.cons,p.games] });
   if(rk) out.push({k:"rookie",ic:"🌱",t:"Rookie of the season",who:[rk[0]],line:rk[1]+" nights and "+rk[2]+" games in their first season"});
   let up=null; if(S.rated) L.forEach(p=>p.log.forEach(l=>{ if(l.s!==1||l.nr||(l.first&&newc(p.n))||BATCH.has(S.dates[l.ni])) return; const g=l.orat-l.mrat; if(g>=100&&(!up||g>up[1])) up=[p.n,g,l.o,S.dates[l.ni]] }));
-  if(up) out.push({k:"upset",ic:"⚡",t:"Upset of the season",who:[up[0]],line:"Beat "+E(anon(up[2]))+", rated "+up[1]+" higher · "+fmid(up[3]),night:up[3]});
+  if(up) out.push({k:"upset",ic:"⚡",t:"Upset of the season",who:[up[0]],line:"Beat "+nameLink(up[2])+", rated "+up[1]+" higher · "+fmid(up[3]),night:up[3]});
   let bn=null; if(S.rated) L.forEach(p=>p.nightly.forEach(x=>{ if(x.first||x.nr||BATCH.has(x.d)) return; if(!bn||x.delta>bn[1]) bn=[p.n,x.delta,x.d] }));
   if(bn&&bn[1]>0) out.push({k:"bestnight",ic:"🚀",t:"Best night",who:[bn[0]],line:"+"+bn[1]+" in one night · "+fmid(bn[2]),night:bn[2]});
   const sk=Math.max.apply(null,L.map(p=>p.streak[0]));
@@ -3576,13 +3578,13 @@ $("#pv").onkeydown=function(e){
   const sc=e.target.closest("[data-sc]"); if(sc&&CUR){ e.preventDefault(); pickScope(sc.dataset.sc); return }
   const at=e.target.closest(".ach[data-ach]"); if(at){ e.preventDefault(); achToggle(at); return }
   const o=e.target.closest("[data-o]"); if(!o||!CUR) return;
-  e.preventDefault(); if(e.target.closest(".riv,.rg")) openProfile(CUR.n,o.dataset.o); else openProfile(o.dataset.o);
+  e.preventDefault(); if(e.target.closest(".riv")) openProfile(CUR.n,o.dataset.o); else openProfile(o.dataset.o);
 };
 $("#pv").onclick=function(e){
   const at=e.target.closest(".ach[data-ach]"); if(at){ achToggle(at); return }
   const sc=e.target.closest("[data-sc]"); if(sc&&CUR){ pickScope(sc.dataset.sc); return }
   var chip=e.target.closest("[data-r]"); if(chip&&CUR){ openProfile(CUR.n, chip.dataset.r); return }
-  var o=e.target.closest("[data-o]"); if(o&&CUR){ if(e.target.closest(".riv,.rg")) openProfile(CUR.n, o.dataset.o); else openProfile(o.dataset.o) }
+  var o=e.target.closest("[data-o]"); if(o&&CUR){ if(e.target.closest(".riv")) openProfile(CUR.n, o.dataset.o); else openProfile(o.dataset.o) }
 };
 $("#bk").onclick=function(){ go(boardHash||"") };
 $("#hbk").onclick=function(){ go(boardHash||"") };
@@ -4144,6 +4146,14 @@ function dropHint(force){
 }
 window.eggHint=dropHint;
 setTimeout(function(){ if(Math.random()<0.3) dropHint() },20000);
+
+/* ---------- names are links ----------
+   Any .nlk name opens that player's page, before the row or card it sits
+   in gets the tap - a name inside a head-to-head row still means the person. */
+document.addEventListener("click",function(e){ const n=e.target.closest(".nlk[data-n]");
+  if(!n||!canOpen(n.dataset.n)) return; e.preventDefault(); e.stopPropagation(); openProfile(n.dataset.n) },true);
+document.addEventListener("keydown",function(e){ if(e.key!=="Enter"&&e.key!==" ") return; const n=e.target.closest&&e.target.closest(".nlk[data-n]");
+  if(!n||!canOpen(n.dataset.n)) return; e.preventDefault(); e.stopPropagation(); openProfile(n.dataset.n) },true);
 
 /* ---------- no holes ----------
    Every grid of cards: when a row comes up short, its last card stretches
