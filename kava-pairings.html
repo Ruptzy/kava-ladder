@@ -4380,27 +4380,33 @@ function showAwards(no){
 }
 
 /* ---------- a season on one line each ---------- */
-function finishIn(S,q){
-  if(!S.rated||!q.hist.length||q.rd>RS) return null;
-  const b=S.bandAt?S.bandAt(q.n,q.nightly.length?q.nightly[0].ni:0,q.seed):null;
-  const peers=S.list.filter(x=>x.games>0&&isMember(x.n)&&x.hist.length&&x.rd<=RS&&(!S.bandAt||S.bandAt(x.n,x.nightly.length?x.nightly[0].ni:0,x.seed)===b))
-    .sort((a,c)=>c.r-a.r);
-  const k=peers.findIndex(x=>x.n===q.n); return k<0?null:[k+1,peers.length,b];
+function finishIn(S,q,live){
+  if(!S.rated||!q.hist.length) return null;
+  // the finale's rule: nights with a game in them, at least half the season's
+  const need=Math.ceil(S.dates.length/2);
+  const nights=x=>{ const s={}; x.log.forEach(l=>{ s[l.ni]=1 }); return Object.keys(s).length };
+  const band=x=>S.bandAt?S.bandAt(x.n,x.nightly.length?x.nightly[0].ni:0,x.seed):null;
+  const ok=x=>x.hist.length&&x.rd<=RS&&(live||nights(x)>=need);
+  const b=band(q);
+  if(!ok(q)) return {b:b,out:q.rd>RS?"settling":"under half the nights"};
+  // the season's own members, as on its page: today's roster can call a past champion a visitor
+  const peers=S.list.filter(x=>x.games>0&&!x.gh&&!isVis(x.n)&&ok(x)&&band(x)===b).sort((a,c)=>c.r-a.r);
+  const k=peers.findIndex(x=>x.n===q.n); return k<0?null:{b:b,k:k+1,of:peers.length};
 }
 function seasonsCard(p){
   if(!ERAS) return "";
   const nos=allSeasons().filter(no=>{ const q=scopeOf("s"+no).players[p.n]; return q&&q.games>0 });
   if(!nos.length) return "";
   const cr=crownList(p).map(c=>c.no), rg=regSeasons(p.n);
-  const rows=nos.map(no=>{ const S=scopeOf("s"+no), q=S.players[p.n], f=finishIn(S,q), live=SEASON&&no===SEASON.no&&!D.arch;
-    const b=f?f[2]:(S.bandAt?S.bandAt(p.n,q.nightly.length?q.nightly[0].ni:0,q.seed):null);
+  const rows=nos.map(no=>{ const S=scopeOf("s"+no), q=S.players[p.n], live=SEASON&&no===SEASON.no&&!D.arch, f=finishIn(S,q,live);
+    const b=f?f.b:(S.bandAt?S.bandAt(p.n,q.nightly.length?q.nightly[0].ni:0,q.seed):null);
     const marks=(cr.indexOf(no)>=0?'<i title="Section champion">👑</i>':'')+(rg.indexOf(no)>=0?'<i title="Regular of the season">🪑</i>':'');
     return '<tr data-sc="s'+no+'" tabindex="0" role="button"'+(("s"+no)===SCOPE?' class="on"':'')+'><td class="sn">'+no+'</td><td>'+(b&&b!=="all"?E(shortDiv(b)):'<span class="dim">—</span>')+'</td>'+
       '<td class="n">'+Object.keys(q.att).filter(x=>!BATCH.has(S.dates[+x])).length+'<small>/'+S.dates.filter(d=>!BATCH.has(d)).length+'</small></td><td class="n hm">'+q.rec.join("–")+'</td>'+
-      '<td class="n">'+(f?(live?'now ':'')+ordinal(f[0])+'<small> of '+f[1]+'</small>':'<span class="dim">—</span>')+'</td>'+
+      '<td class="n">'+(f&&f.k?(live?'now ':'')+ordinal(f.k)+'<small> of '+f.of+'</small>':f&&f.out?'<small>'+f.out+'</small>':'<span class="dim">—</span>')+'</td>'+
       '<td>'+trophyLine(q)+'</td><td class="mk">'+marks+'</td></tr>' }).join("");
   return '<div class="rg-wrap"><table class="seas"><thead><tr><th>Season</th><th>Bracket</th><th class="n">Nights</th><th class="n hm">W–D–L</th><th class="n">Finish</th><th>Cups</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
-    '<p class="cap">Finish is rank in their bracket among settled players, on the last night. Tap a season to see it.</p>';
+    '<p class="cap">Finish is the place in their bracket on the last night, among settled players who made half the nights. That is the rule the section title uses, so 1st is the title. Tap a season to see it.</p>';
 }
 
 /* ---------- a season recap to share ---------- */
