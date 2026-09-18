@@ -1695,6 +1695,14 @@ footer{margin-top:3rem;padding:1.2rem 0 3rem;border-top:1px solid var(--rule);fo
   .upd{margin-left:0;text-align:left;flex:1 1 100%;order:5;line-height:1.5}
   .srch{flex:1 1 100%;max-width:none;order:4}
   .howbtn,.seasel{order:3}
+  /* the buttons are one row you can swipe, not three stacked */
+  .tbar{display:flex;gap:.45rem;order:3;flex:1 1 100%;overflow-x:auto;scrollbar-width:none;margin:0;padding:0}
+  .tbar::-webkit-scrollbar{display:none}
+  .tbar,.pact{-webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+  .tbar>*{flex:none}
+  .pact{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:0}
+  .pact::-webkit-scrollbar{display:none}
+  .pact>*{flex:none}
   .tabs .lg{display:none}.tabs .sm{display:inline}
   .tabs button{padding:.6rem .6rem;font-size:.7rem}
   .tabs.art{grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;width:100%;margin-left:0;transform:none}
@@ -1866,7 +1874,7 @@ border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,
 .ntab td.n{font-family:var(--fm);font-size:.76rem;color:var(--ink-3);text-align:right;white-space:nowrap}
 .ntab td.res{font-family:var(--fm);font-weight:700;text-align:center;color:var(--ink-3);width:2.4rem}
 .ntab td.win{color:var(--cream);font-weight:600}
-.ncups{display:flex;flex-direction:column;gap:.8rem}
+.ncups{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:.9rem 1.4rem}
 .ncups>div{display:flex;flex-direction:column;gap:.3rem}
 .ncups b{font-family:var(--fm);font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
 .ncups>div>span{display:flex;align-items:center;gap:.45rem;font-size:.9rem}
@@ -1880,6 +1888,10 @@ border:1px solid rgba(59,199,154,.45);background:linear-gradient(150deg,rgba(59,
 .dim{color:var(--ink-3)}
 .bnote{margin:0 0 1rem;padding:.6rem .8rem;border-left:3px solid var(--loss);background:var(--panel);font-size:.86rem;color:var(--ink-2)}
 .nfoot{margin:1.4rem 0 0;display:flex;gap:.5rem;flex-wrap:wrap}
+#nightsLink{margin:.9rem 0 0}
+.ncard{margin:0 0 .8rem}
+tr.hid{display:none}
+@media(min-width:641px){.tbar{display:contents}}
 .awg{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:.8rem}
 .awc{display:flex;gap:.9rem;align-items:center;padding:.9rem 1rem;border:1px solid var(--rule-2);border-radius:8px;
 background:linear-gradient(160deg,var(--panel-2),rgba(22,23,25,.94) 70%);min-width:0}
@@ -1948,10 +1960,10 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
 <div class="tools">
 <div class="srch"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
 <input id="q" type="search" placeholder="Find a player" autocomplete="off" aria-label="Find a player" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sres"><div class="sres hid" id="sres" role="listbox" aria-label="Players"></div></div>
-<button class="howbtn red" id="jumpBtn">Standings &darr;</button>
+<div class="tbar"><button class="howbtn red" id="jumpBtn">Standings &darr;</button>
 <button class="howbtn" id="histBtn"><span class="lg">Club history</span><span class="sm">History</span></button>
 <select class="seasel hid" id="seaSel" aria-label="Pick a season"></select>
-<button class="howbtn" id="howBtn">How ratings work</button>
+<button class="howbtn" id="howBtn">How ratings work</button></div>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
 <div id="firstNote"></div>
@@ -1959,8 +1971,6 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
 <div class="sr" id="live" aria-live="polite"></div>
 <div class="w">
 <main id="board">
-<section class="ln" id="ln"></section>
-<div id="ago"></div>
 <div class="pod" id="pod"></div>
 <div id="you"></div>
 <div class="sh" id="ladder"><h2 id="bt">Ladder</h2><p id="ladSub">&nbsp;</p></div>
@@ -1977,8 +1987,10 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
 </tr></thead><tbody id="tb"></tbody></table></div></div>
 <button class="showaway" id="awayBtn"></button>
 <div class="box hid" id="awayBox"><table><tbody id="tbAway"></tbody></table></div>
+<section class="ln" id="ln"></section>
 <div id="race"></div>
 <div id="soon"></div>
+<div id="ago"></div>
 <div class="sh" id="xtHead"><h2>The <span>Crosstable</span></h2><p>Every pair who have met</p></div>
 <p class="l">Read across a row. <b>+3</b> means three more wins than losses against that player. Tap a square for the head-to-head.</p>
 <button class="xbtn" id="xtBtn">Show the crosstable</button>
@@ -1996,6 +2008,11 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
 </main>
 <main id="hv" class="hid">
 <button class="back" id="hbk">&larr; Back to the ladder</button>
+<div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
+<p class="l">Every game the club has a record of. These records begin in <span class="oldkava" role="button" tabindex="0">September 2022</span> &mdash;
+the club is older than its paperwork.</p>
+<dl class="kpis" id="clubKpis"></dl>
+<p class="nfoot" id="nightsLink"></p>
 <div class="sh"><h2>The <span>club</span></h2><p>Downtown Bradenton, Florida &middot; since 2021</p></div>
 <div class="story">
 <p>The club started in 2021, just after COVID, when a handful of players began meeting at Kava
@@ -2011,11 +2028,7 @@ ratings grew out of the club, not the other way round.</p>
 <p class="pull">It was never about who&rsquo;s best in the room. This is a community that happens to
 play chess, and nobody is turned away for being new or rusty.</p>
 </div>
-<div class="sh"><h2>The <span>whole story</span></h2><p id="allMeta"></p></div>
-<p class="l">Every game the club has a record of. These records begin in <span class="oldkava" role="button" tabindex="0">September 2022</span> &mdash;
-the club is older than its paperwork.</p>
-<dl class="kpis" id="clubKpis"></dl>
-<p class="nfoot" id="nightsLink"></p>
+<div class="sh"><h2>Night <span>by night</span></h2><p>every club night on record</p></div>
 <div class="gwrap" id="clubCharts"></div>
 <button class="pmore" id="arcMore" aria-expanded="false">Show Seasons 1&ndash;7 and the all-time table</button>
 <div id="arcRest" class="hid">
@@ -2037,12 +2050,12 @@ the club is older than its paperwork.</p>
 <div class="cmpsel scope hid" id="scope"><label for="scopeSel">Showing</label><select id="scopeSel"></select><span class="sn" id="scopeNote"></span><button class="howbtn recapbtn hid" id="recapBtn">Season recap</button></div>
 <h2 class="sr" id="pvH2">Player details</h2>
 <dl class="kpis" id="kpis"></dl>
-<div id="upnext"></div>
 <div id="stand"></div>
-<div class="gwrap" id="graphs"></div>
-<div id="graphs2"></div>
 <h3 class="factsH" id="factsH">Career highlights</h3>
 <div class="facts" id="facts"></div>
+<div id="upnext"></div>
+<div class="gwrap" id="graphs"></div>
+<div id="graphs2"></div>
 <div id="graphs3"></div>
 </main>
 <main id="nv" class="hid"></main>
@@ -4251,13 +4264,13 @@ function showNight(d){
   // a lone winner who swept is the same story twice
   if(F.sweeps.length&&!(F.win.length===1&&F.sweeps.length===1&&F.sweeps[0]===F.win[0][0])) tiles.push('<div><dt>Clean sweep</dt><dd>'+F.sweeps.map(nameLink).join(", ")+'<small>every game won</small></dd></div>');
   const cupDivs=Object.keys(F.cups).sort((a,b)=>divOrder(a)-divOrder(b));
-  const cups=cupDivs.length?'<div class="card"><h3>Cups on the night</h3><div class="ncups">'+cupDivs.map(dv=>
+  const cups=cupDivs.length?'<div class="card ncard"><h3>Cups on the night</h3><div class="ncups">'+cupDivs.map(dv=>
     '<div><b>'+E(dv==="all"?"Whole room":longDiv(dv))+'</b>'+F.cups[dv].map(c=>'<span>'+cupIc(c[0])+nameLink(c[1])+'</span>').join("")+'</div>').join("")+'</div></div>':'';
   const chips=[];
   F.clubs.forEach(c=>chips.push('🎟️ '+nameLink(c[0])+' joined the <b>'+c[1]+' club</b>'));
   F.gms.forEach(c=>chips.push('♟️ '+nameLink(c[0])+' played game <b>'+c[1]+'</b>'));
   F.pbs.forEach(c=>chips.push('📈 '+nameLink(c[0])+' hit a new best, <b>'+c[1]+'</b>'));
-  const res=F.games.map(g=>'<tr><td class="'+(g[3]==="w"?"win":"")+'">'+nameLink(g[1])+'</td><td class="res">'+(g[3]==="w"?"1–0":g[3]==="b"?"0–1":"½–½")+'</td><td class="'+(g[3]==="b"?"win":"")+'">'+nameLink(g[2])+'</td></tr>').join("");
+  const res=F.games.map((g,k)=>'<tr'+(k>=10?' class="more hid"':'')+'><td class="'+(g[3]==="w"?"win":"")+'">'+nameLink(g[1])+'</td><td class="res">'+(g[3]==="w"?"1–0":g[3]==="b"?"0–1":"½–½")+'</td><td class="'+(g[3]==="b"?"win":"")+'">'+nameLink(g[2])+'</td></tr>').join("");
   const N=S.night[i];
   const st=N.table.map(r=>'<tr><td class="n">'+N.place[r[0]]+'</td><td>'+nameLink(r[0])+clubBadge(r[0])+'</td><td class="n">'+r[1]+' / '+r[2]+'</td></tr>').join("");
   const T=F.batch?null:tableAfter(i);
@@ -4277,12 +4290,15 @@ function showNight(d){
     (F.firsts.length&&!F.batch?'<div class="welcome"><b>👋 Welcome</b><span>First night at the club for '+F.firsts.map(nameLink).join(", ")+'. Come back soon.</span></div>':'')+
     (tiles.length?'<dl class="lg nlg">'+tiles.join("")+'</dl>':'')+
     (chips.length&&!F.batch?'<div class="nchips">'+chips.map(c=>'<span>'+c+'</span>').join("")+'</div>':'')+
-    '<div class="gwrap">'+cups+
-    '<div class="card"><h3>Standings on the night</h3><table class="ntab">'+st+'</table></div>'+
-    '<div class="card"><h3>Results · White first</h3><table class="ntab">'+res+'</table></div></div>'+
+    cups+
+    '<div class="gwrap"><div class="card"><h3>Standings on the night</h3><table class="ntab">'+st+'</table></div>'+
+    '<div class="card"><h3>Results · White first</h3><table class="ntab">'+res+'</table>'+
+      (F.games.length>10?'<button class="achmore" id="resMore">Show all '+F.games.length+' results</button>':'')+'</div></div>'+
     tbl+
     (F.no!=null?'<p class="nfoot"><a class="howbtn" href="#/awards/'+F.no+'">'+seasonName(F.no)+' awards &rsaquo;</a></p>':'');
   $("#nbk").onclick=()=>go(boardHash||"");
+  { const m=$("#resMore"); if(m) m.onclick=function(){ const rows=document.querySelectorAll("#nv tr.more"), open=rows[0].classList.contains("hid");
+      rows.forEach(r=>r.classList.toggle("hid",!open)); this.textContent=open?"Show fewer":"Show all "+F.games.length+" results" } }
   $("#nPick").onchange=function(){ location.hash="#/night/"+this.value };
   $("#nShare").onclick=function(){ const url=location.href, b=this;
     const done=()=>{ b.textContent="Link copied"; setTimeout(()=>{ b.textContent="Share" },1800) };
