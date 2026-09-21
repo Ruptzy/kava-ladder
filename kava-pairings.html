@@ -4448,7 +4448,7 @@ function showAwards(no){
     '<div class="nhead"><div class="nt"><small>'+(done?'Final':'So far · '+S.dates.length+' night'+(S.dates.length===1?'':'s')+' in')+'</small><h1>'+seasonName(no)+' <span>awards</span></h1>'+
     '<p class="nsum">'+(done?'How the season went, beyond the top of the table.':'Still being decided. The section titles are settled on the last night.')+'</p></div>'+
     '<div class="nnav"><select class="seasel" id="aPick" aria-label="Pick a season">'+list.map(n=>'<option value="'+n+'"'+(n===no?' selected':'')+'>'+seasonName(n)+'</option>').join("")+'</select></div></div>'+
-    (A.length?'<div class="awg">'+A.map(a=>'<div class="awc aw-'+a.k+'">'+artOr("award-"+a.k,a.ic,"awi")+
+    (A.length?'<div class="awg">'+A.map(a=>'<div class="awc aw-'+a.k+'">'+artOr(a.k==="regular"&&!hasArt("award-regular")&&hasArt("regular")?"regular":"award-"+a.k,a.ic,"awi")+
       '<div class="awt"><h4>'+a.t+'</h4><p>'+who(a)+'</p>'+(a.line?'<small>'+(a.night?'<a href="#/night/'+a.night+'">'+a.line+'</a>':a.line)+'</small>':'')+'</div></div>').join("")+'</div>'
       :'<p class="l">Nothing to award yet.</p>');
   $("#abk").onclick=()=>go(boardHash||"");
