@@ -5368,6 +5368,9 @@ async function save(){
 function fileNight(){
   const rec=nightRecord();
   if(!rec.games.length) return null;
+  // the build may have published this night already and the phone loaded it
+  // back on open: filing it again would count tonight twice
+  if(HISTORY.some(h=>h&&h.date===rec.date)) return rec;
   HISTORY.push(rec);
   const P=runRatings(HISTORY,{...SEEDS});
   R.forEach(p=>{ if(P[p.n]) p.r=Math.round(P[p.n].r) });   // ratings move on the roster
@@ -6136,7 +6139,7 @@ function seasonOf(date){
 function seasonBounds(){
   const ds=HISTORY.map(n=>n.date);
   const s=seasonOf(ds[ds.length-1]);
-  const inSeason=ds.filter(d=>d>=s.from&&d<=s.to);
+  const inSeason=[...new Set(ds.filter(d=>d>=s.from&&d<=s.to))].sort();
   return {no:s.no, from:inSeason[0], to:inSeason[inSeason.length-1],
           runsFrom:s.from, runsTo:s.to, nights:inSeason.length};
 }
