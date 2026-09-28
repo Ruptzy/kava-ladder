@@ -40,6 +40,7 @@ def main():
     dates = {h["date"] for h in history}
     games_seen = {json.dumps(h["games"], sort_keys=True) for h in history}
     names = {p["n"] for p in roster["roster"]}
+    played = {who for h in history for g in h["games"] for who in (g[0], g[1])}
     done = []
     for f in files:
         night = json.load(io.open(os.path.join(d, f), encoding='utf-8'))
@@ -59,8 +60,12 @@ def main():
             if n not in names:
                 roster["roster"].append({"n": n, "r": int(seed or 1000), "d": q.get("d") or "", "idle": 0})
                 names.add(n); added.append('member ' + n)
-            if seed is not None and n not in seeds:
+            # a seed starts the replay, so it would re-rate the games somebody
+            # already played: only ever set one for a name with no record
+            if seed is not None and n not in seeds and n not in played:
                 seeds[n] = int(seed)
+            elif seed is not None and n in played:
+                added.append('kept %s on their record, seed ignored' % n)
         os.remove(os.path.join(d, f))
         done.append('%s: %s' % (f, ', '.join(added) or 'already on record'))
     history.sort(key=lambda h: h["date"])

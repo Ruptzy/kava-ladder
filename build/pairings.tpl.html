@@ -4888,12 +4888,28 @@ $("#pTest").onclick=async()=>{
 
 /* ---------- add a brand new player ---------- */
 let nDiv=DATA.divisions[DATA.divisions.length-1];
+/* Everybody who has ever played here, whatever became of them. Their rating
+   is on the record: a seed would start the replay again and re-rate the games
+   they have already played, which is what broke the build on 27 September. */
+const PLAYED={}; (DATA.history||[]).forEach(h=>(h.games||[]).forEach(g=>{ PLAYED[String(g[0]).toLowerCase()]=g[0]; PLAYED[String(g[1]).toLowerCase()]=g[1] }));
+const pastName=n=>PLAYED[String(n||"").trim().toLowerCase()]||null;
+let PASTR=null;
+function pastRating(n){
+  if(!PASTR){ PASTR={}; try{ const P=runRatings(HISTORY,{...SEEDS});
+    Object.keys(P).forEach(k=>{ if(P[k].n>0) PASTR[k]=Math.round(P[k].r) }) }catch(e){} }
+  return PASTR[n]!=null?PASTR[n]:null;
+}
 const suggest=d=>{const l=R.filter(p=>p.d===d);
   return l.length?Math.round(l.reduce((s,p)=>s+p.r,0)/l.length/25)*25:1000};
 function renderNew(){
   $("#nDiv").innerHTML=DATA.divisions.map(d=>
     `<button data-d="${esc(d)}" class="${d===nDiv?"sel":""}">${esc(d)}</button>`).join("");
-  $("#nHint").textContent=`Typical for ${nDiv} is about ${suggest(nDiv)}. It settles fast once they play.`;
+  const back=pastName($("#nName").value), br=back?pastRating(back):null;
+  $("#nRate").disabled=!!back;
+  if(back){
+    if(br!=null) $("#nRate").value=br;
+    $("#nHint").innerHTML=`<b>${esc(back)}</b> has played here before${br!=null?`, rating ${br}`:""}. Their record carries over, so no starting rating is set.`;
+  } else $("#nHint").textContent=`Typical for ${nDiv} is about ${suggest(nDiv)}. It settles fast once they play.`;
   $("#nSave").disabled=!$("#nName").value.trim();
 }
 $("#addNew").onclick=()=>{
@@ -4912,9 +4928,12 @@ $("#newSheet").onclick=e=>{if(e.target.id==="newSheet")$("#newSheet").classList.
 $("#nSave").onclick=()=>{
   const n=$("#nName").value.trim(); if(!n) return;
   if(R.some(p=>p.n.toLowerCase()===n.toLowerCase())){ say("Name already taken","There is already somebody on the roster with that name."); return }
-  const p={n,r:Math.max(100,Math.min(2600,+$("#nRate").value||suggest(nDiv))),d:nDiv,idle:0,id:R.length,fresh:true};
+  // somebody who has played before keeps the name and the rating on record
+  const back=pastName(n), br=back?pastRating(back):null;
+  const p={n:back||n,r:back?(br!=null?br:1000):Math.max(100,Math.min(2600,+$("#nRate").value||suggest(nDiv))),
+    d:nDiv,idle:0,id:R.length,fresh:true};
   R.push(p);byId[p.id]=p;playing.add(p.id);
-  SEEDS[p.n]=p.r;   // the replay starts them at the rating typed in, here and on the site
+  if(!back) SEEDS[p.n]=p.r;   // only a name with no record starts at a typed rating
   $("#newSheet").classList.add("hidden");filter="";$("#q").value="";
   render();
 };
