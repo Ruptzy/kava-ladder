@@ -887,6 +887,18 @@ function runRatings(history, seeds){
 /* ---- the club file ---- */
 let HISTORY=(DATA.history||[]).slice();
 const SEEDS=DATA.seeds||{};                                   // every night ever played
+/* Everybody who has ever played here, whatever became of them. Their rating
+   is on the record: a seed starts the replay again and re-rates the games they
+   have already played, which is what broke the build on 27 September. Nothing
+   may hand one of these names a starting rating. */
+const PLAYED={}; (DATA.history||[]).forEach(h=>(h.games||[]).forEach(g=>{ PLAYED[String(g[0]).toLowerCase()]=g[0]; PLAYED[String(g[1]).toLowerCase()]=g[1] }));
+const pastName=n=>PLAYED[String(n||"").trim().toLowerCase()]||null;
+let PASTR=null;
+function pastRating(n){
+  if(!PASTR){ PASTR={}; try{ const P=runRatings(HISTORY,{...SEEDS});
+    Object.keys(P).forEach(k=>{ if(P[k].n>0) PASTR[k]=Math.round(P[k].r) }) }catch(e){} }
+  return PASTR[n]!=null?PASTR[n]:null;
+}
 function clubFile(){
   const seeds={}; R.forEach(p=>{if(!p.fresh||true) seeds[p.n]=p.r});
   return {club:"KAVA Social Chess Club", format:1, updated:clubDate(),
@@ -3299,7 +3311,7 @@ function restore(o){
   (o.added||[]).forEach(a=>{ nameOf[a.pid]=a.n });
   // walk-ins the build does not know about yet
   (o.added||[]).forEach(a=>{
-    if(a.seed!=null&&SEEDS[a.n]==null) SEEDS[a.n]=a.seed;
+    if(a.seed!=null&&SEEDS[a.n]==null&&!pastName(a.n)) SEEDS[a.n]=a.seed;
     if(!R.some(p=>p.n===a.n)){ const p={n:a.n,r:a.r,d:a.d,idle:0,id:R.length,fresh:true}; R.push(p); byId[p.id]=p }
   });
   const idOf={}; R.forEach(p=>{ idOf[p.n]=p.id });
@@ -3568,6 +3580,11 @@ async function rehearse(log){
     const kind=sh.finale?"the season finale":(sh.halfway&&!halfwayDone(sh.no)?"the halfway update":"tonight's results");
     add(true,"Tonight would post "+kind,
       "season "+sh.no+", night "+sh.nights+" of about "+sh.expected);
+    const reseed=R.filter(p=>p.fresh&&pastName(p.n));
+    add(reseed.length===0,
+      reseed.length?"Somebody tonight would be re-rated":"Nobody tonight would be re-rated",
+      reseed.length?reseed.map(p=>p.n).join(", ")+" has played here before. Remove them and check them in from the list instead."
+        :"Every walk-in tonight is a new name, so no rating already on record can move.");
     if(rounds.length){
       const blob=await canvasBlob(await (sh.finale?seasonCanvas():nightCanvas()));
       add(blob.size<8*1024*1024,"The picture draws",Math.round(blob.size/1024)+"KB");
@@ -3653,12 +3670,19 @@ $("#doSubmit").onclick=async()=>{
       sayStep("saving the night");
       filed=fileNight();
       if(!filed) throw new Error("There are no finished games to save. Enter at least one result.");
+      // already published - by a build, or by a Submit that got further than it
+      // looked. Saving it again would only wait on a build nobody needs.
+      if(await nightOnRecord(filed.date)){
+        submitStage={url:siteUrl(pubCfg()), sha:null, date:filed.date, built:true};
+        filed=null;
+      }else{
       const date=filed.date;
       const sha=await withTimeout(publishNight(filed, sayStep), 60, "Saving the night");
       // from here the night is in the club record: a failure further on must not
       // take it back out of this phone, or the phone and the site would disagree
       submitStage={url:siteUrl(pubCfg()), sha, date, built:false};
       filed=null;
+      }
     }
     if(!postOnly&&submitStage&&!submitStage.built){
       await waitForBuild(submitStage.sha, sayStep, 240, submitStage.date);
@@ -3813,7 +3837,8 @@ async function publishNight(rec,status){
   // anyone added tonight joins the club, even if they only watched
   [...playing,...gone].forEach(id=>{ const p=byId[id]; if(p&&p.fresh) fresh[p.n]=p });
   const seeds={}, joined=[];
-  Object.values(fresh).forEach(p=>{ if(SEEDS[p.n]!=null) seeds[p.n]=SEEDS[p.n]; joined.push({n:p.n,d:p.d}) });
+  // last gate before it leaves the phone: a name with games keeps its record
+  Object.values(fresh).forEach(p=>{ if(SEEDS[p.n]!=null&&!pastName(p.n)) seeds[p.n]=SEEDS[p.n]; joined.push({n:p.n,d:p.d}) });
   status&&status("saving the night");
   let sha=null;
   try{ const g=await fetch(url+"?ref="+encodeURIComponent(branch),{headers:ghHeaders(c)});
@@ -4905,17 +4930,6 @@ $("#pTest").onclick=async()=>{
 
 /* ---------- add a brand new player ---------- */
 let nDiv=DATA.divisions[DATA.divisions.length-1];
-/* Everybody who has ever played here, whatever became of them. Their rating
-   is on the record: a seed would start the replay again and re-rate the games
-   they have already played, which is what broke the build on 27 September. */
-const PLAYED={}; (DATA.history||[]).forEach(h=>(h.games||[]).forEach(g=>{ PLAYED[String(g[0]).toLowerCase()]=g[0]; PLAYED[String(g[1]).toLowerCase()]=g[1] }));
-const pastName=n=>PLAYED[String(n||"").trim().toLowerCase()]||null;
-let PASTR=null;
-function pastRating(n){
-  if(!PASTR){ PASTR={}; try{ const P=runRatings(HISTORY,{...SEEDS});
-    Object.keys(P).forEach(k=>{ if(P[k].n>0) PASTR[k]=Math.round(P[k].r) }) }catch(e){} }
-  return PASTR[n]!=null?PASTR[n]:null;
-}
 const suggest=d=>{const l=R.filter(p=>p.d===d);
   return l.length?Math.round(l.reduce((s,p)=>s+p.r,0)/l.length/25)*25:1000};
 function renderNew(){
