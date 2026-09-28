@@ -20,6 +20,12 @@ def rename(old, new):
     # every game and bye
     p = os.path.join(HERE, 'history.json')
     H = json.load(io.open(p, encoding='utf-8'))
+    # who played first, read before the names change under us
+    first = {}
+    for night in H:
+        for g in night['games']:
+            for who in (g[0], g[1]):
+                first.setdefault(who, night['date'])
     hits = 0
     for night in H:
         for g in night['games']:
@@ -27,7 +33,9 @@ def rename(old, new):
                 if g[i] == old:
                     g[i] = new
                     hits += 1
-        night['byes'] = [new if b == old else b for b in night.get('byes', [])]
+        # a bye is ["Name", points] these days, a bare name in the old files
+        night['byes'] = [([new] + b[1:] if b[0] == old else b) if isinstance(b, list)
+                         else (new if b == old else b) for b in night.get('byes', [])]
     json.dump(H, io.open(p, 'w', encoding='utf-8'), separators=(',', ':'))
     touched.append('history.json (%d game slots)' % hits)
 
@@ -42,12 +50,35 @@ def rename(old, new):
     json.dump(R, io.open(p, 'w', encoding='utf-8'), indent=1)
     touched.append('roster.json (%d)' % n)
 
+    # A merge: the name being kept already has games, and they start before
+    # the old name's did. Its rating is settled by its own first night, so the
+    # old name's starting rating is dropped rather than carried over.
+    merged = new in first and old in first and first[new] < first[old]
+
     p = os.path.join(HERE, 'seeds.json')
     S = json.load(io.open(p, encoding='utf-8'))
     if old in S:
-        S[new] = S.pop(old)
+        seed = S.pop(old)
+        if merged or new in S:
+            touched.append('seeds.json (dropped the %s seed of %s: %s plays from %s)'
+                           % (old, seed, new, first.get(new)))
+        else:
+            S[new] = seed
+            touched.append('seeds.json')
         json.dump(S, io.open(p, 'w', encoding='utf-8'))
-        touched.append('seeds.json')
+
+    # the bracket each player was fixed in for a season, pinned once it is played
+    p = os.path.join(HERE, 'season_bands.json')
+    if os.path.exists(p):
+        B = json.load(io.open(p, encoding='utf-8'))
+        k = 0
+        for no in B:
+            if old in B[no]:
+                B[no].setdefault(new, B[no].pop(old))
+                k += 1
+        if k:
+            json.dump(B, io.open(p, 'w', encoding='utf-8'), indent=1)
+        touched.append('season_bands.json (%d season(s))' % k)
 
     p = os.path.join(HERE, 'divhistory.json')
     if os.path.exists(p):
