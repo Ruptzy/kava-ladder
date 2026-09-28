@@ -163,6 +163,10 @@ td.m{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-3);text-align:ri
 .done-note{text-align:center;padding:1.6rem .8rem;color:var(--ink-3);font-size:.9rem}
 
 /* settings sheet */
+.pline{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-2);padding:.12rem 0}
+.pline i{font-style:normal;color:var(--ink);font-weight:700}
+.pline.dim{color:var(--ink-3)}
+#vPast .fld{margin-bottom:.4rem}
 .sheet{position:fixed;inset:0;z-index:60;background:rgba(6,6,7,.72);display:flex;align-items:flex-end;justify-content:center}
 .sheet .card{background:var(--panel);border:1px solid var(--rule-2);border-radius:14px 14px 0 0;
   width:100%;max-width:480px;padding:1rem .9rem calc(1.4rem + env(safe-area-inset-bottom));max-height:86vh;overflow:auto}
@@ -283,6 +287,7 @@ vertical-align:-.1em;margin-right:.15rem}
   <button data-s="in" aria-selected="true">Players</button>
   <button data-s="round" aria-selected="false">Rounds</button>
   <button data-s="stand" aria-selected="false">Standings</button>
+  <button data-s="past" aria-selected="false">Nights</button>
 </nav>
 
 <div class="phone">
@@ -307,6 +312,15 @@ vertical-align:-.1em;margin-right:.15rem}
     <div id="repair"></div>
     <div class="rtools" id="rtools"></div>
     <div id="boards"></div>
+  </section>
+
+  <section id="vPast" class="hidden">
+    <h2>Past <span>nights</span></h2>
+    <p class="sub" id="psub2">Every night on the club record.</p>
+    <select class="fld" id="pPick" aria-label="Pick a night"></select>
+    <div id="pastBody"></div>
+    <button class="close" id="pPost" style="margin-top:1rem;background:var(--scarlet);color:#fff;border:none;font-weight:700;font-size:.72rem">Post this night to Discord</button>
+    <p class="hintline" id="pState" style="margin:.4rem 0 1rem"></p>
   </section>
 
   <section id="vStand" class="hidden">
@@ -579,6 +593,7 @@ function go(v){view=v;
   $("#vIn").classList.toggle("hidden",v!=="in");
   $("#vRound").classList.toggle("hidden",v!=="round");
   $("#vStand").classList.toggle("hidden",v!=="stand");
+  $("#vPast").classList.toggle("hidden",v!=="past");
   render();scrollTo({top:0,behavior:"instant"})}
 $("#steps").onclick=e=>{const b=e.target.closest("button[data-s]");if(b&&!b.disabled)go(b.dataset.s)};
 $("#q").oninput=e=>{filter=e.target.value.toLowerCase();renderRoster()};
@@ -759,9 +774,10 @@ function render(){
   /* Standings stays reachable with an empty board when a season is still owed
      its sign-off, because that is where Submit lives. */
   const owed=finaleSendable();
-  [...$("#steps").children].forEach(b=>{if(b.dataset.s!=="in")
+  [...$("#steps").children].forEach(b=>{if(b.dataset.s!=="in"&&b.dataset.s!=="past")
     b.disabled=!rounds.length&&!(owed&&b.dataset.s==="stand")});
   if(view==="in")renderRoster(); if(view==="round")renderRound(); if(view==="stand")renderStand();
+  if(view==="past")renderPast();
   syncSubmit(owed); renderBar(); queueSave();
 }
 
@@ -3900,6 +3916,122 @@ async function waitForBuild(sha,status,maxSec,date){
   throw new Error(seen?"The website was still building after four minutes."
                       :"GitHub had not started building the website after four minutes. Nothing was lost: the night is saved. Close the app, open it again and press Submit.");
 }
+/* ---------- a night from the record ----------
+   Everything below reads DATA.history, never the board, so any night the
+   club has ever played can be looked at and sent again. */
+function nightModel(date){
+  const h=(DATA.history||[]).find(n=>n.date===date); if(!h) return null;
+  const rounds=[]; let cur=[], seen={};
+  (h.games||[]).forEach(g=>{
+    if(seen[g[0]]||seen[g[1]]){ rounds.push(cur); cur=[]; seen={} }
+    cur.push(g); seen[g[0]]=1; seen[g[1]]=1;
+  });
+  if(cur.length) rounds.push(cur);
+  const byes=(h.byes||[]).map(b=>Array.isArray(b)?{n:b[0],pts:b[1]}:{n:b,pts:.5});
+  const byeAt={}, taken={};
+  byes.forEach(b=>{ for(let i=0;i<rounds.length;i++){
+    if(taken[i]||rounds[i].some(g=>g[0]===b.n||g[1]===b.n)) continue;
+    byeAt[i]=b; taken[i]=1; break } });
+  const score={}, wdl={};
+  const put=n=>{ if(score[n]==null){ score[n]=0; wdl[n]=[0,0,0] } };
+  rounds.forEach(rd=>rd.forEach(g=>{ put(g[0]); put(g[1]);
+    if(g[2]==="w"){ score[g[0]]++; wdl[g[0]][0]++; wdl[g[1]][2]++ }
+    else if(g[2]==="b"){ score[g[1]]++; wdl[g[1]][0]++; wdl[g[0]][2]++ }
+    else { score[g[0]]+=.5; score[g[1]]+=.5; wdl[g[0]][1]++; wdl[g[1]][1]++ } }));
+  byes.forEach(b=>{ put(b.n); score[b.n]+=b.pts });
+  // the brackets that night, not tonight's
+  let no=null; try{ no=seasonOf(date).no }catch(e){}
+  const pinned=(DATA.bands||{})[String(no)]||{};
+  const bandOfName=n=>pinned[n]||(R.find(p=>p.n===n)||{}).d||DATA.divisions[DATA.divisions.length-1];
+  const byDiv={};
+  Object.keys(score).forEach(n=>{ const d=bandOfName(n); (byDiv[d]=byDiv[d]||[]).push(n) });
+  const rank=n=>-(score[n]*1000)-((R.find(p=>p.n===n)||{}).r||0)/10000;
+  Object.keys(byDiv).forEach(d=>byDiv[d].sort((a,b)=>rank(a)-rank(b)));
+  const order=DATA.divisions.filter(d=>byDiv[d]).concat(Object.keys(byDiv).filter(d=>DATA.divisions.indexOf(d)<0));
+  return {date, no, rounds, byes, byeAt, score, wdl, byDiv, order,
+          players:Object.keys(score).length, games:(h.games||[]).length};
+}
+function nightHead(m){
+  const d=new Date(m.date+"T12:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  return "@everyone"+NL+"## KAVA Social Chess Club"+NL+d+"  \u00b7  "+m.rounds.length+
+    " round"+(m.rounds.length===1?"":"s")+"  \u00b7  "+m.players+" played";
+}
+function nightEmbedsFor(m){
+  return m.order.map(d=>{
+    let place=0, prev=null;
+    const lines=m.byDiv[d].map((n,i)=>{
+      const sc=m.score[n]||0;
+      if(prev===null||sc!==prev){ place=i+1; prev=sc }
+      const medal=place<=3?MEDAL[place-1]+" ":"`"+String(place).padStart(2)+".` ";
+      return medal+"**"+n+"** \u2014 "+scoreTxt(sc)+"  \u00b7  "+m.wdl[n].join("\u2013");
+    });
+    return {title:divBadge(d), color:DSC_RED, description:lines.join(NL)};
+  });
+}
+function nightBoardsText(m){
+  const out=[];
+  m.rounds.forEach((rd,i)=>{
+    out.push("Round "+(i+1));
+    rd.forEach((g,j)=>out.push("  "+(j+1)+". "+g[0]+" (W) "+
+      (g[2]==="w"?"1-0":g[2]==="b"?"0-1":g[2]==="d"?"\u00bd-\u00bd":"\u2013")+" "+g[1]));
+    if(m.byeAt[i]) out.push("  bye: "+m.byeAt[i].n);
+    out.push("");
+  });
+  return out.join(NL);
+}
+let pastPick=null;
+function renderPast(){
+  const nights=(DATA.history||[]).slice().reverse();
+  const sel=$("#pPick");
+  if(!nights.length){ sel.innerHTML=""; $("#pastBody").innerHTML='<p class="done-note">No nights on record yet.</p>';
+    $("#pPost").disabled=true; return }
+  if(!pastPick||!nights.some(n=>n.date===pastPick)) pastPick=nights[0].date;
+  sel.innerHTML=nights.map(n=>{
+    const d=new Date(n.date+"T12:00").toLocaleDateString("en-GB",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+    return '<option value="'+n.date+'"'+(n.date===pastPick?" selected":"")+">"+d+"  \u00b7  "+(n.games||[]).length+" games</option>";
+  }).join("");
+  const m=nightModel(pastPick); if(!m){ $("#pastBody").innerHTML=""; return }
+  $("#psub2").textContent=m.rounds.length+" round"+(m.rounds.length===1?"":"s")+" \u00b7 "+
+    m.players+" played \u00b7 "+m.games+" games"+(m.no?" \u00b7 season "+m.no:"");
+  const tables=m.order.map(d=>{
+    let place=0, prev=null;
+    const rows=m.byDiv[d].map((n,i)=>{
+      const sc=m.score[n]||0;
+      if(prev===null||sc!==prev){ place=i+1; prev=sc }
+      return '<tr><td class="n">'+place+'</td><td class="p">'+esc(n)+'</td><td class="s">'+scoreTxt(sc)+
+        '</td><td class="m" style="font-family:var(--f-mono);font-size:.62rem;color:var(--ink-2)">'+m.wdl[n].join("\u2013")+'</td></tr>';
+    }).join("");
+    return '<h3 style="margin:1rem 0 .3rem;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)">'+
+      esc(divBadge(d))+'</h3><table><tbody>'+rows+'</tbody></table>';
+  }).join("");
+  const boards=m.rounds.map((rd,i)=>'<b style="display:block;margin:.7rem 0 .2rem;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)">Round '+(i+1)+'</b>'+
+    rd.map((g,j)=>'<div class="pline">'+(j+1)+'. '+esc(g[0])+' <i>'+(g[2]==="w"?"1-0":g[2]==="b"?"0-1":g[2]==="d"?"\u00bd-\u00bd":"\u2013")+'</i> '+esc(g[1])+'</div>').join("")+
+    (m.byeAt[i]?'<div class="pline dim">bye: '+esc(m.byeAt[i].n)+'</div>':'')).join("");
+  $("#pastBody").innerHTML=tables+
+    '<h3 style="margin:1.2rem 0 .3rem;font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)">The boards</h3>'+boards;
+  $("#pPost").disabled=false;
+}
+$("#pPick").onchange=function(){ pastPick=this.value; $("#pState").textContent=""; renderPast() };
+$("#pPost").onclick=async function(){
+  const m=nightModel(pastPick); if(!m) return;
+  const c=dscCfg(); const st=$("#pState");
+  if(!c.hook){ st.textContent="Add the #ladder-standings webhook in settings first."; return }
+  const d=new Date(m.date+"T12:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
+  if(!await ask("Post "+d+"?","This sends that night to #ladder-standings again, with an @everyone. Delete the old messages first if it was already posted.","Post it")) return;
+  this.disabled=true; let sent=0;
+  try{
+    st.textContent="posting the leaderboard\u2026";
+    await dscSend(c.hook,nightHead(m),nightEmbedsFor(m),true); sent++;
+    const parts=dscChunks(nightBoardsText(m));
+    for(let i=0;i<parts.length;i++){ st.textContent="posting the boards, "+(i+1)+" of "+parts.length+"\u2026";
+      await dscSend(c.hook,"```"+NL+parts[i]+NL+"```"); sent++ }
+    const pc=pubCfg();
+    if(pc.owner&&pc.repo){ await dscSend(c.hook,"Every player\u2019s page, the crosstable and the club history: "+siteUrl(pc)); sent++ }
+    st.textContent="Posted "+sent+" message"+(sent===1?"":"s")+" for "+d+".";
+  }catch(e){ st.innerHTML='<span style="color:var(--loss)">Discord would not take it: '+esc(e.message||"unknown error")+'</span>' }
+  this.disabled=false;
+};
+
 /* ---------- posting the night to Discord ----------
    A webhook is one URL for one channel. It needs no bot and no server: this
    phone POSTs the text and Discord puts it in the channel. The URL is a

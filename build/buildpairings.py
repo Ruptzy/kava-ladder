@@ -80,6 +80,9 @@ DATA = {
     "roster": board,
     "dormantDays": 90,
     "history": history,
+    # the bracket each player was fixed in, season by season: a past night is
+    # shown in the brackets it was played in, not in today's
+    "bands": buildsite.pinned_bands(),
     # seeds keep every player: dropping the ones who left would change the
     # replay for everybody else. They are relabelled, not removed.
     "seeds": seeds,
