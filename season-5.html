@@ -1940,7 +1940,9 @@ var TITLES=[
  T(38,"🧩",function(p,c){return c.rd>=110&&p.games>=15},["The Enigma","Hard to Read","Still a Mystery","Unresolved","Work in Progress"],function(p,c){return "Still swinging by "+c.rd+" after "+p.games+" games - hard to pin down."}),
  T(36,"🧱",function(p,c){return c.hasNemesis},["Unfinished Business","Owes Someone","One Name Haunts Them","The Rematch Wanted","A Score to Settle"],function(p,c){return anon(p.nem[0])+" leads it "+p.nem[3]+"-"+p.nem[1]+" all time."}),
  T(34,"🔨",function(p){return p.games>=100},["The Workhorse","Plenty of Reps","In the Chair","Puts the Hours In","Always Playing"],function(p,c){return p.games+" career games and counting."}),
- T(65,"🌱",function(p){return p.games<8},["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten"],function(p,c){return "Only "+p.games+" games on the board so far."}),
+ // being new outranks everything but the top of the ladder: a first-timer
+ // should read as a first-timer, not as whatever their four games imply
+ T(98,"🌱",function(p){return p.games<8},["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten","New Face","The Debutant","Just Sat Down","First Nights","Only Getting Started"],function(p,c){return "Only "+p.games+" game"+(p.games===1?"":"s")+" on the board so far."}),
  T(30,"🏗️",function(p,c){return c.imp!=null&&c.imp>=40},["Trending Up","Finding Form","Sharpening","On the Rise","Building Something"],function(p,c){return "Up "+c.imp+" points over the last three months."}),
  T(28,"🌊",function(p,c){return c.imp!=null&&c.imp<=-80},["Due a Bounce","Between Gears","Rebuilding","Storm to Ride Out","Better Days Coming"],function(p,c){return "Down "+Math.abs(c.imp)+" over three months - it comes back."}),
  T(26,"🕳️",function(p,c){return c.slips>=6},["Off-Days Specialist","Trap Door","The Occasional Wobble","Loses the Winnable","Keeps It Interesting"],function(p,c){return "Has dropped "+c.slips+" games to players well below them."}),
