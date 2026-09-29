@@ -1954,7 +1954,7 @@ function sc(p){return p.rec[0]+p.rec[1]/2}
 function wr(p){return p.games?Math.round(sc(p)/p.games*100):0}
 function cpct(a){var g=a[0]+a[1]+a[2];return g?Math.round((a[0]+a[1]/2)/g*100):0}
 function hashName(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return h>>>0}
-function T(w,ic,test,names,why){return {w:w,ic:ic,test:test,names:names,why:why}}
+function T(w,ic,test,names,why,share){return {w:w,ic:ic,test:test,names:names,why:why,share:!!share}}
 /* Titles are career-wide: the test gets the whole-career player, so "longest
    winning run" and "games played" mean what they say. The bars are set from
    the club's own career spread, not a season's - at career scale a season's
@@ -1995,14 +1995,14 @@ var TITLES=[
  T(34,"🔨",function(p){return p.games>=100},["The Workhorse","Plenty of Reps","In the Chair","Puts the Hours In","Always Playing"],function(p,c){return p.games+" career games and counting."}),
  // being new outranks everything but the top of the ladder: a first-timer
  // should read as a first-timer, not as whatever their four games imply
- T(98,"🌱",function(p){return p.games<8},["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten","New Face","The Debutant","Just Sat Down","First Nights","Only Getting Started"],function(p,c){return "Only "+p.games+" game"+(p.games===1?"":"s")+" on the board so far."}),
+ T(98,"🌱",function(p){return p.games<8},["The Newcomer","Fresh Blood","Just Arrived","Ink Still Wet","Unwritten","New Face","The Debutant","Just Sat Down","First Nights","Only Getting Started"],function(p,c){return "Only "+p.games+" game"+(p.games===1?"":"s")+" on the board so far."},true),
  T(30,"🏗️",function(p,c){return c.imp!=null&&c.imp>=40},["Trending Up","Finding Form","Sharpening","On the Rise","Building Something"],function(p,c){return "Up "+c.imp+" points over the last three months."}),
  T(28,"🌊",function(p,c){return c.imp!=null&&c.imp<=-80},["Due a Bounce","Between Gears","Rebuilding","Storm to Ride Out","Better Days Coming"],function(p,c){return "Down "+Math.abs(c.imp)+" over three months - it comes back."}),
  T(26,"🕳️",function(p,c){return c.slips>=6},["Off-Days Specialist","Trap Door","The Occasional Wobble","Loses the Winnable","Keeps It Interesting"],function(p,c){return "Has dropped "+c.slips+" games to players well below them."}),
  T(24,"👥",function(p,c){return c.topRival>=25},["Small Circle","Same Faces","Closed Shop","Familiar Foes","The Usual Suspects"],function(p,c){return "Has played one opponent "+c.topRival+" times."}),
  T(22,"🌧️",function(p,c){return c.last5loss},["Rough Patch","Heads Down","Grinding Through","Turning a Corner","Fortunes Will Turn"],function(p,c){return "Last five games did not go their way."}),
  T(20,"⏳",function(p,c){return p.games>=30&&p.peak&&c.now<p.peak[0]-120},["Chasing the Peak","Was Higher Once","Road Back","Remembers Better Days","The Long Climb"],function(p,c){return "Career high was "+p.peak[0]+", currently "+c.now+"."}),
- T(10,"♟️",function(){return true},["The Regular","Club Stalwart","Board Warrior","One of the Crew","Always Game"],function(p,c){return p.games+" games across "+p.cons+" nights."})
+ T(10,"♟️",function(){return true},["The Regular","Club Stalwart","Board Warrior","One of the Crew","Always Game","Sunday Regular","Takes a Seat","Part of the Room","Turns Up","Plays the Game","Keeps It Going","Here for It","On the Books","In the Mix","Good for a Game"],function(p,c){return p.games+" games across "+p.cons+" nights."},true)
 ];
 /* The rise over the last three months, from the full career history: the
    season's own history is at most three months long, so measuring this inside
@@ -2051,12 +2051,40 @@ function titleCtx(p,live){
     returner:p.played&&gapBefore>=3,
     last5win:last5.length===5&&last5.indexOf("L")<0&&last5.indexOf("D")<0, last5loss:last5.length===5&&last5.indexOf("W")<0};
 }
+/* A title belongs to one player. They are handed out in rating order: the
+   highest-rated player takes the best title they qualify for, the next takes
+   the best one left. Only the newcomer title and the plain fallback are
+   shared - and a shared group hands each holder a different name. */
+var TITLE_MAP=null;
+function titleOne(live,taken,used){
+  var p=achP(live), c=titleCtx(p,live), fit=[];
+  for(var i=0;i<TITLES.length;i++){ var t=TITLES[i];
+    try{ if(t.test(p,c)) fit.push(t) }catch(e){} }
+  fit.sort(function(a,b){ return b.w-a.w });
+  var pick=null;
+  for(var k=0;k<fit.length;k++){ var g=fit[k];
+    if(g.share||!taken||!taken[g.w+"|"+g.names[0]]){ pick=g; break } }
+  if(!pick) pick=TITLES[TITLES.length-1];
+  var key=pick.w+"|"+pick.names[0];
+  if(taken&&!pick.share) taken[key]=1;
+  var idx=hashName(live.n)%pick.names.length;
+  if(used){ var seen=used[key]||(used[key]={});
+    for(var s=0;s<pick.names.length&&seen[idx];s++) idx=(idx+1)%pick.names.length;
+    seen[idx]=1 }
+  var why=""; try{ why=pick.why(p,c) }catch(e){ why="" }
+  return {name:pick.names[idx], ic:pick.ic, why:why};
+}
+function titleAssign(){
+  if(TITLE_MAP) return TITLE_MAP;
+  var taken={}, used={}, out={};
+  P.filter(function(x){ return !x.gh })
+   .slice().sort(function(a,b){ return b.r-a.r||a.n.localeCompare(b.n) })
+   .forEach(function(x){ out[x.n]=titleOne(x,taken,used) });
+  return TITLE_MAP=out;
+}
 function titleFor(live){
-  var p=achP(live), c=titleCtx(p,live), best=null;
-  for(var i=0;i<TITLES.length;i++){ var t=TITLES[i]; try{ if(t.test(p,c)&&(!best||t.w>best.w)) best=t }catch(e){} }
-  if(!best) best=TITLES[TITLES.length-1];
-  var idx=hashName(live.n)%best.names.length, why=""; try{ why=best.why(p,c) }catch(e){ why="" }
-  return {name:best.names[idx], ic:best.ic, why:why};
+  var m=titleAssign();
+  return m[live.n]||titleOne(live,null,null);
 }
 
 /* ---------- achievements ----------
