@@ -3913,6 +3913,49 @@ async function waitForBuild(sha,status,maxSec,date){
   throw new Error(seen?"The website was still building after four minutes."
                       :"GitHub had not started building the website after four minutes. Nothing was lost: the night is saved. Close the app, open it again and press Submit.");
 }
+/* ---------- the ladder's titles ----------
+   The site gives every player a title from their whole career. It is worked
+   out in the page, so the phone asks the page for it - a hidden frame of the
+   published ladder, same address as this tool - rather than working it out a
+   second way that could disagree. Kept on the phone afterwards, because the
+   bar has no signal some nights. */
+const TITLE_KEY="kava.titles";
+let TITLES_BY_NAME=(function(){ try{ return JSON.parse(localStorage.getItem(TITLE_KEY)||"{}").map||{} }catch(e){ return {} } })();
+const titleOf=n=>TITLES_BY_NAME[n]||"";
+function refreshTitles(){
+  return new Promise(res=>{
+    let done=false, f=null;
+    const finish=ok=>{ if(done) return; done=true; if(f&&f.parentNode) f.remove(); res(ok) };
+    try{
+      f=document.createElement("iframe");
+      f.style.cssText="position:fixed;left:-9999px;top:-9999px;width:900px;height:700px;border:0";
+      f.src="./index.html?titles=1";
+      f.onload=()=>setTimeout(()=>{
+        try{
+          const rows=f.contentWindow.eval("P.filter(p=>!p.gh).map(p=>[p.n,titleFor(p).name])");
+          const map={}; (rows||[]).forEach(r=>{ if(r&&r[0]&&r[1]) map[r[0]]=r[1] });
+          if(Object.keys(map).length){
+            TITLES_BY_NAME=map;
+            try{ localStorage.setItem(TITLE_KEY,JSON.stringify({at:Date.now(),map})) }catch(e){}
+            finish(true); return;
+          }
+        }catch(e){}
+        finish(false);
+      },400);
+      f.onerror=()=>finish(false);
+      document.body.appendChild(f);
+      setTimeout(()=>finish(false),12000);
+    }catch(e){ finish(false) }
+  });
+}
+// once on open, quietly: a fresh title for everyone who played since last time
+setTimeout(refreshTitles,1500);
+/* A name as Discord should see it: the title in quotes, then the rating. */
+function dscName(n,rating){
+  const t=titleOf(n), nm=String(n).replace(/([*_~|])/g,"\\$1");
+  return "**"+nm+"**"+(t?"  \u201c"+t+"\u201d":"")+(rating!=null?"  "+rating:"");
+}
+
 /* ---------- a night from the record ----------
    Everything below reads DATA.history, never the board, so any night the
    club has ever played can be looked at and sent again. */
@@ -3960,7 +4003,7 @@ function nightEmbedsFor(m){
       const sc=m.score[n]||0;
       if(prev===null||sc!==prev){ place=i+1; prev=sc }
       const medal=place<=3?MEDAL[place-1]+" ":"`"+String(place).padStart(2)+".` ";
-      return medal+"**"+n+"** \u2014 "+scoreTxt(sc)+"  \u00b7  "+m.wdl[n].join("\u2013");
+      return medal+dscName(n)+" \u2014 "+scoreTxt(sc)+"  \u00b7  "+m.wdl[n].join("\u2013");
     });
     return {title:divBadge(d), color:DSC_RED, description:lines.join(NL)};
   });
@@ -4102,7 +4145,7 @@ function nightEmbeds(){
       if(prev===null||sc!==prev){ place=i+1; prev=sc }
       const medal=place<=3?MEDAL[place-1]+" ":"`"+String(place).padStart(2)+".` ";
       const left=gone.has(id)?"  *(left early)*":"";
-      return medal+"**"+byId[id].n+"** — "+scoreTxt(sc)+
+      return medal+dscName(byId[id].n)+" — "+scoreTxt(sc)+
              "  ·  "+playerNightRecord(id)+left;
     });
     return {title:divBadge(d), color:DSC_RED, description:lines.join(NL)};
@@ -4830,6 +4873,7 @@ function roundsText(){
 async function postNight(status){
   const c=dscCfg();
   if(!c.hook) throw new Error("Add the webhook in settings first.");
+  status&&status("reading the titles\u2026"); await refreshTitles();
   const pc=pubCfg();
   const d=new Date().toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"});
   const head="@everyone"+NL+"## KAVA Social Chess Club"+NL+d+"  ·  "+rounds.length+
@@ -4921,11 +4965,11 @@ function pairName(id){ return String(byId[id]?byId[id].n:"?").replace(/([*_~|])/
 function pairEmbed(i,m){
   const rd=rounds[i];
   const lines=rd.boards.map((b,j)=>
-    "`"+String(j+1).padStart(2)+"`  \u26AA **"+pairName(b.w)+"** "+byId[b.w].r+"  vs  \u26AB **"+pairName(b.b)+"** "+byId[b.b].r);
-  if(rd.bye!=null) lines.push("","Bye: **"+pairName(rd.bye)+"** \u2014 1 point");
+    "`"+String(j+1).padStart(2)+"`  \u26AA "+dscName(byId[b.w].n,byId[b.w].r)+"  vs  \u26AB "+dscName(byId[b.b].n,byId[b.b].r));
+  if(rd.bye!=null) lines.push("","Bye: "+dscName(byId[rd.bye].n)+" \u2014 1 point");
   return {title:"\u265F\uFE0F  Round "+(i+1)+(m&&m.upd?"  \u00b7  updated":""),
           color:DSC_RED, description:lines.join(NL),
-          footer:{text:"White listed first \u00b7 club ratings"+(m&&m.day?"  \u00b7  "+m.day:"")}};
+          footer:{text:"White listed first \u00b7 club ratings \u00b7 titles from the ladder"+(m&&m.day?"  \u00b7  "+m.day:"")}};
 }
 
 async function pairReq(method,url,payload){
@@ -4949,6 +4993,7 @@ async function pairReq(method,url,payload){
    re-reading the board after every request because it may have moved on. */
 async function pairPass(){
   const hook=pairHook(); if(!hook) return;
+  if(!Object.keys(TITLES_BY_NAME).length) await refreshTitles();
   const base=hookBase(hook), gen=pairGen;
   const stale=()=>gen!==pairGen;          // the board was cleared mid-request
   const quiet={parse:[]};                 // nobody's phone goes off for a pairing
