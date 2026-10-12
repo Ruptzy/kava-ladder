@@ -1,0 +1,239 @@
+{
+ "date": "2026-10-11",
+ "games": [
+  [
+   "Benji",
+   "Omar Cruz",
+   "w"
+  ],
+  [
+   "Mathew",
+   "Anton",
+   "w"
+  ],
+  [
+   "Josh",
+   "Maddie",
+   "w"
+  ],
+  [
+   "Steve",
+   "Sean M.",
+   "w"
+  ],
+  [
+   "Jenny",
+   "Vinny",
+   "w"
+  ],
+  [
+   "Sam",
+   "Harold",
+   "b"
+  ],
+  [
+   "Diego",
+   "Toska",
+   "b"
+  ],
+  [
+   "Joe",
+   "Israel",
+   "b"
+  ],
+  [
+   "Chad",
+   "Brian O",
+   "b"
+  ],
+  [
+   "Harold",
+   "Steve",
+   "w"
+  ],
+  [
+   "Toska",
+   "Benji",
+   "b"
+  ],
+  [
+   "Israel",
+   "Mathew",
+   "b"
+  ],
+  [
+   "Brian O",
+   "Josh",
+   "w"
+  ],
+  [
+   "Omar Cruz",
+   "Jenny",
+   "b"
+  ],
+  [
+   "Anton",
+   "Chad",
+   "w"
+  ],
+  [
+   "Maddie",
+   "Sam",
+   "b"
+  ],
+  [
+   "Sean M.",
+   "Diego",
+   "b"
+  ],
+  [
+   "Vinny",
+   "Joe",
+   "b"
+  ],
+  [
+   "Benji",
+   "Josh",
+   "b"
+  ],
+  [
+   "Harold",
+   "Brian O",
+   "w"
+  ],
+  [
+   "Mathew",
+   "Jenny",
+   "w"
+  ],
+  [
+   "Steve",
+   "Joe",
+   "w"
+  ],
+  [
+   "Sam",
+   "Toska",
+   "b"
+  ],
+  [
+   "Anton",
+   "Vinny",
+   "w"
+  ],
+  [
+   "Diego",
+   "Israel",
+   "b"
+  ],
+  [
+   "Omar Cruz",
+   "Sean M.",
+   "w"
+  ],
+  [
+   "Chad",
+   "Maddie",
+   "b"
+  ],
+  [
+   "Mathew",
+   "Harold",
+   "w"
+  ],
+  [
+   "Toska",
+   "Brian O",
+   "w"
+  ],
+  [
+   "Josh",
+   "Anton",
+   "w"
+  ],
+  [
+   "Israel",
+   "Benji",
+   "b"
+  ],
+  [
+   "Jenny",
+   "Steve",
+   "b"
+  ],
+  [
+   "Maddie",
+   "Omar Cruz",
+   "b"
+  ],
+  [
+   "Joe",
+   "Sean M.",
+   "w"
+  ],
+  [
+   "Benji",
+   "Mathew",
+   "w"
+  ],
+  [
+   "Harold",
+   "Josh",
+   "w"
+  ],
+  [
+   "Steve",
+   "Toska",
+   "d"
+  ],
+  [
+   "Brian O",
+   "Anton",
+   "b"
+  ],
+  [
+   "Jenny",
+   "Joe",
+   "w"
+  ],
+  [
+   "Omar Cruz",
+   "Israel",
+   "w"
+  ],
+  [
+   "Sean M.",
+   "Vinny",
+   "b"
+  ]
+ ],
+ "byes": [
+  [
+   "Vinny",
+   1
+  ],
+  [
+   "Maddie",
+   1
+  ]
+ ],
+ "seeds": {
+  "Sean M.": 775,
+  "Joe": 775,
+  "Chad": 775
+ },
+ "new": [
+  {
+   "n": "Sean M.",
+   "d": "U1000"
+  },
+  {
+   "n": "Joe",
+   "d": "U1000"
+  },
+  {
+   "n": "Chad",
+   "d": "U1000"
+  }
+ ]
+}
