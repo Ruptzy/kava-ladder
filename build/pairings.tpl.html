@@ -3924,6 +3924,8 @@ let TITLES_BY_NAME=(function(){ try{ return JSON.parse(localStorage.getItem(TITL
 /* {name:[title, emoji]}; older caches held a bare string */
 const titleOf=n=>{ const v=TITLES_BY_NAME[n]; return Array.isArray(v)?v[0]:(v||"") };
 const titleIc=n=>{ const v=TITLES_BY_NAME[n]; return Array.isArray(v)?(v[1]||""):"" };
+/* {name:[title, emoji, rarest achievement, its emoji]} since Nov 2026 */
+const achOf=n=>{ const v=TITLES_BY_NAME[n]; return Array.isArray(v)&&v[2]?[v[2],v[3]||""]:null };
 function refreshTitles(){
   return new Promise(res=>{
     let done=false, f=null;
@@ -3934,8 +3936,14 @@ function refreshTitles(){
       f.src="./index.html?titles="+Date.now();   // never a cached page: titles move as people play
       f.onload=()=>setTimeout(()=>{
         try{
-          const rows=f.contentWindow.eval("P.filter(p=>!p.gh).map(function(p){var t=titleFor(p);return [p.n,t.name,t.ic]})");
-          const map={}; (rows||[]).forEach(r=>{ if(r&&r[0]&&r[1]) map[r[0]]=[r[1],r[2]||""] });
+          // and each player's rarest achievement: the one the fewest members hold
+          const rows=f.contentWindow.eval("(function(){var M=P.filter(function(p){return !p.gh}),got={},cnt={};"+
+            "M.forEach(function(p){got[p.n]=achFor(achP(p)).filter(function(r){return r.got}).map(function(r){return r.a});"+
+            "got[p.n].forEach(function(a){cnt[a.id]=(cnt[a.id]||0)+1})});"+
+            "return M.map(function(p){var t=titleFor(p),b=null;got[p.n].forEach(function(a){"+
+            "if(!b||cnt[a.id]<cnt[b.id]||(cnt[a.id]===cnt[b.id]&&ACH.indexOf(a)>ACH.indexOf(b)))b=a});"+
+            "return [p.n,t.name,t.ic,b?b.name:'',b?b.ic:'']})})()");
+          const map={}; (rows||[]).forEach(r=>{ if(r&&r[0]&&(r[1]||r[3])) map[r[0]]=[r[1]||"",r[2]||"",r[3]||"",r[4]||""] });
           if(Object.keys(map).length){
             TITLES_BY_NAME=map;
             try{ localStorage.setItem(TITLE_KEY,JSON.stringify({at:Date.now(),map})) }catch(e){}
@@ -4966,15 +4974,17 @@ function pairName(id){ return String(byId[id]?byId[id].n:"?").replace(/([*_~|])/
 
 function pairEmbed(i,m){
   const rd=rounds[i];
-  // one block per board, a blank line between: easy to find your name on a phone
+  // one block per board, a blank line between: easy to find your name on a phone.
+  // Under each name, indented, that player's rarest achievement.
+  const who=(dot,p)=>{ const a=achOf(p.n), nm=String(p.n).replace(/([*_~|])/g,"\\$1");
+    return [dot+" **"+nm+"**"+(p.r!=null?"  \u00b7  "+p.r:"")].concat(a?["\u2003\u2003"+(a[1]?a[1]+" ":"")+"*"+a[0]+"*"]:[]) };
   const lines=[];
   rd.boards.forEach((b,j)=>{
     if(j) lines.push("");
-    lines.push("__Board "+(j+1)+"__",
-      "\u26AA "+dscName(byId[b.w].n,byId[b.w].r),
-      "\u26AB "+dscName(byId[b.b].n,byId[b.b].r));
+    lines.push.apply(lines,["**Board "+(j+1)+"**"].concat(who("\u26AA",byId[b.w]),who("\u26AB",byId[b.b])));
   });
-  if(rd.bye!=null) lines.push("","__Bye__","\u2B50 "+dscName(byId[rd.bye].n)+"  \u00b7  1 point");
+  if(rd.bye!=null){ const by=who("\u2B50",{n:byId[rd.bye].n,r:null}); by[0]+="  \u00b7  1 point";
+    lines.push.apply(lines,["","**Bye**"].concat(by)) }
   return {title:"\u265F\uFE0F  Round "+(i+1)+(m&&m.upd?"  \u00b7  updated":""),
           color:DSC_RED, description:lines.join(NL),
           footer:{text:"\u26AA White  \u26AB Black  \u00b7  club ratings"+(m&&m.day?"  \u00b7  "+m.day:"")}};
