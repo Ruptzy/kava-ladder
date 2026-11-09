@@ -35,7 +35,6 @@
   "Erick": "U1400",
   "Fernando": "U1400",
   "Frank": "over 1400",
-  "Gabe": "U1400",
   "Gavin": "U1400",
   "Haleigh": "U1000",
   "Harold": "over 1400",
@@ -90,7 +89,8 @@
   "Visitor 5": "U1000",
   "Visitor 6": "U1000",
   "Zack": "U1400",
-  "Zo": "U1400"
+  "Zo": "U1400",
+  "Gabriel": "U1400"
  },
  "9": {
   "Adele": "over 1400",
@@ -128,7 +128,6 @@
   "Erick": "U1400",
   "Fernando": "U1400",
   "Frank": "over 1400",
-  "Gabe": "U1400",
   "Gavin": "U1400",
   "Haleigh": "U1000",
   "Harold": "over 1400",
@@ -182,6 +181,7 @@
   "Visitor 5": "U1000",
   "Visitor 6": "U1000",
   "Zack": "U1400",
-  "Zo": "U1400"
+  "Zo": "U1400",
+  "Gabriel": "U1400"
  }
 }
