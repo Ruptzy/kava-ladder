@@ -1157,6 +1157,14 @@ a{color:var(--cream);text-decoration-color:rgba(255,246,232,.45);text-underline-
   .rule-note{font-size:.78rem}
   /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
   .rdv,td.nmc2 .mc.mcp{display:none!important}
+  /* and the last-five strip: it lives on the profile (Recent form), and here it pushed the row past the screen */
+  td .fs5{display:none}
+  td.gh{white-space:normal}td.gh small{display:block;margin:.15rem 0 0}
+  /* the four columns fit the screen: headings may wrap, long names truncate a little sooner */
+  #board thead th{white-space:normal;line-height:1.2}
+  #tb .nmc{max-width:7.6rem}
+  #tb .dl.f{white-space:normal;line-height:1.15;display:inline-block;max-width:3.6rem;text-align:right}
+  #tb .dl{font-size:.92rem}
   .gap{font-size:.68rem}
 }
 </style></head><body>
