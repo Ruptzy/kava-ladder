@@ -10,9 +10,9 @@ import json, os, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import buildsite as B
 
-HISTORY=B.load_history(); SEEDS=json.load(open(B.here('seeds.json')))
+HISTORY=B.load_history(); SEEDS=json.load(open(B.here('seeds.json'),encoding='utf-8'))
 for n,r in B.night_seeds().items(): SEEDS.setdefault(n,r)
-try: HIDDEN=json.load(open(B.here('hidden.json')))
+try: HIDDEN=json.load(open(B.here('hidden.json'),encoding='utf-8'))
 except Exception: HIDDEN=[]
 HISTORY,SEEDS=B.anonymise(HISTORY,SEEDS,HIDDEN)
 P=B.run(HISTORY,SEEDS)

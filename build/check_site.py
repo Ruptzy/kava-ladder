@@ -43,9 +43,9 @@ import buildsite as B
 snap_path = os.path.join(ROOT, 'build', 'ratings.snapshot.json')
 if os.path.exists(snap_path):
     snap = json.load(open(snap_path, encoding='utf-8'))
-    HISTORY = B.load_history(); SEEDS = json.load(open(B.here('seeds.json')))
+    HISTORY = B.load_history(); SEEDS = json.load(open(B.here('seeds.json'), encoding='utf-8'))
     for n, r in B.night_seeds().items(): SEEDS.setdefault(n, r)
-    try: HIDDEN = json.load(open(B.here('hidden.json')))
+    try: HIDDEN = json.load(open(B.here('hidden.json'),encoding='utf-8'))
     except Exception: HIDDEN = []
     HISTORY, SEEDS = B.anonymise(HISTORY, SEEDS, HIDDEN)
     cut = [h for h in HISTORY if h["date"] <= snap["through"]]

@@ -729,16 +729,16 @@ def archive_head(html,no):
 
 
 if __name__=="__main__":
-    HISTORY=load_history(); SEEDS=json.load(open(here('seeds.json')))
+    HISTORY=load_history(); SEEDS=json.load(open(here('seeds.json'),encoding='utf-8'))
     for n,r in night_seeds().items(): SEEDS.setdefault(n,r)
-    ARCHIVE=json.load(open(here('archive.json'))); roster=json.load(open(here('roster.json')))
+    ARCHIVE=json.load(open(here('archive.json'),encoding='utf-8')); roster=json.load(open(here('roster.json'),encoding='utf-8'))
     _have={q["n"] for q in roster["roster"]}
     roster["roster"]+=[q for q in night_roster() if q["n"] not in _have]   # walk-ins join
-    try: DIVH=json.load(open(here('divhistory.json')))['snapshots']
+    try: DIVH=json.load(open(here('divhistory.json'),encoding='utf-8'))['snapshots']
     except Exception: DIVH=[]
-    try: HIDDEN=json.load(open(here('hidden.json')))
+    try: HIDDEN=json.load(open(here('hidden.json'),encoding='utf-8'))
     except Exception: HIDDEN=[]
-    try: ARCM=json.load(open(here('archive_raw.json')))['matches']
+    try: ARCM=json.load(open(here('archive_raw.json'),encoding='utf-8'))['matches']
     except Exception: ARCM=[]
     built=datetime.date.today().isoformat()
     HISTORY,SEEDS=anonymise(HISTORY,SEEDS,HIDDEN)
