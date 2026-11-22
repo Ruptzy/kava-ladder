@@ -1033,6 +1033,16 @@ tbody tr:first-child.one td.k::before{background:var(--scarlet)}
 .rule-note{font-family:var(--label);letter-spacing:0;font-size:.8rem;color:var(--ink-2)}
 td.gh{font-family:var(--label);font-weight:600;color:var(--ink-2)}
 td.gh small{font-weight:400;color:var(--ink-3)}
+/* data viz: segments split by a 2px surface gap, rounded data ends, red left to the brand */
+.bar{border-radius:4px;background:var(--panel-2)}
+.bar i+i{box-shadow:inset 2px 0 0 var(--panel)}
+.att i{border-radius:3px;background:var(--panel-3)}.att i.on{background:#D9D0C3}
+.opp .ob{background:var(--panel-2);border-radius:3px}
+.opp .ob i.p{border-radius:0 3px 3px 0}.opp .ob i.m{border-radius:3px 0 0 3px}
+.opp .ov{font-family:var(--fm);font-weight:700;color:var(--cream);text-align:right}
+.achhead .bar i{background:linear-gradient(90deg,#B9A98F,var(--cream))}
+.strip i{border-radius:3px}
+.lgd{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--label);font-size:.8rem;color:var(--ink-2)}
 /* span.lg is a label, not the Last night grid that shares its class */
 .howbtn .lg{background:none;margin:0}
 @media(min-width:561px){.howbtn .lg{display:inline}}
@@ -1882,7 +1892,7 @@ function timelineChart(s){
   const bars=rows.map((r,i)=>{
     const h=Math.max(1.5,(H-T-B)*r[1]/mx), x=L+i*bw;
     return '<rect x="'+(x+bw*0.12)+'" y="'+(H-B-h)+'" width="'+(bw*0.76)+'" height="'+h+'" rx="1" '+
-      'fill="'+(BATCH.has(r[0])?"#3A4046":r[6]?"#FE273A":"#5B6067")+'"><title>'+fshort(r[0])+" \u00b7 "+r[1]+' games, '+r[2]+' players'+(BATCH.has(r[0])?' (a backlog entered under one date, not one night)':'')+'</title></rect>';
+      'fill="'+(BATCH.has(r[0])?"#2A2E33":r[6]?"#D9D0C3":"#5B6067")+'"><title>'+fshort(r[0])+" \u00b7 "+r[1]+' games, '+r[2]+' players'+(BATCH.has(r[0])?' (a backlog entered under one date, not one night)':'')+'</title></rect>';
   }).join("");
   const ticks=[0,Math.round(mx/2),mx].map(v=>'<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+
     '" stroke="#24282C"/><text x="'+(L-7)+'" y="'+(Y(v)+3.5)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8A8276">'+v+'</text>').join("");
@@ -1892,7 +1902,7 @@ function timelineChart(s){
   return svgWrap(ticks+bars+marks,W,H,"Games played on each club night on record")+
     '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.7rem;color:var(--ink-3)">'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#5B6067;margin-right:.3rem"></i>Seasons 1&ndash;7</span>'+
-    '<span><i style="display:inline-block;width:12px;height:9px;background:#FE273A;margin-right:.3rem"></i>Since then</span></div>'+
+    '<span><i style="display:inline-block;width:12px;height:9px;background:#D9D0C3;margin-right:.3rem"></i>Since then</span></div>'+
     '<p class="cap">Games played on each of the '+rows.length+' club nights on record. Busiest was '+
     fdate(s.busiest[0])+' with '+s.busiest[1]+' games.</p>';
 }
@@ -1906,8 +1916,8 @@ function turnoutChart(s){
     [0,Math.round(mx/2),mx].map(v=>'<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="#24282C"/>'+
       '<text x="'+(L-7)+'" y="'+(Y(v)+3.5)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8A8276">'+v+'</text>').join("")+
     (split!=null?'<line x1="'+split+'" y1="'+T+'" x2="'+split+'" y2="'+(H-B)+'" stroke="#343A40" stroke-dasharray="4 4"/>':'')+
-    '<path d="'+path+'" fill="none" stroke="#3BC79A" stroke-width="2.2" stroke-linejoin="round"/>'+
-    rows.map((r,i)=>'<circle cx="'+X(i)+'" cy="'+Y(r[2])+'" r="2.4" fill="#3BC79A"><title>'+fshort(r[0])+" \u00b7 "+r[2]+' players</title></circle>').join(""),
+    '<path d="'+path+'" fill="none" stroke="#FFF6E8" stroke-width="2" stroke-linejoin="round"/>'+
+    rows.map((r,i)=>'<circle cx="'+X(i)+'" cy="'+Y(r[2])+'" r="8" fill="transparent"><title>'+fshort(r[0])+" \u00b7 "+r[2]+' players</title></circle>').join(""),
     W,H,"Players at each club night")+
     '<p class="cap">How many people played each night. The dashed line is where the new ladder starts.</p>';
 }
@@ -2679,19 +2689,21 @@ function journey(p,rival){
     if(pts.length>1) rv='<path d="'+pts.join(" ")+'" fill="none" stroke="#8A8276" stroke-width="2" stroke-dasharray="5 4"/>';
   }
   var pk=""; if(p.peak){ var pi=h.findIndex(function(x){return DT[x[0]]===p.peak[1]});
-    if(pi>=0) pk='<circle cx="'+X(pi)+'" cy="'+Y(p.peak[0])+'" r="3.5" fill="none" stroke="#FFF6E8" stroke-width="1.5"/>'+
+    if(pi>=0) pk='<circle cx="'+X(pi)+'" cy="'+Y(p.peak[0])+'" r="5" fill="none" stroke="#E4B02F" stroke-width="1.5"/>'+
       '<text x="'+X(pi)+'" y="'+(Y(p.peak[0])-10)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#FFF6E8">peak</text>'; }
   var idx=[0,Math.floor((N-1)/3),Math.floor(2*(N-1)/3),N-1].filter(function(v,i,a){return a.indexOf(v)===i});
   return svgWrap(
     tv.map(function(v){return '<line x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'" stroke="#24282C"/><text x="'+(L-8)+'" y="'+(Y(v)+3.5)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9.5" fill="#8A8276">'+v+'</text>'}).join("")+
-    '<polygon points="'+band+'" fill="rgba(254,39,58,.13)"/>'+rv+
-    '<path d="'+path+'" fill="none" stroke="#FE273A" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"/>'+pk+
-    '<circle cx="'+X(N-1)+'" cy="'+Y(h[N-1][1])+'" r="4" fill="#FE273A" stroke="#0C0D0E" stroke-width="2"/>'+
+    '<polygon points="'+band+'" fill="rgba(255,246,232,.07)"/>'+rv+
+    '<path d="'+path+'" fill="none" stroke="#FFF6E8" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>'+pk+
+    '<circle cx="'+X(N-1)+'" cy="'+Y(h[N-1][1])+'" r="4.5" fill="#FFF6E8" stroke="#161719" stroke-width="2"/>'+
+    // a hover target on every night: the date, the rating and how sure it is
+    h.map(function(x,i){return '<circle cx="'+X(i)+'" cy="'+Y(x[1])+'" r="10" fill="transparent"><title>'+fdx(DT[x[0]])+': '+x[1]+' \u00b1'+x[2]+'</title></circle>'}).join("")+
     idx.map(function(i){return '<text x="'+X(i)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fdx(DT[h[i][0]])+'</text>'}).join(""),
     W,H,p.n+" rating across "+N+" club nights, now "+p.r)+
-    '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.7rem;color:var(--ink-3)">'+
-    '<span><i style="display:inline-block;width:14px;border-top:2.6px solid #FE273A;vertical-align:.25em;margin-right:.3rem"></i>Rating</span>'+
-    '<span><i style="display:inline-block;width:14px;height:9px;background:rgba(254,39,58,.13);vertical-align:-.1em;margin-right:.3rem"></i>Wiggle room</span>'+
+    '<div class="lgd">'+
+    '<span><i style="display:inline-block;width:14px;border-top:2px solid #FFF6E8;vertical-align:.25em;margin-right:.3rem"></i>Rating</span>'+
+    '<span><i style="display:inline-block;width:14px;height:9px;background:rgba(255,246,232,.14);vertical-align:-.1em;margin-right:.3rem"></i>Wiggle room</span>'+
     (rival?'<span><i style="display:inline-block;width:14px;border-top:2px dashed #8A8276;vertical-align:.25em;margin-right:.3rem"></i>'+esc(rival.n)+'</span>':'')+'</div>'+
     '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fdx(p.peak[1]):'')+'.</p>';
 }
@@ -2726,12 +2738,18 @@ function nightlyRecord(p){
     d.map(function(x,i){
       var x0=L+i*bw+bw*0.18, w=bw*0.64, y=Y0, out="";
       [[x.w,"#3BC79A"],[x.dr,"#5B6067"],[x.l,"#F0883E"]].forEach(function(s){ if(!s[0]) return; var hgt=s[0]*k; y-=hgt;
-        out+='<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="'+hgt+'" fill="'+s[1]+'"><title>'+fmid(x.d)+": "+x.w+"W "+x.dr+"D "+x.l+"L</title></rect>" });
+        out+='<rect x="'+x0+'" y="'+y+'" width="'+w+'" height="'+Math.max(0,hgt-2)+'" fill="'+s[1]+'"><title>'+fmid(x.d)+": "+x.w+"W "+x.dr+"D "+x.l+"L</title></rect>" });
       return out;
     }).join("")+
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fmid(x.d)+'</text>':""}).join(""),
     W,H,"Games won, drawn and lost each night")+
     '<p class="cap">Won, drawn and lost on each of the last '+d.length+' nights played. The old system kept one rating, not a night-by-night change, so this is the record instead.</p>';
+}
+/* a bar from the baseline y0, h up (negative) or down (positive): the data end
+   rounded, the baseline end square, so every bar visibly starts at zero */
+function barPath(x,y0,w,h){
+  var r=Math.min(3,Math.abs(h)/2,w/2), y1=y0+h, s=h<0?1:-1;
+  return "M"+x+","+y0+"V"+(y1+s*r)+"Q"+x+","+y1+" "+(x+r)+","+y1+"H"+(x+w-r)+"Q"+(x+w)+","+y1+" "+(x+w)+","+(y1+s*r)+"V"+y0+"Z";
 }
 function nightly(p){
   var S=dsOf(p); if(S.rated===false) return nightlyRecord(p);
@@ -2745,8 +2763,8 @@ function nightly(p){
     '<text x="'+(L-6)+'" y="'+(T+8)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">+'+Math.round(mx)+'</text>'+
     '<text x="'+(L-6)+'" y="'+(H-B+2)+'" text-anchor="end" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">-'+Math.round(mx)+'</text>'+
     d.map(function(x,i){
-      var v=x.delta, hgt=Math.max(2,Math.abs(v)*k), y=v>=0?Y0-hgt:Y0;
-      return '<rect x="'+(L+i*bw+bw*0.18)+'" y="'+y+'" width="'+(bw*0.64)+'" height="'+hgt+'" rx="1.5" fill="'+(v>0?"#3BC79A":v<0?"#F0883E":"#343A40")+'"><title>'+fshort(x.d)+": "+(v>0?"+":"")+v+" · "+x.w+"W "+x.dr+"D "+x.l+"L · "+x.pts+" pts, "+ord(x.place)+" of "+x.of+"</title></rect>";
+      var v=x.delta, hgt=Math.max(2,Math.abs(v)*k), w=Math.min(bw*0.5,26), x0=L+i*bw+(bw-w)/2;
+      return '<path d="'+barPath(x0,Y0,w,v>=0?-hgt:hgt)+'" fill="'+(v>0?"#3BC79A":v<0?"#F0883E":"#343A40")+'"><title>'+fshort(x.d)+": "+(v>0?"+":"")+v+" · "+x.w+"W "+x.dr+"D "+x.l+"L · "+x.pts+" pts, "+ord(x.place)+" of "+x.of+"</title></path>";
     }).join("")+
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fshort(x.d)+'</text>':""}).join(""),
     W,H,"Rating points won or lost each night")+
@@ -2772,10 +2790,10 @@ function bandsChart(p){
 function colourChart(p){
   var tw=p.wh[0]+p.wh[1]+p.wh[2], tb=p.bl[0]+p.bl[1]+p.bl[2], wp=cpct(p.wh), bp=cpct(p.bl);
   function block(lab,a,pc,tot){
-    return '<div style="margin-bottom:.8rem"><div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin-bottom:.3rem">'+
-      '<span>'+lab+' &middot; '+tot+' games</span><span style="color:'+(pc>=50?"var(--gain)":"var(--loss)")+';font-weight:700">'+pc+'%</span></div>'+
+    return '<div style="margin-bottom:.8rem"><div style="display:flex;justify-content:space-between;font-family:var(--label);font-size:.8rem;color:var(--ink-2);margin-bottom:.3rem">'+
+      '<span>'+lab+' &middot; '+tot+' games</span><span style="font-family:var(--fm);color:var(--cream);font-weight:700">'+pc+'%</span></div>'+
       '<div class="bar"><i class="bw" style="width:'+(tot?a[0]/tot*100:0)+'%"></i><i class="bd" style="width:'+(tot?a[1]/tot*100:0)+'%"></i><i class="bl" style="width:'+(tot?a[2]/tot*100:0)+'%"></i></div>'+
-      '<div style="font-family:var(--fm);font-size:.7rem;color:var(--ink-2);margin-top:.25rem">'+a[0]+' won &middot; '+a[1]+' drawn &middot; '+a[2]+' lost</div></div>';
+      '<div style="font-family:var(--label);font-size:.8rem;color:var(--ink-2);margin-top:.25rem">'+a[0]+' won &middot; '+a[1]+' drawn &middot; '+a[2]+' lost</div></div>';
   }
   return '<div class="wb2">'+block("As White",p.wh,wp,tw)+block("As Black",p.bl,bp,tb)+'</div><p class="cap">'+(Math.abs(wp-bp)>=10?("Clearly stronger with "+(bp>wp?"Black":"White")+"."):"About the same either way.")+'</p>';
 }
@@ -2800,7 +2818,7 @@ function opponents(p){
       '<span class="ow">'+r.w+'<i>&ndash;</i>'+r.d+'<i>&ndash;</i>'+r.l+'</span>'+
       '<span class="ob"><span class="mid"></span>'+
         (r.net>0?'<i class="p" style="width:'+w+'%"></i>':r.net<0?'<i class="m" style="width:'+w+'%"></i>':'')+'</span>'+
-      '<span class="ov" style="color:'+k+'">'+(r.net>0?"+"+r.net:r.net===0?"=":r.net)+'</span></div>';
+      '<span class="ov">'+(r.net>0?"+"+r.net:r.net===0?"=":"\u2212"+Math.abs(r.net))+'</span></div>';
   };
   var top=rows.slice(0,8), rest=rows.slice(8);
   return '<div>'+top.map(line).join("")+'</div>'+
@@ -2811,7 +2829,7 @@ function opponents(p){
 function attendance(p){
   var DT=dsOf(p).dates;
   return '<div class="att">'+DT.map(function(d,i){return '<i class="'+(p.att[i]?"on":"")+'" title="'+fmid(d)+(p.att[i]?" — there":" — missed")+'"></i>'}).join("")+'</div>'+
-   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--scarlet)">'+p.cons+'</b> of '+DT.length+'.</p>';
+   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--cream)">'+p.cons+'</b> of '+DT.length+'.</p>';
 }
 function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
