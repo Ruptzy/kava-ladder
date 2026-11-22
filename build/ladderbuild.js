@@ -1089,6 +1089,7 @@ td.gh small{font-weight:400;color:var(--ink-3)}
 /* data viz: segments split by a 2px surface gap, rounded data ends, red left to the brand */
 .bar{border-radius:4px;background:var(--panel-2)}
 .bar i+i{box-shadow:inset 2px 0 0 var(--panel)}
+.bar i.cw{background:#E9E1D3}.bar i.cb{background:#7A8088}.bar i.bd{background:#3A3F45}
 .att i{border-radius:3px;background:var(--panel-3)}.att i.on{background:#D9D0C3}
 .opp .ob{background:var(--panel-2);border-radius:3px}
 .opp .ob i.p{border-radius:0 3px 3px 0}.opp .ob i.m{border-radius:3px 0 0 3px}
@@ -1111,7 +1112,9 @@ a{color:var(--cream);text-decoration-color:rgba(255,246,232,.45);text-underline-
 .nums summary::-webkit-details-marker{display:none}
 .nums summary::before{content:"▸";color:var(--ink-3)}
 .nums[open] summary::before{content:"▾"}
-.nums table{font-size:.84rem;max-width:420px}
+.nums table{font-size:.84rem;max-width:460px}
+.nums[open]{max-height:none}
+.nums .nwrap{max-height:22rem;overflow:auto}
 .nums th,.nums td{padding:.35rem .55rem}
 .nums td.n{font-family:var(--fm);text-align:right}
 /* span.lg is a label, not the Last night grid that shares its class */
@@ -1155,6 +1158,20 @@ a{color:var(--cream);text-decoration-color:rgba(255,246,232,.45);text-underline-
   .pod{margin:.35rem 0 .5rem}
   .sh{margin:1rem 0 .5rem}
   .rule-note{font-size:.78rem}
+  /* the floor: nothing on a phone is set under 12px, and a form control under 16px makes
+     an iPhone zoom in when it is tapped. Found by an audit of every page at 320 to 430px. */
+  .wm small,.season small,.sortbtn .caret,.gap,.mv,td.gh,td.gh small,td.gh a,.setl em,.rcr .nq,.rcr .pos,.rcr .rt em,
+  .achmore,.agol b,.back,.mc,.mc b,.pnick .q,.pnick .tip b,.ptro .lb,.ptro .cap2,.chip small,.cmpsel label,.ssz span,.ssme b,
+  .upk,.upc small,.strip i,.rg .o span,td.dl2,th,.seas .n small,.trow,.trow s,.nqs,.bandrow .lb,.bandrow .vv,.fd small,
+  .ach .nm2,.ach .pg,.vsbar .side span,.vsbar .side em,.vsbar .mid em,.odds small,.cmprow .lab,.cmprow div,th.tb,.awt small,
+  .lgd,.lgd span,.cmpCard .card p,.av.s,.bh,.pill,.kset small,.ncups b,.card>p,#tb .gap,#eggToast .eggn{font-size:12px!important}
+  select,input,textarea,.seasel{font-size:16px!important}
+  .seasel{padding-top:.4rem;padding-bottom:.4rem}
+  #hintDot{min-width:44px;min-height:44px}
+  .nnav a.howbtn{min-width:44px;min-height:44px}
+  /* the title's tip opens under the whole head, so it never runs off the right edge */
+  .ph2row{position:relative}.pnick{position:static}
+  .pnick .tip{left:0;max-width:calc(100vw - 2.2rem)}
   /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
   .rdv,td.nmc2 .mc.mcp{display:none!important}
   /* and the last-five strip: it lives on the profile (Recent form), and here it pushed the row past the screen */
@@ -1165,7 +1182,21 @@ a{color:var(--cream);text-decoration-color:rgba(255,246,232,.45);text-underline-
   #tb .nmc{max-width:7.6rem}
   #tb .dl.f{white-space:normal;line-height:1.15;display:inline-block;max-width:3.6rem;text-align:right}
   #tb .dl{font-size:.92rem}
-  .gap{font-size:.68rem}
+}
+/* any touch screen, at any width - a phone on its side gets the desktop layout: form controls
+   at 16px so an iPhone does not zoom in on a tap, and every small control 44px */
+@media(pointer:coarse){
+  select,input,textarea,.seasel{font-size:16px!important}
+  #hintDot,.nnav a.howbtn{min-width:44px;min-height:44px}
+  .howbtn,.seasel,.sorts button,.sortbtn,.achmore,.back,.chip{min-height:44px}
+}
+/* the smallest phones (320 to 360px): the same four columns, a little tighter */
+@media(max-width:360px){
+  #board th,#board td{padding-left:.3rem;padding-right:.3rem}
+  #board th:first-child,#board td.k{padding-left:.5rem!important}
+  #tb .nmc{max-width:5.4rem}
+  #tb .av.s{margin-right:.25rem}
+  td .chev{display:none}
 }
 </style></head><body>
 <a class="skip" href="#ladder">Skip to the ladder</a>
@@ -2005,11 +2036,12 @@ function timelineChart(s){
     .filter((v,i,a)=>a.indexOf(v)===i)
     .map(i=>'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-9)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="9" fill="#8A8276">'+fshort(rows[i][0])+'</text>').join("");
   return svgWrap(ticks+bars+marks,W,H,"Games played on each club night on record")+
-    '<div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--fm);font-size:.7rem;color:var(--ink-3)">'+
+    '<div class="lgd">'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#5B6067;margin-right:.3rem"></i>Seasons 1&ndash;7</span>'+
     '<span><i style="display:inline-block;width:12px;height:9px;background:#D9D0C3;margin-right:.3rem"></i>Since then</span></div>'+
     '<p class="cap">Games played on each of the '+rows.length+' club nights on record. Busiest was '+
-    fdate(s.busiest[0])+' with '+s.busiest[1]+' games.</p>';
+    fdate(s.busiest[0])+' with '+s.busiest[1]+' games.</p>'+
+    numsTable(["Night","Games","Players"],rows.slice().reverse().map(r=>[fmid(r[0])+(BATCH.has(r[0])?" (backlog)":""),r[1],BATCH.has(r[0])?"\u2014":r[2]]));
 }
 function turnoutChart(s){
   const rows=s.rows, W=880,H=170,L=40,R=14,T=14,B=32;
@@ -2024,15 +2056,17 @@ function turnoutChart(s){
     '<path d="'+path+'" fill="none" stroke="#FFF6E8" stroke-width="2" stroke-linejoin="round"/>'+
     rows.map((r,i)=>'<circle cx="'+X(i)+'" cy="'+Y(r[2])+'" r="8" fill="transparent"><title>'+fshort(r[0])+" \u00b7 "+r[2]+' players</title></circle>').join(""),
     W,H,"Players at each club night")+
-    '<p class="cap">How many people played each night. The dashed line is where the new ladder starts.</p>';
+    '<p class="cap">How many people played each night. The dashed line is where the new ladder starts.</p>'+
+    numsTable(["Night","Players"],rows.slice().reverse().map(r=>[fmid(r[0]),r[2]]));
 }
 function colourChart2(s){
   function bar(label,w,d,b){
     const g=w+d+b||1;
-    return '<div style="margin-bottom:.85rem"><div style="display:flex;justify-content:space-between;font-family:var(--fm);font-size:.7rem;color:var(--ink-3);margin-bottom:.3rem">'+
+    return '<div style="margin-bottom:.85rem"><div style="display:flex;justify-content:space-between;font-family:var(--label);font-size:.8rem;color:var(--ink-2);margin-bottom:.3rem">'+
       '<span>'+label+'</span><span>'+g+' games</span></div>'+
-      '<div class="bar"><i class="bw" style="width:'+(w/g*100)+'%"></i><i class="bd" style="width:'+(d/g*100)+'%"></i><i class="bl" style="width:'+(b/g*100)+'%"></i></div>'+
-      '<div style="font-family:var(--fm);font-size:.7rem;color:var(--ink-2);margin-top:.25rem">'+
+      // which side won, not whether you won: White in cream, Black in grey (green and orange mean won and lost)
+      '<div class="bar"><i class="cw" style="width:'+(w/g*100)+'%"></i><i class="bd" style="width:'+(d/g*100)+'%"></i><i class="cb" style="width:'+(b/g*100)+'%"></i></div>'+
+      '<div style="font-family:var(--label);font-size:.8rem;color:var(--ink-2);margin-top:.25rem">'+
       Math.round(w/g*100)+'% White &middot; '+Math.round(d/g*100)+'% drawn &middot; '+Math.round(b/g*100)+'% Black</div></div>';
   }
   const o=s.old.reduce((a,r)=>[a[0]+r[3],a[1]+r[4],a[2]+r[5]],[0,0,0]);
@@ -2040,7 +2074,10 @@ function colourChart2(s){
   return (s.old.length?bar("Seasons 1&ndash;7",o[0],o[1],o[2]):'')+
     (s.now.length?bar("Since then",n[0],n[1],n[2]):'')+
     bar("All time",s.w,s.d,s.b)+
-    '<p class="cap">Who wins with which colour, across every recorded game.</p>';
+    '<p class="cap">Who wins with which colour, across every recorded game.</p>'+
+    numsTable(["","White wins","Draws","Black wins","Games"],
+      [s.old.length?["Seasons 1\u20137",o[0],o[1],o[2],o[0]+o[1]+o[2]]:null, s.now.length?["Since then",n[0],n[1],n[2],n[0]+n[1]+n[2]]:null,
+       ["All time",s.w,s.d,s.b,s.w+s.d+s.b]].filter(Boolean));
 }
 function drawClub(){
   if(!document.getElementById("clubKpis")) return;
@@ -2811,7 +2848,9 @@ function journey(p,rival){
     '<span><i style="display:inline-block;width:14px;height:9px;background:rgba(255,246,232,.14);vertical-align:-.1em;margin-right:.3rem"></i>Wiggle room</span>'+
     (rival?'<span><i style="display:inline-block;width:14px;border-top:2px dashed #8A8276;vertical-align:.25em;margin-right:.3rem"></i>'+esc(rival.n)+'</span>':'')+'</div>'+
     '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fdx(p.peak[1]):'')+'.</p>'+
-    numsTable(["Night","Rating","\u00b1"],h.slice().reverse().map(function(x){return [fdx(DT[x[0]]),x[1],x[2]]}));
+    (function(){ var rm={}; if(rival&&rival.hist) rival.hist.forEach(function(x){rm[x[0]]=x[1]});
+      return numsTable(["Night","Rating","\u00b1"].concat(rival?[rival.n]:[]),h.slice().reverse().map(function(x){
+        return [fdx(DT[x[0]]),x[1],x[2]].concat(rival?[rm[x[0]]!=null?rm[x[0]]:"\u2014"]:[]) })) })();
 }
 /* the night that looks like a refutation of the whole rating system: won more
    than you lost, still went down. There is a deeper motif, and it is who you
@@ -2849,13 +2888,14 @@ function nightlyRecord(p){
     }).join("")+
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fmid(x.d)+'</text>':""}).join(""),
     W,H,"Games won, drawn and lost each night")+
-    '<p class="cap">Won, drawn and lost on each of the last '+d.length+' nights played. The old system kept one rating, not a night-by-night change, so this is the record instead.</p>';
+    '<p class="cap">Won, drawn and lost on each of the last '+d.length+' nights played. The old system kept one rating, not a night-by-night change, so this is the record instead.</p>'+
+    numsTable(["Night","Won","Drawn","Lost"],d.slice().reverse().map(function(x){return [fmid(x.d),x.w,x.dr,x.l]}));
 }
 /* every chart's numbers, one tap away: a table for anyone who would rather read than look */
 function numsTable(head,rows){
   if(!rows.length) return "";
-  return '<details class="nums"><summary>See the numbers</summary><table><thead><tr>'+head.map(function(h,i){return '<th'+(i?' class="r"':'')+'>'+h+'</th>'}).join("")+
-    '</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td'+(i?' class="n"':'')+'>'+esc(String(c))+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></details>';
+  return '<details class="nums"><summary>See the numbers</summary><div class="nwrap"><table><thead><tr>'+head.map(function(h,i){return '<th'+(i?' class="r"':'')+'>'+h+'</th>'}).join("")+
+    '</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td'+(i?' class="n"':'')+'>'+esc(String(c))+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></div></details>';
 }
 /* on a phone a hover title never shows, so a tap on a bar, a dot or a block shows the same words */
 (function(){
@@ -2897,13 +2937,13 @@ function nightly(p){
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fshort(x.d)+'</text>':""}).join(""),
     W,H,"Rating points won or lost each night")+
     (oddNight(p)?'<button class="bh" data-bh="'+oddNight(p).ni+'">But Harold&hellip;</button>':'')+
-    numsTable(["Night","Change","W\u2013D\u2013L","Place"],d.slice().reverse().map(function(x){return [fshort(x.d),(x.delta>0?"+":"")+x.delta,x.w+"\u2013"+x.dr+"\u2013"+x.l,(x.place?ord(x.place)+" of "+x.of:"")]}))+
-    '<p class="cap">Points gained or lost on each of the last '+d.length+' nights played'+(p.nightly.length>1?', not counting the first night while the rating was still a guess':'')+'. Tap or hover a bar for the record and where they finished that night.</p>';
+    '<p class="cap">Points gained or lost on each of the last '+d.length+' nights played'+(p.nightly.length>1?', not counting the first night while the rating was still a guess':'')+'. Tap or hover a bar for the record and where they finished that night.</p>'+
+    numsTable(["Night","Change","W\u2013D\u2013L","Place"],d.slice().reverse().map(function(x){return [fshort(x.d),(x.delta>0?"+":"")+x.delta,x.w+"\u2013"+x.dr+"\u2013"+x.l,(x.place?ord(x.place)+" of "+x.of:"")]}));
 }
 function formStrip(p){
   var f=p.form||""; if(!f) return '<p style="color:var(--ink-3)">No games yet.</p>';
   return '<div class="strip">'+f.split("").map(function(c){return '<i class="'+c+'">'+c+'</i>'}).join("")+'</div>'+
-   '<p class="cap">Last '+f.length+' games, oldest first. Longest run <b style="color:var(--gain)">'+p.streak[0]+'</b>'+(p.streak[1]>0?' &middot; on <b style="color:var(--gain)">'+p.streak[1]+'</b> right now':' &middot; not on a run')+'.</p>';
+   '<p class="cap">Last '+f.length+' games, oldest first. Longest run <b style="color:var(--cream)">'+p.streak[0]+'</b>'+(p.streak[1]>0?' &middot; on <b style="color:var(--cream)">'+p.streak[1]+'</b> right now':' &middot; not on a run')+'.</p>';
 }
 function bandsChart(p){
   if(dsOf(p).rated===false) return '<p style="color:var(--ink-3)">No ratings on record for the old system.</p>';
@@ -2958,7 +2998,8 @@ function opponents(p){
 function attendance(p){
   var DT=dsOf(p).dates;
   return '<div class="att">'+DT.map(function(d,i){return '<i class="'+(p.att[i]?"on":"")+'" title="'+fmid(d)+(p.att[i]?" — there":" — missed")+'"></i>'}).join("")+'</div>'+
-   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--cream)">'+p.cons+'</b> of '+DT.length+'.</p>';
+   '<p class="cap">One block per club night, oldest first. There for <b style="color:var(--cream)">'+p.cons+'</b> of '+DT.length+'.</p>'+
+   numsTable(["Night",""],DT.map(function(d,i){return [fmid(d),p.att[i]?"There":"Missed"]}).reverse());
 }
 function recentGames(p){
   if(!p.recent.length) return '<p style="color:var(--ink-3)">No games yet.</p>';
