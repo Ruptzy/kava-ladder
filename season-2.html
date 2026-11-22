@@ -1043,6 +1043,24 @@ td.gh small{font-weight:400;color:var(--ink-3)}
 .achhead .bar i{background:linear-gradient(90deg,#B9A98F,var(--cream))}
 .strip i{border-radius:3px}
 .lgd{display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;font-family:var(--label);font-size:.8rem;color:var(--ink-2)}
+/* part three: one text face on every phone, the last coloured words, readable charts */
+:root{--fb:"Archivo",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:var(--cream);text-decoration-color:rgba(255,246,232,.45);text-underline-offset:2px}
+#seasonNote a{color:var(--cream)}
+.upd.fresh b.d,.upd b.d{color:var(--cream)}
+#vtip{position:fixed;z-index:60;padding:.45rem .65rem;border-radius:8px;background:var(--panel-3);border:1px solid var(--rule-2);
+  color:var(--cream);font-family:var(--label);font-size:.82rem;line-height:1.35;pointer-events:none;opacity:0;transition:opacity .12s;max-width:260px}
+#vtip.on{opacity:1}
+.nums{margin-top:.4rem}
+#graphs2.folded{display:none}
+#pvMore{display:block;width:100%;margin:.2rem 0 .8rem}#pvMore[hidden]{display:none}
+.nums summary{cursor:pointer;color:var(--ink-2);font-family:var(--label);font-size:.82rem;font-weight:600;min-height:44px;display:flex;align-items:center;gap:.4rem;list-style:none}
+.nums summary::-webkit-details-marker{display:none}
+.nums summary::before{content:"▸";color:var(--ink-3)}
+.nums[open] summary::before{content:"▾"}
+.nums table{font-size:.84rem;max-width:420px}
+.nums th,.nums td{padding:.35rem .55rem}
+.nums td.n{font-family:var(--fm);text-align:right}
 /* span.lg is a label, not the Last night grid that shares its class */
 .howbtn .lg{background:none;margin:0}
 @media(min-width:561px){.howbtn .lg{display:inline}}
@@ -1070,6 +1088,20 @@ td.gh small{font-weight:400;color:var(--ink-3)}
   .pod{display:flex;gap:.5rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:.5rem 0 .7rem}
   .pod::-webkit-scrollbar{display:none}
   .pod .pc{flex:0 0 88%;scroll-snap-align:center}
+  /* part three on phones: the name on one line, one info line, 44px targets, the table higher */
+  .wm>b{white-space:nowrap;font-variation-settings:"wdth" 94,"wght" 900;font-size:1rem}
+  .wm>b span{display:none}
+  #wmSeason::before{content:"League · ";color:var(--scarlet);letter-spacing:.12em}
+  .upd .u1,.upd br{display:none}
+  .howbtn,.seasel,.sorts button,.sortbtn,.chip,.achmore,.back,.showaway,.xbtn{min-height:44px}
+  #firstNote button{min-width:44px;min-height:44px}
+  .srch input{min-height:44px;padding-top:.55rem;padding-bottom:.55rem}
+  .tabs.art button .n{display:none}
+  .tabs.art{padding-bottom:.5rem}
+  .pod .pc{flex-basis:80%}
+  .pod{margin:.35rem 0 .5rem}
+  .sh{margin:1rem 0 .5rem}
+  .rule-note{font-size:.78rem}
   /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
   .rdv,td.nmc2 .mc.mcp{display:none!important}
   .gap{font-size:.68rem}
@@ -1178,6 +1210,7 @@ play chess, and nobody is turned away for being new or rusty.</p>
 <div class="facts" id="facts"></div>
 <div id="upnext"></div>
 <div class="gwrap" id="graphs"></div>
+<button class="achmore" id="pvMore" hidden></button>
 <div id="graphs2"></div>
 <div id="graphs3"></div>
 </main>
@@ -1427,7 +1460,7 @@ window.addEventListener("hashchange",route);
   const today=new Date().toISOString().slice(0,10);
   const fresh=D.built&&daysBetween(D.built,today)<=2;
   $("#upd").className="upd"+(fresh?" fresh":"");
-  $("#upd").innerHTML='Updated <b class="d">'+fshort(D.built)+'</b> &middot; last night <b>'+fshort(D.date)+'</b>'+
+  $("#upd").innerHTML='<span class="u1">Updated <b class="d">'+fshort(D.built)+'</b> &middot; last night <b>'+fshort(D.date)+'</b></span>'+
     (D.next&&!D.arch?'<br>Next night <b>'+new Date(D.next+"T12:00").toLocaleDateString("en-GB",{weekday:"short"})+' '+fshort(D.next)+'</b> &middot; '+NIGHT_TIME+
       ' &middot; <a href="'+CLUB_SITE+'">'+VENUE+'</a>':'');
   { const w=$("#wmSeason"); if(w) w.innerHTML="Season <b>"+(SEASON?SEASON.no:"")+"</b>"; }
@@ -1645,7 +1678,7 @@ function draw(){
     '<button role="menuitemradio" data-s="'+s.k+'" aria-checked="'+(s.k===sortK)+'">'
     +'<span class="ic" aria-hidden="true">'+s.ic+'</span><span><b>'+s.t+'</b><small>'+s.note+'</small></span></button>').join("");
   $("#thMetric").textContent=SORT().col;
-  $("#sortNote").textContent=SORT().k==="r"?(SEASON?"Places need "+NEED+" of the "+(FINAL?SDATES.length:seasonExpected())+" nights. ":"")+"Ties on rating: more games, then the name."
+  $("#sortNote").textContent=SORT().k==="r"?(SEASON?"Places need "+NEED+" of "+(FINAL?SDATES.length:seasonExpected())+" nights. ":"")+"Ties: more games, then name."
       :(SORT().note||"");
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
@@ -2716,7 +2749,8 @@ function journey(p,rival){
     '<span><i style="display:inline-block;width:14px;border-top:2px solid #FFF6E8;vertical-align:.25em;margin-right:.3rem"></i>Rating</span>'+
     '<span><i style="display:inline-block;width:14px;height:9px;background:rgba(255,246,232,.14);vertical-align:-.1em;margin-right:.3rem"></i>Wiggle room</span>'+
     (rival?'<span><i style="display:inline-block;width:14px;border-top:2px dashed #8A8276;vertical-align:.25em;margin-right:.3rem"></i>'+esc(rival.n)+'</span>':'')+'</div>'+
-    '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fdx(p.peak[1]):'')+'.</p>';
+    '<p class="cap">Rating after each of the last '+N+' club nights. The band is how sure the number is'+(p.peak?'; peak '+p.peak[0]+' on '+fdx(p.peak[1]):'')+'.</p>'+
+    numsTable(["Night","Rating","\u00b1"],h.slice().reverse().map(function(x){return [fdx(DT[x[0]]),x[1],x[2]]}));
 }
 /* the night that looks like a refutation of the whole rating system: won more
    than you lost, still went down. There is a deeper motif, and it is who you
@@ -2756,6 +2790,28 @@ function nightlyRecord(p){
     W,H,"Games won, drawn and lost each night")+
     '<p class="cap">Won, drawn and lost on each of the last '+d.length+' nights played. The old system kept one rating, not a night-by-night change, so this is the record instead.</p>';
 }
+/* every chart's numbers, one tap away: a table for anyone who would rather read than look */
+function numsTable(head,rows){
+  if(!rows.length) return "";
+  return '<details class="nums"><summary>See the numbers</summary><table><thead><tr>'+head.map(function(h,i){return '<th'+(i?' class="r"':'')+'>'+h+'</th>'}).join("")+
+    '</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c,i){return '<td'+(i?' class="n"':'')+'>'+esc(String(c))+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></details>';
+}
+/* on a phone a hover title never shows, so a tap on a bar, a dot or a block shows the same words */
+(function(){
+  if(!(window.matchMedia&&matchMedia("(hover: none)").matches)) return;
+  const tip=document.createElement("div"); tip.id="vtip"; tip.setAttribute("role","status"); document.body.appendChild(tip);
+  const hide=()=>tip.classList.remove("on");
+  document.addEventListener("click",function(e){
+    const m=e.target.closest(".card svg rect, .card svg path, .card svg circle, .att i[title]");
+    let t=""; if(m){ const k=m.querySelector&&m.querySelector("title"); t=k?k.textContent:(m.getAttribute("title")||"") }
+    if(!t){ hide(); return }
+    tip.textContent=t; tip.classList.add("on");
+    const r=m.getBoundingClientRect();
+    tip.style.left=Math.max(12,Math.min(innerWidth-12-tip.offsetWidth,r.left+r.width/2-tip.offsetWidth/2))+"px";
+    tip.style.top=Math.max(8,r.top-tip.offsetHeight-8)+"px";
+  },true);
+  addEventListener("scroll",hide,{passive:true});
+})();
 /* a bar from the baseline y0, h up (negative) or down (positive): the data end
    rounded, the baseline end square, so every bar visibly starts at zero */
 function barPath(x,y0,w,h){
@@ -2780,7 +2836,8 @@ function nightly(p){
     d.map(function(x,i){ return (i%Math.ceil(d.length/5)===0)?'<text x="'+(L+i*bw+bw/2)+'" y="'+(H-8)+'" text-anchor="middle" font-family="JetBrains Mono,monospace" font-size="8.5" fill="#8A8276">'+fshort(x.d)+'</text>':""}).join(""),
     W,H,"Rating points won or lost each night")+
     (oddNight(p)?'<button class="bh" data-bh="'+oddNight(p).ni+'">But Harold&hellip;</button>':'')+
-    '<p class="cap">Points gained or lost on each of the last '+d.length+' nights played'+(p.nightly.length>1?', not counting the first night while the rating was still a guess':'')+'. Hover a bar for the record and where they finished that night.</p>';
+    numsTable(["Night","Change","W\u2013D\u2013L","Place"],d.slice().reverse().map(function(x){return [fshort(x.d),(x.delta>0?"+":"")+x.delta,x.w+"\u2013"+x.dr+"\u2013"+x.l,(x.place?ord(x.place)+" of "+x.of:"")]}))+
+    '<p class="cap">Points gained or lost on each of the last '+d.length+' nights played'+(p.nightly.length>1?', not counting the first night while the rating was still a guess':'')+'. Tap or hover a bar for the record and where they finished that night.</p>';
 }
 function formStrip(p){
   var f=p.form||""; if(!f) return '<p style="color:var(--ink-3)">No games yet.</p>';
@@ -3196,7 +3253,7 @@ function renderScope(p){
   $("#stand").innerHTML=cur?standStrip(p):"";
   if(!cur&&!sp.games){
     $("#kpis").innerHTML=""; $("#facts").innerHTML=""; $("#factsH").textContent="";
-    $("#graphs").innerHTML='<p class="cap" style="margin:0 0 1rem">'+esc(p.n)+' has no games in '+S.lower+'.</p>'; $("#graphs2").innerHTML="";
+    $("#graphs").innerHTML='<p class="cap" style="margin:0 0 1rem">'+esc(p.n)+' has no games in '+S.lower+'.</p>'; $("#graphs2").innerHTML=""; $("#pvMore").hidden=true;
     $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements \u00b7 whole career", achBlock(achP(p)), "gwide")+'</div>';
     return }
   $("#kpis").innerHTML=kpiHTML(sp);
@@ -3788,6 +3845,10 @@ function drawGraphs(){
     card("White and Black", colourChart(p))+
     '</div>';
   $("#graphs3").innerHTML='<div class="gwrap">'+card("Achievements"+(ERAS?" \u00b7 whole career":""), achBlock(achP(CUR)), "gwide")+'</div>';
+  // on a phone the breakdowns wait behind one button; a rival in the address opens them
+  { const m=$("#pvMore"), g=$("#graphs2"), fold=!!(window.matchMedia&&matchMedia("(max-width:640px)").matches)&&!RIVAL;
+    g.classList.toggle("folded",fold); m.hidden=!fold; m.textContent="Show more about "+p.n;
+    m.onclick=function(){ g.classList.remove("folded"); m.hidden=true } }
   // a card with nothing in it yet is a box saying so: drop it until it has something
   document.querySelectorAll("#graphs .card, #graphs2 .card, #graphs3 .card").forEach(function(c){
     var body=[...c.children].filter(function(x){ return x.tagName!=="H3" });
