@@ -1062,6 +1062,14 @@ td.gh small{font-weight:400;color:var(--ink-3)}
   .upd{font-size:.76rem}
   #firstNote{margin:0 0 .5rem;font-size:.84rem;padding:.2rem .2rem .2rem .7rem}
   #firstNote button{min-width:36px;min-height:36px}
+  /* the art stays, in one row each: the bracket tiles and the podium swipe sideways,
+     the next one peeking in so it is plain there is more */
+  .tabs.art{display:flex;flex-wrap:nowrap;gap:.45rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding-bottom:.7rem}
+  .tabs.art::-webkit-scrollbar{display:none}
+  .tabs.art button{flex:0 0 46%;scroll-snap-align:start}
+  .pod{display:flex;gap:.5rem;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:.5rem 0 .7rem}
+  .pod::-webkit-scrollbar{display:none}
+  .pod .pc{flex:0 0 88%;scroll-snap-align:center}
   /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
   .rdv,td.nmc2 .mc.mcp{display:none!important}
   .gap{font-size:.68rem}
@@ -1626,6 +1634,9 @@ function draw(){
   const rk=orderOf(rank()), pv=orderOf(prov()), gn=orderOf(gone());
   setTimeout(sortFade,0);
   [...$("#tabs").children].forEach(x=>x.setAttribute("aria-selected",x.dataset.d===div));
+  // on a phone the tiles are one sideways row: keep the picked one in view, without moving the page
+  { const T=$("#tabs"), s=T.querySelector("[aria-selected=true]");
+    if(s&&T.scrollWidth>T.clientWidth){ const l=s.offsetLeft-T.offsetLeft; if(l<T.scrollLeft||l+s.offsetWidth>T.scrollLeft+T.clientWidth) T.scrollLeft=Math.max(0,l-8) } }
   const cur=SORT();
   $("#sorts").innerHTML=SORTS.filter(s=>!s.fun).map(s=>'<button data-s="'+s.k+'" aria-pressed="'+(s.k===sortK)+'">'+s.t+'</button>').join("");
   $("#sortNow").textContent=cur.fun?cur.ic+" "+cur.t:"Just for fun";
