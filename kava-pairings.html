@@ -2048,36 +2048,6 @@ tbody tr:first-child.one td.k::before{background:var(--scarlet)}
 .rule-note{font-family:var(--label);letter-spacing:0;font-size:.8rem;color:var(--ink-2)}
 td.gh{font-family:var(--label);font-weight:600;color:var(--ink-2)}
 td.gh small{font-weight:400;color:var(--ink-3)}
-/* clean cards everywhere: the brackets are pills, the podium three plain cards,
-   the hall behind a little further back. Nothing on the board is a picture of a frame. */
-body{background:linear-gradient(rgba(12,13,14,.9),rgba(12,13,14,.94) 32%,rgba(12,13,14,.97) 62%,rgba(12,13,14,.985))}
-.tabs.art{display:flex;gap:.5rem;width:auto;margin:0;transform:none;padding:.2rem 0 .9rem;overflow-x:auto;scrollbar-width:none}
-.tabs.art::-webkit-scrollbar{display:none}
-.tabs.art .ta{display:none}
-.tabs.art button{flex:0 0 auto;opacity:1;filter:none;transform:none;min-height:40px;padding:.45rem 1rem;
-  border:1px solid var(--rule-2);border-radius:20px;background:var(--panel);display:flex;align-items:center;gap:.45rem}
-.tabs.art button:hover{transform:none;border-color:var(--ink-2)}
-.tabs.art button .lg{position:static;width:auto;height:auto;overflow:visible;clip:auto;white-space:nowrap;display:inline;background:none;margin:0;
-  font-family:var(--label);font-size:.86rem;font-weight:600;color:var(--ink-2)}
-.tabs.art button .sm{position:static;width:auto;height:auto;overflow:visible;clip:auto;display:none;white-space:nowrap;
-  font-family:var(--label);font-size:.8rem;font-weight:600;color:var(--ink-2)}
-.tabs.art button .n{margin:0;font-size:.78rem;color:var(--ink-3)}
-.tabs.art button[aria-selected=true]{background:var(--cream);border-color:var(--cream)}
-.tabs.art button[aria-selected=true] .lg,.tabs.art button[aria-selected=true] .sm,.tabs.art button[aria-selected=true] .n{color:var(--void)}
-.pod{grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:.4rem 0 1rem}
-.pc{aspect-ratio:auto;background-image:none!important;padding:.9rem 1rem;display:flex;align-items:center;gap:.85rem;
-  text-align:left;container-type:normal;border-radius:12px}
-.pc.p1{--medal:#C9A24A}.pc.p2{--medal:#9BA1AA}.pc.p3{--medal:#A0693D}
-.pc::before,.pc.p1::before,.pc.p2::before,.pc.p3::before{z-index:0;border-radius:12px;background:linear-gradient(160deg,var(--panel-2),var(--panel));
-  border:1px solid var(--rule-2);border-top:3px solid var(--medal)}
-.pc>*{position:relative;z-index:1}
-.pc .pcav{position:relative;left:auto;top:auto;transform:none;width:56px;flex:none}
-.pc .pcav .av{font-size:1.2rem}
-.pc .pcw{position:relative;left:auto;right:auto;top:auto;transform:none;min-width:0;flex:1;text-align:left}
-.pc .nm{display:block;font-size:1.2rem;padding:0;margin:0;overflow:hidden;text-overflow:ellipsis;text-shadow:none}
-.pc .rt{margin-top:.2rem;font-size:.95rem}
-.pc .rt .pcb{font-family:var(--label);font-size:.78rem;font-weight:600;letter-spacing:0;color:var(--ink-3);margin-right:.5em}
-.pc:hover::before{border-color:var(--ink-3);border-top-color:var(--medal)}
 /* span.lg is a label, not the Last night grid that shares its class */
 .howbtn .lg{background:none;margin:0}
 @media(min-width:561px){.howbtn .lg{display:inline}}
@@ -2097,20 +2067,6 @@ body{background:linear-gradient(rgba(12,13,14,.9),rgba(12,13,14,.94) 32%,rgba(12
   .upd{font-size:.76rem}
   #firstNote{margin:0 0 .5rem;font-size:.84rem;padding:.2rem .2rem .2rem .7rem}
   #firstNote button{min-width:36px;min-height:36px}
-  /* the brackets: four short words; the podium: three cards stacked inside */
-  .tabs.art{gap:.35rem;padding:.1rem 0 .6rem}
-  .tabs.art button{flex:1 0 auto;justify-content:center;padding:.4rem .7rem}
-  .tabs.art button .lg,.tabs.art button .n{display:none}
-  .tabs.art button .sm{display:inline}
-  .pod{gap:.4rem;margin:.6rem 0 .4rem}
-  .pc{flex-direction:column;align-items:center;text-align:center;padding:.6rem .3rem .55rem;gap:0}
-  .pc .pcav{width:40px}
-  .pc .pcav .av{font-size:.95rem}
-  .pc .pcw{margin-top:.3rem;width:100%;text-align:center}
-  .pc .nm{font-size:.84rem}
-  .pc .rt{margin-top:.1rem;font-size:.78rem}
-  .pc .rt .pcb{display:block;margin:0 0 .1rem;font-size:.66rem}
-  .pc .rt sub{display:none}
   /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
   .rdv,td.nmc2 .mc.mcp{display:none!important}
   .gap{font-size:.68rem}
