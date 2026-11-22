@@ -4319,12 +4319,15 @@ function seasonOf(date){
 }
 
 /* the season the last night played belongs to */
+/* one-off nights (the Halloween bracket): rated, but not season nights.
+   A function, not a const: this can run in the startup render. */
+function noCount(d){ return (DATA.nocount||[]).indexOf(d)>=0 }
 function seasonBounds(){
   const ds=HISTORY.map(n=>n.date);
   const s=seasonOf(ds[ds.length-1]);
   const inSeason=[...new Set(ds.filter(d=>d>=s.from&&d<=s.to))].sort();
   return {no:s.no, from:inSeason[0], to:inSeason[inSeason.length-1],
-          runsFrom:s.from, runsTo:s.to, nights:inSeason.length};
+          runsFrom:s.from, runsTo:s.to, nights:inSeason.filter(d=>!noCount(d)).length};
 }
 
 /* Everything the season did, per player, in one pass. */
@@ -4346,7 +4349,7 @@ function seasonStats(){
     });
     const worth=night.date>=BYE_WHOLE_FROM?1:0.5;
     (night.byes||[]).forEach(n=>{ of(n); here[n]=1; pts[n]=(pts[n]||0)+worth });
-    Object.keys(here).forEach(n=>{ of(n).nights++; of(n).pts+=pts[n]||0 });
+    Object.keys(here).forEach(n=>{ if(!noCount(night.date)) of(n).nights++; of(n).pts+=pts[n]||0 });
 
     // who took each bracket that night, ties shared, three games to qualify
     const byDiv={};

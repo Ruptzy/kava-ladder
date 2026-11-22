@@ -1179,6 +1179,9 @@ const CLUB_FROM=2021;
 /* where and when a club night is, for somebody who has only got the date */
 const NIGHT_TIME="8pm", VENUE="Kava Social, 540 13th St W", CLUB_SITE="https://kavasocialchessclub.com/";
 const RS=110, IDLE=90, UPSET=150, NAMES=D.names, DATES=D.dates, LASTI=DATES.length-1;
+/* One-off nights (the Halloween bracket): their games are rated, but they are not
+   season nights - not in the season's count, qualifying, or the Regular. */
+const NOCOUNT=new Set(D.nocount||[]), SDATES=DATES.filter(d=>!NOCOUNT.has(d));
 /* The ladder is one season. Everything before it is the vault: still in the
    ratings, because Glicko needs the whole run to know what anybody is worth,
    but off the board and counted only where a total is claimed. */
@@ -1400,7 +1403,7 @@ window.addEventListener("hashchange",route);
     const first=D.next?(D.next===now?"tonight":fshort(D.next)):"soon";
     if(tag) tag.innerHTML=arch?'<b>Final</b><small>standings</small>'
       :(over||PRESEASON)?'<b>First night</b><small>'+first+'</small>'
-      :SEASON?'<b>Night '+D.dates.length+'</b><small>of about '+seasonExpected()+'</small>':'';
+      :SEASON?'<b>Night '+SDATES.length+'</b><small>of about '+seasonExpected()+'</small>':'';
     if(note) note.innerHTML=arch
       ?'This is how '+seasonName(arch)+' finished. <a href="#/awards">Season awards</a> &middot; <a href="./">Back to the current season &rarr;</a>'
       :PRESEASON?'Season '+SEASON.no+' starts '+(D.next===now?'<b>tonight</b>':D.next?'<b>'+fd(D.next)+'</b>':'soon')+
@@ -1494,9 +1497,13 @@ const pct=(w,d,g)=>g?Math.round((w+d/2)/g*100):0;
 /* A finished season's places need half its nights (a night with a game in
    it, half rounded up - as champions() counts them in the builder). */
 const FINAL=!!D.arch||(!!SEASON&&!PRESEASON&&new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10)>=SEASON.to);
-const NEED=Math.ceil(DATES.length/2);
-const gameNights=p=>{ const s={}; p.log.forEach(l=>{ s[l.ni]=1 }); return Object.keys(s).length };
-const qualifies=p=>!FINAL||gameNights(p)>=NEED;
+const NEED=Math.ceil((FINAL?SDATES.length:seasonExpected())/2);
+const LEFT=FINAL?0:Math.max(0,seasonExpected()-SDATES.length);
+/* season nights with a game in them; ds is the dates the log's night numbers point into */
+const gameNights=(p,ds)=>{ ds=ds||DATES; const s={}; p.log.forEach(l=>{ if(!NOCOUNT.has(ds[l.ni])) s[l.ni]=1 }); return Object.keys(s).length };
+/* a finished season: made half its nights. A live one: can still make it. Anyone who
+   can't drops below the line on the ladder and out of the prize race. */
+const qualifies=p=>gameNights(p)+LEFT>=NEED;
 const NQ_NOTE="Didn\u2019t qualify";
 const pool=()=>P.filter(p=>(PRESEASON?(!p.gh&&p.ls>0):p.games>0)&&(div==="all"||p.d===div));
 const rank=()=>pool().filter(p=>!away(p)&&p.rd<=RS);
@@ -1575,7 +1582,7 @@ function row(p,i,kind,ctx){
   return '<tr data-n="'+E(p.n)+'" tabindex="0" role="button" class="'+(kind==="r"&&i<3?"one":kind==="p"?"pv":"")+(p.n===meName()?" me":"")+'">'+
    '<td class="k">'+(kind==="r"?(i+1)+(ctx.prev&&!FINAL?moveMark(p,i,ctx.prev):""):"·")+'</td>'+
    '<td class="nmc2"><span class="avw">'+av(p.n,"s")+clubBadge(p.n).replace('class="mc','class="mcp mc')+'</span><span class="nmc">'+E(p.n)+'</span>'+clubBadge(p.n)+'<span class="chev">›</span>'+
-     (kind==="nq"?'<span class="nqn" title="Played '+gameNights(p)+' of '+DATES.length+' nights. '+NEED+' were needed.">'+NQ_NOTE+'</span>':'')+'</td>'+
+     '</td>'+
    '<td class="r">'+(kind==="p"?settleCell(p):'<span class="rat">'+p.r+'</span><span class="rdv">±'+p.rd+'</span>')+(ctx.gap>0?'<span class="gap">'+ctx.gap+' behind</span>':'')+'</td>'+
    '<td class="r">'+metricCell(p)+form5(p)+'</td>'+
    '<td class="hm">'+spark(p)+'</td>'+
@@ -1596,16 +1603,19 @@ function draw(){
     '<button role="menuitemradio" data-s="'+s.k+'" aria-checked="'+(s.k===sortK)+'">'
     +'<span class="ic" aria-hidden="true">'+s.ic+'</span><span><b>'+s.t+'</b><small>'+s.note+'</small></span></button>').join("");
   $("#thMetric").textContent=SORT().col;
-  $("#sortNote").textContent=SORT().k==="r"?(FINAL?"Places need at least "+NEED+" of the "+DATES.length+" nights. Ties on rating: more games, then the name."
-      :"Ties on rating: more games played, then the name."):(SORT().note||"");
+  $("#sortNote").textContent=SORT().k==="r"?(SEASON?"Places need "+NEED+" of the "+(FINAL?SDATES.length:seasonExpected())+" nights. ":"")+"Ties on rating: more games, then the name."
+      :(SORT().note||"");
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
   $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
   const prev=prevRanks(div), byR=SORT().k==="r";
-  let place=0;
-  $("#tb").innerHTML=rk.map((p,i)=>{ if(byR&&!qualifies(p)) return row(p,0,"nq");
-      const k=byR?place++:i; return row(p,k,"r",{prev, gap:byR&&i>0?rk[i-1].r-p.r:0}) }).join("")
+  // ranked by rating: places go to those who qualify (or still can); the rest wait below a line
+  const rq=byR?rk.filter(qualifies):rk, rn=byR?rk.filter(p=>!qualifies(p)):[];
+  $("#tb").innerHTML=rq.map((p,i)=>row(p,i,"r",{prev, gap:byR&&i>0?rq[i-1].r-p.r:0})).join("")
+   +(rn.length?'<tr><td colspan="6" class="gh">\uD83D\uDEAB '+(FINAL?'Didn\u2019t qualify':'Can\u2019t qualify this season')+
+      '<small>'+(FINAL?'under '+NEED+' of the '+SDATES.length+' nights':'can\u2019t reach '+NEED+' of the '+seasonExpected()+' nights')+' \u00b7 <a href="#/rules/placing">Rules</a></small></td></tr>'+
+      rn.map(p=>row(p,0,"nq")).join(""):"")
    +(pv.length?'<tr><td colspan="6" class="gh">🌱 Still settling in<small>new numbers are a guess for the first few nights</small></td></tr>'+pv.map(p=>row(p,0,"p")).join(""):"");
   $("#tbAway").innerHTML=gn.length?'<tr><td colspan="6" class="gh">💤 Away<small>not on the board at the moment — one night brings them back</small></td></tr>'+gn.map(p=>row(p,0,"g")).join(""):"";
   // on Whole Club the top three are always the top bracket's, so that view shows
@@ -1634,8 +1644,9 @@ function prevRanks(d){
   if(DATES.length<2) return null;
   // the same table as tonight's, one night earlier: on the board (a game by
   // then), not away, settled - or everyone looks like they climbed past the
-  // people who never played this season
-  const was=[]; P.forEach(p=>{ if(p.gh||away(p)||(d!=="all"&&p.d!==d)||!p.log.some(l=>l.ni<LASTI)) return;
+  // people who never played this season. Only tonight's qualifiers, so dropping
+  // below the line moves nobody up.
+  const was=[]; P.forEach(p=>{ if(p.gh||away(p)||!qualifies(p)||(d!=="all"&&p.d!==d)||!p.log.some(l=>l.ni<LASTI)) return;
     let h=null; p.hist.forEach(x=>{ if(x[0]<LASTI) h=x }); if(h&&h[2]<=RS) was.push({n:p.n,r:h[1],g:p.log.filter(l=>l.ni<LASTI).length}) });
   const out={}; was.sort((a,b)=>b.r-a.r||b.g-a.g||a.n.localeCompare(b.n)).forEach((x,i)=>out[x.n]=i+1); return out;
 }
@@ -1668,26 +1679,26 @@ function scrollToMe(){
 const PRIZES={"over 1400":"$100 Kava Social gift card","U1400":"$75 gift card","U1000":"$50 gift card"};
 function seasonExpected(){
   if(!SEASON||!DATES.length) return 0;
-  let n=DATES.length; const d=new Date(DATES[LASTI]+"T12:00");
+  let n=SDATES.length; const d=new Date(DATES[LASTI]+"T12:00");
   for(let g=0;g<20;g++){ d.setDate(d.getDate()+14); if(d.toISOString().slice(0,10)>=SEASON.to) break; n++ }
   return n;
 }
 function drawRace(){
   const box=$("#race"); if(!box) return;
   if(D.arch||!SEASON||!DATES.length){ box.innerHTML=""; return }
-  const exp=seasonExpected(), need=Math.ceil(exp/2), played=DATES.length;
+  const exp=seasonExpected(), need=NEED, played=SDATES.length;
   const more=Math.max(0,need-played), left=Math.max(0,exp-played), PIECE=["\u2654","\u265C","\u265F"];
   const amount=d=>((PRIZES[d]||"").match(/[$][0-9]+/)||[""])[0];
   const cards=D.divisions.map((d,k)=>{
     // only settled ratings can win it, so those are the ones racing
-    const field=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p)&&p.rd<=RS).sort(byRating);
+    const field=P.filter(p=>p.games>0&&!p.gh&&p.d===d&&!away(p)&&p.rd<=RS&&qualifies(p)).sort(byRating);
     const top=field[0];
     const rows=field.slice(0,3).map((p,i)=>{
-      const ok=p.cons>=need;
+      const gn=gameNights(p), ok=gn>=need;
       return '<li'+(i?'':' class="lead"')+' data-n="'+E(p.n)+'" tabindex="0" role="button">'+
         '<span class="pos'+(i?'':' cup')+'">'+(i?i+1:'\uD83C\uDFC6')+'</span>'+
         '<span class="who">'+av(p.n,"s")+'<b>'+E(p.n)+'</b></span>'+
-        '<span class="nq'+(ok?' ok':'')+'" title="'+p.cons+' of the '+need+' nights needed to qualify">'+p.cons+'/'+need+'</span>'+
+        '<span class="nq'+(ok?' ok':'')+'" title="'+gn+' of the '+need+' nights needed to qualify">'+gn+'/'+need+'</span>'+
         '<span class="rt">'+p.r+(i?'<em>'+(top.r-p.r)+' behind</em>':'')+'</span></li>';
     }).join("");
     return '<div class="rc"><h4 class="rch"><i>'+PIECE[k]+'</i><b>'+E(longDiv(d))+'</b><span class="rcp" title="Kava Social gift card"><em>\uD83C\uDF81</em>'+amount(d)+'</span></h4>'+
@@ -1697,7 +1708,8 @@ function drawRace(){
     ? played+' of them played, so <b>'+more+' more night'+(more===1?'':'s')+'</b> and you are in the running.'
     : left>0?'<b>'+left+' night'+(left===1?'':'s')+' left.</b>':'<b>Last night of the season.</b>';
   box.innerHTML='<div class="sh"><h2>Season <span>prize race</span></h2>'+(ERAS?'<a class="howbtn shl" href="#/awards">Season awards &rsaquo;</a>':'')+'<a class="howbtn" href="#/rules">Rules</a></div>'+
-    '<p class="l">\uD83D\uDCB5 Top of your bracket wins a <b>Kava Social gift card</b>. Turn up to <b>'+need+' of the '+exp+' nights</b> to qualify. '+status+'</p>'+
+    '<p class="l">\uD83D\uDCB5 Top of your bracket wins a <b>Kava Social gift card</b>. Turn up to <b>'+need+' of the '+exp+' nights</b> to qualify. '+status+
+      (SDATES.length<DATES.length?' One-off nights don\u2019t count.':'')+'</p>'+
     '<div class="rcs">'+cards+regCard()+'</div>';
 }
 function showHistory(){
@@ -3112,9 +3124,9 @@ function scopeBar(p){
     rb.textContent=no&&SEASON&&no===SEASON.no&&!D.arch?"Season so far":"Season recap";
     rb.onclick=function(){ if(no) openRecap(p.n,no) }; }
   { const no=/^s[0-9]+$/.test(SCOPE)?+SCOPE.slice(1):(SEASON?SEASON.no:null), done=no!=null&&(isCurScope(SCOPE)?FINAL:seasonDone(no));
-    const need=Math.ceil(S.dates.length/2), gn=gameNights(sp), short=done&&sp.games>0&&gn<need;
+    const sn=S.dates.filter(d=>!NOCOUNT.has(d)).length, need=Math.ceil(sn/2), gn=gameNights(sp,S.dates), short=done&&sp.games>0&&gn<need;
     let nq=$("#scopeNq"); if(!nq){ nq=document.createElement("p"); nq.id="scopeNq"; nq.className="nqbar"; $("#scope").after(nq) }
-    nq.innerHTML=short?E(NQ_NOTE+" for "+(isCurScope(SCOPE)?SEA:S.label)+" rewards: "+gn+" of "+S.dates.length+" nights, "+need+" needed.")+' <a href="#/rules/placing">Rules</a>':"";
+    nq.innerHTML=short?E(NQ_NOTE+" for "+(isCurScope(SCOPE)?SEA:S.label)+" rewards: "+gn+" of "+sn+" nights, "+need+" needed.")+' <a href="#/rules/placing">Rules</a>':"";
     nq.hidden=!short; }
   $("#scopeNote").textContent=sp.games?(sp.games+" games \u00b7 "+sp.cons+" of "+S.dates.length+" nights"+(sp.first&&sp.last&&sp.first!==sp.last?" \u00b7 "+fmy(sp.first)+" \u2013 "+fmy(sp.last):"")):"No games in "+S.lower+".";
   bar.classList.remove("hid");
@@ -3186,9 +3198,10 @@ let REGS=null;
 function regulars(){
   if(REGS) return REGS; REGS={}; if(!ERAS) return REGS;
   const add=(no,key,n,g)=>{ if(no==null||isVis(n)) return;
+    const d=key.charAt?(key.charAt(0)==="o"?ERAS.old.dates[+key.slice(1)]:null):ERAS.dates[key];
+    if(d&&NOCOUNT.has(d)) return;   // a one-off night: not part of the season
     const s=REGS[no]=REGS[no]||{nights:{},games:{},all:{}};
     s.games[n]=(s.games[n]||0)+g;
-    const d=key.charAt?(key.charAt(0)==="o"?ERAS.old.dates[+key.slice(1)]:null):ERAS.dates[key];
     if(d&&BATCH.has(d)) return;   // a backlog date: games, not a night anyone came to
     s.all[key]=1; (s.nights[n]=s.nights[n]||{})[key]=1 };
   const OS=(ERAS.old&&ERAS.old.season)||[];
@@ -3344,7 +3357,7 @@ function nightFacts(i){
     const gap=bl.r-bw.r; if(gap>=100&&(!out.upset||gap>out.upset[2])) out.upset=[w,l,gap] });
   const top=N.table.filter(r=>r[2]>=3); out.win=top.length?top.filter(r=>r[1]===top[0][1]):[];
   if(no!=null){ const S2=scopeOf("s"+no), j=S2.dates.indexOf(d);
-    if(j>=0){ const real=S2.dates.filter(x=>!BATCH.has(x)); out.sn=real.indexOf(d)+1; out.of=real.length; const N2=S2.night[j];
+    if(j>=0){ const real=S2.dates.filter(x=>!BATCH.has(x)&&!NOCOUNT.has(x)); out.sn=real.indexOf(d)+1; out.of=real.length; const N2=S2.night[j];
       Object.keys(N2.sec).forEach(n=>{ const pl=N2.sec[n]; if(pl>3) return; const dv=N2.secDiv[n]||"all";
         (out.cups[dv]=out.cups[dv]||[]).push([pl,n]) });
       Object.keys(out.cups).forEach(dv=>out.cups[dv].sort((a,b)=>a[0]-b[0]||a[1].localeCompare(b[1]))) } }
@@ -3419,7 +3432,7 @@ function showNight(d){
       g.rows.map(x=>'<tr><td class="n">'+(x.k||"·")+(x.mv>0?'<i class="mv up">&#8593;'+x.mv+'</i>':x.mv<0?'<i class="mv dn">&#8595;'+(-x.mv)+'</i>':x.nw?'<i class="mv nw">new</i>':'')+'</td><td>'+nameLink(x.n)+(x.nq?'<span class="nqn" title="Under half the nights: no place or prize">'+NQ_NOTE+'</span>':'')+'</td><td class="n">'+(x.k||x.nq?x.r:'<span class="dim">settling</span>')+'</td></tr>').join("")+
       '</tbody></table></div>').join("")+'</div>':'';
   $("#nv").innerHTML='<button class="back" id="nbk">&larr; Back to the ladder</button>'+
-    '<div class="nhead"><div class="nt"><small>'+(F.no!=null?seasonName(F.no)+(F.sn?' · night '+F.sn+' of '+F.of:''):'Club night')+'</small>'+
+    '<div class="nhead"><div class="nt"><small>'+(F.no!=null?seasonName(F.no)+(F.sn?' · night '+F.sn+' of '+F.of:NOCOUNT.has(F.d)?' · special night':''):'Club night')+'</small>'+
       '<h1>'+wd+' '+fd(d)+'</h1><p class="nsum">'+sum.join(' · ')+'</p></div>'+
       '<div class="nnav">'+(pv?'<a class="howbtn" href="#/night/'+pv+'" aria-label="Night before">&lsaquo;</a>':'')+
       '<select class="seasel" id="nPick" aria-label="Pick a night">'+opts+'</select>'+
@@ -3480,6 +3493,8 @@ function showRules(){
       "Places go by rating on the last night, within your bracket.",
       "Your rating must be settled (\u00b1"+RS+" or less). A few nights does it.",
       "<b>Play at least half the season\u2019s nights.</b> A night counts if you played a game. Under half: no place and no prize, in any bracket.",
+      "One-off nights, like the Halloween bracket, are rated but don\u2019t count as season nights.",
+      "Once you can\u2019t reach half, you drop below the line on the ladder and out of the prize race.",
       "Ties: more games played goes first.",
       "1st in your bracket is the season\u2019s section title."])+
     sec("rewards","\uD83C\uDF81","Rewards",[
@@ -3508,8 +3523,8 @@ function awardList(no){
   if(champs.length) out.push({k:"champion",ic:"👑",t:"Section champions",rows:champs.sort((a,b)=>divOrder(a[0])-divOrder(b[0]))});
   const R=regulars()[no];
   if(R&&R.win.length) out.push({k:"regular",ic:"🪑",t:"Regular of the season",who:R.win,line:R.rows[0].k+" of "+R.total+" nights · any rating wins this"});
-  const real=S.dates.filter(d=>!BATCH.has(d)).length;
-  const ever=L.filter(p=>Object.keys(p.att).filter(x=>!BATCH.has(S.dates[+x])).length>=real&&real>=3).map(p=>p.n);
+  const real=S.dates.filter(d=>!BATCH.has(d)&&!NOCOUNT.has(d)).length;
+  const ever=L.filter(p=>Object.keys(p.att).filter(x=>!BATCH.has(S.dates[+x])&&!NOCOUNT.has(S.dates[+x])).length>=real&&real>=3).map(p=>p.n);
   // the same people as the Regular: one card says it
   if(ever.length&&!(R&&R.win.length===ever.length&&ever.every(n=>R.win.indexOf(n)>=0))) out.push({k:"ever",ic:"🏛️",t:"Ever-present",who:ever,line:"Every one of the "+real+" nights"});
   const newc=n=>{ const q=C&&C.players[n]; return !!(q&&q.first&&q.first>=first&&q.first<=last) };
@@ -3538,7 +3553,7 @@ function showAwards(no){
   const A=awardList(no), done=seasonDone(no), S=scopeOf("s"+no);
   const who=a=>a.rows?a.rows.map(r=>'<span class="awr"><em>'+E(longDiv(r[0]))+'</em>'+nameLink(r[1])+'</span>').join(""):a.who.map(nameLink).join(", ");
   $("#aw").innerHTML='<button class="back" id="abk">&larr; Back to the ladder</button>'+
-    '<div class="nhead"><div class="nt"><small>'+(done?'Final':'So far · '+S.dates.length+' night'+(S.dates.length===1?'':'s')+' in')+'</small><h1>'+seasonName(no)+' <span>awards</span></h1>'+
+    '<div class="nhead"><div class="nt"><small>'+(done?'Final':(k=>'So far · '+k+' night'+(k===1?'':'s')+' in')(S.dates.filter(d=>!NOCOUNT.has(d)).length))+'</small><h1>'+seasonName(no)+' <span>awards</span></h1>'+
     '<p class="nsum">'+(done?'How the season went, beyond the top of the table.':'Still being decided. The section titles are settled on the last night.')+'</p></div>'+
     '<div class="nnav"><select class="seasel" id="aPick" aria-label="Pick a season">'+list.map(n=>'<option value="'+n+'"'+(n===no?' selected':'')+'>'+seasonName(n)+'</option>').join("")+'</select></div></div>'+
     (A.length?'<div class="awg">'+A.map(a=>'<div class="awc aw-'+a.k+'">'+artOr(a.k==="regular"&&!hasArt("award-regular")&&hasArt("regular")?"regular":"award-"+a.k,a.ic,"awi")+
@@ -3552,8 +3567,8 @@ function showAwards(no){
 function finishIn(S,q,live){
   if(!S.rated||!q.hist.length) return null;
   // the finale's rule: nights with a game in them, at least half the season's
-  const need=Math.ceil(S.dates.length/2);
-  const nights=x=>{ const s={}; x.log.forEach(l=>{ s[l.ni]=1 }); return Object.keys(s).length };
+  const need=Math.ceil(S.dates.filter(d=>!NOCOUNT.has(d)).length/2);
+  const nights=x=>gameNights(x,S.dates);
   const band=x=>S.bandAt?S.bandAt(x.n,x.nightly.length?x.nightly[0].ni:0,x.seed):null;
   const ok=x=>x.hist.length&&x.rd<=RS&&(live||nights(x)>=need);
   const b=band(q);

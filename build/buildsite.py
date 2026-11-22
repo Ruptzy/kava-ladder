@@ -293,6 +293,11 @@ def pin_bands(no, bands):
     print('pinned season %d brackets (%d players) -> %s' % (no, len(bands), BANDS_FILE))
 
 
+def nocount_dates():
+    """One-off nights (the Halloween bracket): rated, but not season nights."""
+    try: return set(json.load(open(here('nocount_nights.json'),encoding='utf-8')).get("dates",[]))
+    except FileNotFoundError: return set()
+
 def batch_dates():
     """Old-workbook dates that hold a backlog of games, not one night's play."""
     try: return set(json.load(open(here('batch_dates.json'),encoding='utf-8')).get("dates",[]))
@@ -649,6 +654,7 @@ def build_data(HISTORY,SEEDS,ARCHIVE,roster,DIVH,HIDDEN,ARCM,built,calendar=True
     D["achart"]=ach_art()
     D["trophyart"]=trophy_art()
     D["batch"]=sorted(batch_dates())
+    D["nocount"]=sorted(nocount_dates())
     # games each player had last season: before a season's first night the board
     # is last season's players, and a rating alone cannot tell who they were -
     # the replay moves everybody's rating every night, played or not
@@ -676,11 +682,14 @@ def champions(Da):
     """Who won each bracket of a finished season, by the same rule the Discord
     finale uses: settled rating (RD <= 110), at least half the season's nights,
     highest rating in the bracket they were fixed in."""
-    names=Da["names"]; need=-(-len(Da["dates"])//2)
+    # a one-off night is not a season night: it counts toward neither side of the half
+    NC=nocount_dates(); names=Da["names"]
+    need=-(-len([d for d in Da["dates"] if d not in NC])//2)
     nights={}; games={}
     for ni,w,b,r in Da["games"]:
         for i in (w,b):
-            nights.setdefault(names[i],set()).add(ni); games[names[i]]=games.get(names[i],0)+1
+            if Da["dates"][ni] not in NC: nights.setdefault(names[i],set()).add(ni)
+            games[names[i]]=games.get(names[i],0)+1
     out=[]
     for d in Da["divisions"]:
         best=None

@@ -57,6 +57,9 @@ rated = buildsite.run(history, seeds)
 _season, _vault, _nights = buildsite.split_season(history, buildsite.datetime.date.today().isoformat())
 _peaks = buildsite.window_level(rated, buildsite.lookback_start(_season["from"]), _season["from"])
 BANDS = buildsite.season_bands(rated, _nights, _peaks, roster["divisions"])
+# and the pinned ones over them, as the site does: recomputed, a band drifts when old
+# games are imported (Sam came out Under 1400 here while he plays Under 1000 all season)
+BANDS = {**BANDS, **buildsite.pinned_bands().get(str(_season["no"]), {})}
 # walk-ins the phone added on a night are members now, here as on the site
 _have = {q["n"] for q in roster["roster"]}
 roster["roster"] += [q for q in buildsite.night_roster() if q["n"] not in _have]
@@ -86,6 +89,8 @@ DATA = {
     # seeds keep every player: dropping the ones who left would change the
     # replay for everybody else. They are relabelled, not removed.
     "seeds": seeds,
+    # one-off nights: rated, but not season nights (no count toward prizes)
+    "nocount": sorted(buildsite.nocount_dates()),
 }
 
 logo = base64.b64encode(io.open(os.path.join(ROOT, 'logo.png'), 'rb').read()).decode()
