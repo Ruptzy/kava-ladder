@@ -1997,6 +1997,101 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
   .recapbtn{margin-left:0}
 }
 @media(min-width:901px){.ptro{max-width:470px}}
+/* ===================== design pass, Nov 2026 =====================
+   One layer over everything above, so it reads (and rolls back) as one change.
+   The aims, from the review: the table in the first screen on a phone, red for
+   the one thing to tap, labels you can read, quieter rows, one look for players
+   with and without a photo. Numbers keep the mono face; words do not. */
+:root{--ink-3:#9A9286;--label:var(--fb)}
+/* labels: sentence case in the body face, a size you can read, no tracking */
+.howbtn,.seasel,.upd,.season small,.tabs.art button .n,.tabs button,th,.rch b,.rc h4,.lg dt,.ln .lh small,
+.recap h4,.sorts button,.sortbtn,.sortmenu h4,#you button b,.sh p,.back{
+  font-family:var(--label);text-transform:none;letter-spacing:0;font-weight:600}
+/* and the same on the profile, night, history and awards pages */
+.showaway,.gh,.xbtn,.card h3,.pnick,.pnick .tip b,.psub,.chip small,.kpis dt,.factsH,.bandrow .lb,.opp .on em,.ptro .cap2,.tprev .tp,.ptro .lb,.achhead small,.feed>b,.achinfo em,.achmore,.cab .lb,.cmpsel label,.vsbar .side em,.vsbar .mid em,.cgrp,.cmprow .lab,.agol b,.upt,.ssh h3,.upk,.nt small,.ncups b,.tafter th.tb,.awt h4,.seas th,.near>b{font-family:var(--label);text-transform:none;letter-spacing:0;font-weight:600}
+.card h3,.kpis dt,.factsH,.nt small,.awt h4,.ssh h3,.upt,.psub,.achhead small,.cgrp,.feed>b,.near>b{font-size:.8rem;color:var(--ink-2)}
+.pnick{font-size:.8rem}
+/* sentences read in the body face; the mono face is for numbers */
+#scopeNote,.cap,.nsum,#foot,.lg dd small,.awt small,.setl em,.vsbar div,.vsbar span{font-family:var(--label);letter-spacing:0}
+.cap,.nsum,#scopeNote{font-size:.84rem;color:var(--ink-2)}
+.howbtn,.seasel,.sorts button,.sortbtn{font-size:.82rem}
+.upd{font-size:.8rem;line-height:1.6;color:var(--ink-2)}
+th{font-size:.76rem;color:var(--ink-2);font-weight:600}
+.rch b,.rc h4,.lg dt,.recap h4,.sortmenu h4{font-size:.8rem;color:var(--ink-2)}
+.season small{font-size:.78rem;color:var(--ink-2)}
+.ln .lh small{font-size:.8rem}
+.tabs.art button .n{font-size:.78rem;font-weight:500}
+.wm small{letter-spacing:.12em}
+/* red is for the one thing to tap. Everything else that glowed or shouted red goes quiet. */
+.tb img{box-shadow:0 0 0 1px rgba(255,246,232,.16)}
+.wm small::after{background:linear-gradient(90deg,var(--rule-2),transparent)}
+.sh h2 span,.ln .lh b span{color:var(--ink-2)}
+.sorts button[aria-pressed=true],.sortbtn[aria-pressed=true]{background:var(--cream);border-color:var(--cream);color:var(--void)}
+.sorts button:hover,.sortbtn:hover,.sortbtn[aria-expanded=true]{border-color:var(--ink-2);color:var(--cream)}
+.howbtn:hover,.seasel:hover{border-color:var(--ink-2);color:var(--cream)}
+.howbtn.red:hover{color:#fff}
+.tabs.art button[aria-selected=true] .ta{box-shadow:0 0 0 1px rgba(255,246,232,.35)}
+tr.one td{background:none}
+tr.one td.k{color:var(--cream)}tr.one td.k::before{background:transparent}
+tbody tr:first-child.one td.k::before{background:var(--scarlet)}
+.rcr li.lead .pos{color:var(--cream)}
+.rc h4 .rcp{box-shadow:none}
+.av.l{box-shadow:none}
+.srch input:focus{border-color:var(--ink-2)}
+/* the form strip and the dots: the same facts, a notch quieter */
+.fs5 i.W{background:rgba(59,199,154,.7)}.fs5 i.L{background:rgba(240,136,62,.6)}.fs5 i.D{background:var(--rule-2)}
+.fs5 i{border-radius:2px}
+/* a player without a photo looks like one with: the same ring, a calm initial */
+.av{box-shadow:inset 0 0 0 1px rgba(255,246,232,.14);background:linear-gradient(160deg,#2A2E33,#1D2023);color:var(--cream)}
+.av.has{box-shadow:none}
+/* the line players drop under */
+.rule-note{font-family:var(--label);letter-spacing:0;font-size:.8rem;color:var(--ink-2)}
+td.gh{font-family:var(--label);font-weight:600;color:var(--ink-2)}
+td.gh small{font-weight:400;color:var(--ink-3)}
+@media(max-width:640px){
+  /* the head shrinks to one band: badge, name, night */
+  .tb{padding:.7rem 0 .5rem;gap:.6rem}
+  .tb img{width:44px;height:44px}
+  .wm>b{font-size:1.05rem}
+  .wm small{font-size:.68rem;margin-top:.2rem}
+  .season{padding:.35rem 0 0}
+  .season b{font-size:.88rem}.season small{font-size:.74rem}
+  .tools{gap:.45rem;padding-bottom:.55rem}
+  /* the buttons wrap instead of running off the edge */
+  .tbar{flex-wrap:wrap;overflow:visible;-webkit-mask-image:none;mask-image:none;gap:.4rem}
+  .howbtn,.seasel{min-height:40px;font-size:.78rem;padding:.45rem .62rem}
+  .seasel{padding-right:1.55rem;background-position:calc(100% - 13px) 52%,calc(100% - 8px) 52%}
+  .upd{font-size:.76rem}
+  #firstNote{margin:0 0 .5rem;font-size:.84rem;padding:.2rem .2rem .2rem .7rem}
+  #firstNote button{min-width:36px;min-height:36px}
+  /* the brackets: four words in a row, not four pictures stacked two by two */
+  .tabs.art{display:flex;gap:.35rem;padding:.1rem 0 .6rem;overflow-x:auto;scrollbar-width:none}
+  .tabs.art::-webkit-scrollbar{display:none}
+  .tabs.art .ta{display:none}
+  .tabs.art button{flex:1 0 auto;opacity:1;filter:none;transform:none;min-height:40px;padding:.4rem .7rem;
+    border:1px solid var(--rule-2);border-radius:20px;background:var(--panel);display:flex;align-items:center;justify-content:center;gap:.35rem}
+  .tabs.art button .sm{position:static;width:auto;height:auto;overflow:visible;clip:auto;
+    font-family:var(--label);font-size:.8rem;font-weight:600;color:var(--ink-2);white-space:nowrap}
+  .tabs.art button .n{display:none}
+  .tabs.art button[aria-selected=true]{background:var(--cream);border-color:var(--cream)}
+  .tabs.art button[aria-selected=true] .sm,.tabs.art button[aria-selected=true] .n{color:var(--void)}
+  /* the podium: three small cards side by side, so the table is right under them */
+  .pod{grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem;margin:.6rem 0 .4rem}
+  .pc{aspect-ratio:auto;background-image:none!important;padding:.55rem .3rem .5rem;display:flex;flex-direction:column;align-items:center;
+    text-align:center;container-type:normal}
+  .pc::before{z-index:0;background:var(--panel)}
+  .pc>*{position:relative;z-index:1}
+  .pc .pcav{position:relative;left:auto;top:auto;transform:none;width:40px}
+  .pc .pcav .av{font-size:.95rem}
+  .pc .pcw{position:relative;left:auto;right:auto;top:auto;transform:none;margin-top:.3rem;width:100%}
+  .pc .nm{display:block;font-size:.84rem;padding:0;margin:0;overflow:hidden;text-overflow:ellipsis;text-shadow:none}
+  .pc .rt{margin-top:.1rem;font-size:.78rem}
+  .pc .rt .pcb{display:block;margin:0 0 .1rem;font-size:.66rem;letter-spacing:0;color:var(--ink-3)}
+  .pc.p1::before{border-color:#B8912F}
+  /* rows: name, rating, tonight. The ± and the attendance badge live on the profile. */
+  .rdv,td.nmc2 .mc.mcp{display:none!important}
+  .gap{font-size:.68rem}
+}
 </style></head><body>
 <a class="skip" href="#ladder">Skip to the ladder</a>
 <header class="top"><div class="w">
@@ -2009,7 +2104,7 @@ table.seas{width:100%;border-collapse:collapse;font-size:.86rem}
 <div class="tbar"><button class="howbtn red" id="jumpBtn">Standings &darr;</button>
 <button class="howbtn" id="histBtn"><span class="lg">Club history</span><span class="sm">History</span></button>
 <select class="seasel hid" id="seaSel" aria-label="Pick a season"></select>
-<button class="howbtn" id="howBtn">How ratings work</button></div>
+<button class="howbtn" id="howBtn"><span class="lg">How ratings work</span><span class="sm">Ratings</span></button></div>
 <div class="upd" id="upd"></div></div>
 <div id="seasonNote"></div>
 <div id="firstNote"></div>
@@ -2376,13 +2471,13 @@ window.addEventListener("hashchange",route);
     { const f=$("#firstNote"); let seen=false; try{ seen=localStorage.getItem("kv-first")==="1" }catch(e){}
       const done=()=>{ try{ localStorage.setItem("kv-first","1") }catch(e){} if(f) f.innerHTML="" };
       if(f&&!seen&&!arch&&!location.hash)
-        f.innerHTML='<span>First time here? Tap your name in the table, then <b>This is me</b>.</span><button id="firstX" aria-label="Got it">&times;</button>';
+        f.innerHTML='<span>New here? Tap your name, then <b>This is me</b>.</span><button id="firstX" aria-label="Got it">&times;</button>';
       document.addEventListener("click",e=>{ if(e.target.closest("#firstX")||e.target.closest("[data-n]")) done() },true);
       addEventListener("hashchange",()=>{ if(location.hash.indexOf("#/p/")===0) done() }); }
     // one picker for every season with standings: the current one, then each frozen season
     if(past&&(D.past||[]).length){ const cur=SEASON?SEASON.no:0;
-      past.innerHTML='<option value="./"'+(arch?'':' selected')+'>'+(arch?'Current season':'Season '+cur+' \u00b7 current')+'</option>'+
-        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>'+seasonName(n)+(n===arch?' \u00b7 final':'')+'</option>').join("");
+      past.innerHTML='<option value="./"'+(arch?'':' selected')+'>'+(arch?'Current season':'Season '+cur)+'</option>'+
+        (D.past||[]).slice().reverse().map(n=>'<option value="season-'+n+'.html"'+(n===arch?' selected':'')+'>'+seasonName(n)+'</option>').join("");
       past.classList.remove("hid");
       past.onchange=function(){ if(this.value) location.href=this.value } }
     if(arch){ const j=$("#jumpBtn"); if(j) j.classList.remove("red") }
@@ -2570,7 +2665,7 @@ function draw(){
   $("#awayBtn").innerHTML=gn.length?(showAway?"Hide the "+gn.length+" away":"Show "+gn.length+" away — not on the board right now"):"";
   $("#awayBtn").style.display=gn.length?"":"none";
   $("#awayBox").classList.toggle("hid",!(gn.length&&showAway));
-  $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span style="color:var(--scarlet)">Ladder</span>';
+  $("#bt").innerHTML=(div==="all"?"Club":E(longDiv(div)))+' <span>Ladder</span>';
   const prev=prevRanks(div), byR=SORT().k==="r";
   // ranked by rating: places go to those who qualify (or still can); the rest wait below a line
   const rq=byR?rk.filter(qualifies):rk, rn=byR?rk.filter(p=>!qualifies(p)):[];
