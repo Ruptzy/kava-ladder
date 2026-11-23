@@ -418,7 +418,7 @@
    "idle": 0
   },
   {
-   "n": "\"White Knight\" \ud83e\udd3a",
+   "n": "\"White Knight\" 🤺",
    "r": 575,
    "d": "U1000",
    "idle": 0
@@ -426,6 +426,24 @@
   {
    "n": "Dave S.",
    "r": 550,
+   "d": "U1000",
+   "idle": 0
+  },
+  {
+   "n": "Jacob T.",
+   "r": 565,
+   "d": "U1000",
+   "idle": 0
+  },
+  {
+   "n": "John (texas)",
+   "r": 1550,
+   "d": "over 1400",
+   "idle": 0
+  },
+  {
+   "n": "Jeff (new)",
+   "r": 802,
    "d": "U1000",
    "idle": 0
   }
