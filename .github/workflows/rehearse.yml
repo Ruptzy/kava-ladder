@@ -1,0 +1,43 @@
+name: Rehearse a club night
+
+# Submit on the phone used to be the only test of the whole chain, and it ran at
+# midnight on club night. This runs the same chain on a made-up night, in a
+# throwaway copy, so a break shows up when it is made and not when it is needed.
+# Nothing here is committed or published. The phone tool reads this workflow's
+# last result when it opens and shows a red bar if it failed.
+on:
+  push:
+    branches: [main]
+    # any change to the builders, the data or the templates - but not a night
+    # arriving from the phone, which the real build handles
+    paths: ['build/**', '!build/nights/**', '.github/workflows/**']
+  schedule:
+    - cron: '0 15 * * 0'   # Sunday, 10 or 11 in the morning Eastern: club night
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rehearse:
+    runs-on: ubuntu-latest
+    env:
+      TZ: America/New_York
+      ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}   # optional: a Discord webhook to tell
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Rehearse a night from the phone
+        run: python build/rehearse_night.py
+
+      - name: Tell Discord it failed
+        if: failure()
+        run: |
+          if [ -z "$ALERT_WEBHOOK" ]; then echo "No ALERT_WEBHOOK secret, nothing to tell."; exit 0; fi
+          curl -sS -H "Content-Type: application/json" \
+            -d "{\"content\":\"⚠️ **The ladder rehearsal failed.** A night submitted now would save but not publish. Ask Claude to fix it before club night.\\n${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" \
+            "$ALERT_WEBHOOK"

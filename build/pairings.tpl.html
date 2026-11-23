@@ -45,6 +45,15 @@ button{font:inherit;color:inherit}
 .sync.busy::before{background:var(--loss)}
 .sync.off::before{background:var(--rule-2)}
 .sync.err::before{background:var(--scarlet)}
+/* what would stop tonight's Submit, said when the app opens and not at midnight */
+.readybar{display:block;width:100%;text-align:left;border:0;border-left:3px solid var(--scarlet);
+  background:var(--scarlet-wash);color:var(--cream);font-family:var(--f-body);font-size:.9rem;
+  line-height:1.35;padding:.65rem .95rem;margin:0;cursor:pointer}
+.readybar[hidden]{display:none}
+.readybar.soft{border-left-color:var(--loss);background:var(--loss-wash)}
+.readybar b{font-weight:700;color:var(--cream)}
+.readybar span{display:block;color:var(--ink-2);margin-bottom:.3rem}
+.readybar span:last-child{margin-bottom:0}
 .gear{background:var(--panel);border:1px solid var(--rule-2);border-radius:9px;width:42px;height:42px;
   font-size:1.05rem;cursor:pointer;flex:none}
 .steps{display:flex;gap:1px;background:var(--rule);border-bottom:1px solid var(--rule);position:sticky;top:62px;z-index:19}
@@ -280,9 +289,11 @@ vertical-align:-.1em;margin-right:.15rem}
 <div class="hd">
   <img src="__LOGO__" alt="">
   <div class="t"><b>KAVA PAIRINGS</b><small id="hsub">Swiss · club night</small>
-    <small id="sync" class="sync">connecting…</small></div>
+    <small id="sync" class="sync">connecting…</small>
+    <small id="rdy" class="sync off">checking…</small></div>
   <button class="gear" id="gear" aria-label="Settings">⚙</button>
 </div>
+<button class="readybar" id="readyBar" hidden></button>
 <nav class="steps" id="steps">
   <button data-s="in" aria-selected="true">Players</button>
   <button data-s="round" aria-selected="false">Rounds</button>
@@ -3781,7 +3792,15 @@ $("#clubFile").onchange=e=>{
    publish anything. Scope the token to this one repository and the worst a
    stolen phone can do is edit that repo.                                  */
 const PUB_KEY="kava.publish";
-function pubCfg(){ try{ return JSON.parse(localStorage.getItem(PUB_KEY)||"{}") }catch(e){ return {} } }
+/* On the club's own address the repo is not a secret and not a choice, so it is
+   filled in: a phone that has lost its storage needs the token back, nothing else.
+   Written as plain strings, not consts: the startup render can reach this
+   before a const declared here would exist. */
+function pubCfg(){
+  let c={}; try{ c=JSON.parse(localStorage.getItem(PUB_KEY)||"{}")||{} }catch(e){ c={} }
+  if(!c.owner&&!c.repo&&location.hostname==="ladder.kavasocialchessclub.com"){ c.owner="Ruptzy"; c.repo="kava-ladder" }
+  return c;
+}
 function setPub(c){ try{ localStorage.setItem(PUB_KEY,JSON.stringify(c)) }catch(e){} }
 // Pages hostnames are lower-case, whatever case the username is written in
 /* The club's repo serves at its own domain (the CNAME file in the repo root);
@@ -4936,22 +4955,32 @@ function renderPub(){
   if(rp&&document.activeElement!==rp) rp.value=c.repo||"";
   if(tk&&document.activeElement!==tk) tk.value=c.token||"";
   const st=$("#pubState"); if(!st) return;
-  st.textContent=(c.owner&&c.repo&&c.token)?("Publishing to "+siteUrl(c)):"Not set up yet — the club link comes from here.";
+  st.textContent=(c.owner&&c.repo&&c.token)?("Publishing to "+siteUrl(c))
+    :(c.owner&&c.repo)?"Only the access token is missing. Paste it below."
+    :"Not set up yet — the club link comes from here.";
 }
-["pOwner","pRepo","pTok"].forEach(id=>{
+/* Each box saves itself and nothing else, and only while it is the one being
+   typed in. All three used to be saved from the screen on any change to one of
+   them, so a password manager filling a box in the closed sheet wrote blanks
+   over the other two - a token gone with nobody having touched it. */
+const typedIn=el=>document.activeElement===el;
+[["pOwner","owner"],["pRepo","repo"],["pTok","token"]].forEach(([id,key])=>{
   const el=document.getElementById(id); if(!el) return;
-  el.oninput=()=>{ const c=pubCfg();
-    c.owner=$("#pOwner").value.trim(); c.repo=$("#pRepo").value.trim(); c.token=$("#pTok").value.trim();
-    c.branch=c.branch||"main"; c.path=c.path||"index.html"; setPub(c); renderPub(); render(); };
+  el.oninput=()=>{ if(!typedIn(el)) return;
+    const c=pubCfg(); c[key]=el.value.trim();
+    c.branch=c.branch||"main"; c.path=c.path||"index.html"; setPub(c); renderPub(); render(); readySoon(); };
 });
 {
   const el=document.getElementById("dHook");
-  if(el) el.oninput=()=>{ const c=dscCfg(); c.hook=el.value.trim(); setDsc(c); renderDsc() };
+  if(el) el.oninput=()=>{ if(!typedIn(el)) return;
+    const c=dscCfg(); c.hook=el.value.trim(); setDsc(c); renderDsc(); readySoon() };
 }
 {
   const el=document.getElementById("dPairHook");
   let wait=null;
   if(el) el.oninput=()=>{
+    if(!typedIn(el)) return;
+    readySoon();
     const c=dscCfg(); c.pairHook=el.value.trim(); setDsc(c); renderDsc(); renderPairState();
     // set up mid-night: the round in progress goes out once the paste settles
     clearTimeout(wait); wait=setTimeout(syncPairings,900);
@@ -5165,4 +5194,104 @@ $("#nSave").onclick=()=>{
 };
 
 render();
+
+/* ---------- ready to submit? ----------
+   Submit used to be the first moment anything was tested: the login on this
+   phone, the token, the website builder, the webhooks. Every one of them has
+   failed on a club night, and each time the news arrived at midnight. This asks
+   the same questions when the app opens, so a problem is a red bar at seven.
+   Read-only: nothing here writes to GitHub or posts to Discord. */
+const READY={at:0,busy:false};
+function readyPaint(state,issues){
+  const s=$("#rdy"), bar=$("#readyBar");
+  if(s){
+    s.className="sync "+({ok:"ok",bad:"err",soft:"busy",off:"off",busy:"off"})[state];
+    s.textContent=({ok:"ready to submit",bad:"not ready to submit",soft:"ready · check Discord",
+      off:"no signal · not checked",busy:"checking…"})[state];
+  }
+  if(!bar) return;
+  if(!issues||!issues.length){ bar.hidden=true; bar.innerHTML=""; return }
+  bar.className="readybar"+(issues.some(i=>i.hard)?"":" soft");
+  // what stops Submit first, then what only stops a post
+  bar.innerHTML=issues.slice().sort((a,b)=>(b.hard?1:0)-(a.hard?1:0))
+    .map(i=>"<span><b>"+esc(i.t)+"</b> "+esc(i.d)+"</span>").join("");
+  bar.hidden=false;
+}
+async function hookAlive(url){
+  // true, false, or null when it could not be asked
+  try{ const r=await fetch(String(url).split("?")[0]);
+    if(r.ok) return true;
+    return (r.status===401||r.status===404)?false:null;
+  }catch(e){ return null }
+}
+async function readyCheck(force){
+  if(READY.busy) return;
+  if(!force&&Date.now()-READY.at<10*60*1000) return;
+  READY.busy=true;
+  try{
+    const c=pubCfg(), h=dscCfg(), issues=[]; let unknown=false;
+    const login=!!(c.owner&&c.repo&&c.token);
+    if(!login) issues.push({hard:1,t:"Submit will not work yet.",d:"The access token is missing. Tap to paste it."});
+    if(!h.hook) issues.push({t:"Results will not post to Discord.",d:"Webhook missing. Tap to paste it."});
+    if(!h.pairHook) issues.push({t:"Pairings will not post to Discord.",d:"Webhook missing. Tap to paste it."});
+    readyPaint(issues.some(i=>i.hard)?"bad":"busy",issues);   // what the phone knows by itself, at once
+    if(navigator.onLine===false) unknown=true;
+    else{
+      // 1. does GitHub still take the token, and may it write
+      if(login){
+        try{
+          const r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo,{headers:ghHeaders(c)});
+          if(r.status===401) issues.push({hard:1,t:"Submit will not work.",
+            d:"GitHub no longer accepts the access token. Tap to paste a new one."});
+          else if(r.status===404) issues.push({hard:1,t:"Submit will not work.",
+            d:"The access token cannot see the ladder. Tap to paste a new one."});
+          else if(r.ok){ const j=await r.json();
+            if(j.permissions&&!j.permissions.push) issues.push({hard:1,t:"Submit will not work.",
+              d:"The access token can read the ladder but not write to it. Tap to paste a new one."}); }
+          else unknown=true;
+        }catch(e){ unknown=true }
+      }
+      // 2. is the builder that turns a night into the website in working order
+      if(c.owner&&c.repo){
+        for(const [file,what] of [["build.yml","The last website build failed."],
+                                  ["rehearse.yml","The last practice run of a club night failed."]]){
+          try{
+            const r=await fetch("https://api.github.com/repos/"+c.owner+"/"+c.repo+"/actions/workflows/"+file+
+              "/runs?branch=main&status=completed&per_page=1",{headers:{Accept:"application/vnd.github+json"}});
+            if(r.ok){ const run=((await r.json()).workflow_runs||[])[0];
+              if(run&&run.conclusion==="failure"&&!issues.some(i=>i.builder)) issues.push({hard:1,builder:1,
+                t:"The website builder is failing.",
+                d:what+" A night would save but not publish. Ask Claude to fix it before tonight."}); }
+          }catch(e){ unknown=true }
+        }
+      }
+      // 3. are the webhooks still real
+      if(h.hook){ const ok=await hookAlive(h.hook);
+        if(ok===false) issues.push({t:"Results will not post to Discord.",
+          d:"Discord no longer accepts the webhook. Tap to paste a new one."});
+        else if(ok===null) unknown=true; }
+      if(h.pairHook&&hookBase(h.pairHook)!==hookBase(h.hook||"")){ const ok=await hookAlive(h.pairHook);
+        if(ok===false) issues.push({t:"Pairings will not post to Discord.",
+          d:"Discord no longer accepts the webhook. Tap to paste a new one."});
+        else if(ok===null) unknown=true; }
+    }
+    const hard=issues.some(i=>i.hard);
+    readyPaint(hard?"bad":issues.length?"soft":unknown?"off":"ok",issues);
+    READY.at=unknown?0:Date.now();
+  }catch(e){ readyPaint("off",[]) }
+  finally{ READY.busy=false }
+}
+let readyWait=null;
+function readySoon(){ clearTimeout(readyWait); readyWait=setTimeout(()=>readyCheck(true),1200) }
+$("#readyBar").onclick=()=>$("#gear").click();
+addEventListener("online",()=>readyCheck(true));
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) readyCheck(false) });
+setTimeout(()=>readyCheck(true),700);
+
+/* Ask the phone to keep this site's storage. Without the ask, Android may clear
+   it to make room, and the token and webhooks go with it. */
+try{
+  if(navigator.storage&&navigator.storage.persist)
+    navigator.storage.persisted().then(p=>p||navigator.storage.persist()).catch(()=>{});
+}catch(e){}
 </script>

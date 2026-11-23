@@ -70,3 +70,15 @@ jobs:
         run: gh api -X POST "repos/${GITHUB_REPOSITORY}/pages/builds"
         env:
           GH_TOKEN: ${{ github.token }}
+
+      # optional: with an ALERT_WEBHOOK secret set, a failed build says so in
+      # Discord instead of waiting to be found on a club night
+      - name: Tell Discord it failed
+        if: failure()
+        env:
+          ALERT_WEBHOOK: ${{ secrets.ALERT_WEBHOOK }}
+        run: |
+          if [ -z "$ALERT_WEBHOOK" ]; then echo "No ALERT_WEBHOOK secret, nothing to tell."; exit 0; fi
+          curl -sS -H "Content-Type: application/json" \
+            -d "{\"content\":\"⚠️ **The ladder's website build failed.** A night submitted now would save but not publish. Ask Claude to fix it before club night.\n${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}\"}" \
+            "$ALERT_WEBHOOK"
